@@ -131,6 +131,10 @@ export abstract class TextInputSuggester<T> implements ISuggester{
 
     private inputListener: (this: HTMLInputElement, ev: Event) => void
     private lastValue: string
+    // Keep a single bound reference so removeEventListener in destroy() can
+    // actually detach the blur listener (close.bind(this) creates a new
+    // function on every call).
+    private boundClose: () => void
 
     constructor(app: App, inputEl: HTMLInputElement, suggestionParentContainer: HTMLElement, viewOptions?: suggesterViewOptions, searchDelay?: number){
         this.app = app
@@ -155,9 +159,10 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         
         this.inputEl.addEventListener('input', this.inputListener);
         // 移除 focus 事件监听，避免重复触发
-        this.inputEl.addEventListener('blur', this.close.bind(this));
+        this.boundClose = this.close.bind(this);
+        this.inputEl.addEventListener('blur', this.boundClose);
         
-        this.scope.register([], 'escape', this.close.bind(this));
+        this.scope.register([], 'escape', this.boundClose);
         
         this.viewOptions = viewOptions ?? {};
         this.suggestionParentContainer = suggestionParentContainer;
@@ -196,6 +201,17 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     // 跟踪作用域是否已被推入堆栈
     private scopeActive = false;
 
+    // Pop the suggester scope off the keymap stack, if it is currently pushed.
+    // Also used when the suggestion list stays open (hideOnBlur=false): the
+    // UI must survive, but the keyboard scope must not leak once the input
+    // loses focus.
+    protected releaseKeyboardScope(): void{
+        if(this.scopeActive){
+            this.app.keymap.popScope(this.scope)
+            this.scopeActive = false
+        }
+    }
+
     open(): void{
         if(this.closingAnimationRunning) this.abortClosingAnimation()
         if(this.suggesterView) return
@@ -222,10 +238,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
 
     close(): void{
         // 清理键盘作用域
-        if (this.scopeActive) {
-            this.app.keymap.popScope(this.scope);
-            this.scopeActive = false;
-        }
+        this.releaseKeyboardScope()
 
         // Reset suggestions
         this.suggester.setSuggestions([])
@@ -255,13 +268,10 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     destroy(): void{
         this.close()
         this.inputEl.removeEventListener('input', this.inputListener)
-        this.inputEl.removeEventListener('blur', this.close.bind(this))
+        this.inputEl.removeEventListener('blur', this.boundClose)
         
         // 最后确保作用域被清理
-        if (this.scopeActive) {
-            this.app.keymap.popScope(this.scope);
-            this.scopeActive = false;
-        }
+        this.releaseKeyboardScope()
     }
     
     scrollSelectedItemIntoView(): void{
