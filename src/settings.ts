@@ -21,7 +21,7 @@ interface ObjectKeys {
 }
 
 interface logoStore extends ObjectKeys{
-    lucideIcon: IconName | ''
+    lucideIcon: IconName
     imagePath: string
     imageLink: string
 }
@@ -652,7 +652,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         }
                         else if(currentType === 'lucideIcon'){
                             if(getIconIds().includes(value)){
-                                s.logo['lucideIcon'] = value as IconName
+                                s.logo['lucideIcon'] = value
                                 void this.plugin.saveSettings()
                                 invalidInputIcon.toggleVisibility(false)
                             }

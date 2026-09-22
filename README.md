@@ -1,10 +1,10 @@
-# First Light
+# Harbor Tab
 
 https://github.com/user-attachments/assets/c73c1297-568a-4991-acaf-82c623e116fe
 
-First Light is a modernized continuation of [Home tab](https://github.com/olrenso/Obsidian-home-tab) by [olrenso](https://github.com/olrenso) — an [Obsidian](https://obsidian.md/) plugin that adds a browser-like default new tab with a search bar and a grid of starred files, now with ongoing updates and new features.
+Harbor Tab is a modernized continuation of [Home tab](https://github.com/olrenso/Obsidian-home-tab) by [olrenso](https://github.com/olrenso) — an [Obsidian](https://obsidian.md/) plugin that adds a browser-like default new tab with a search bar and a grid of starred files, now with ongoing updates and new features.
 
-*Your vault, at first light.*
+*Your vault's home port.*
 
 You can search any local file in your vault, both markdown notes and attachments.
 
@@ -84,8 +84,8 @@ The plugin may not work with (or interfere with) other plugins that replace the 
 
 ---
 # How to install
-The plugin will be available directly from the [Obsidian plugin browser](https://obsidian.md/plugins?id=first-light).
-Alternatively, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat) by using the following links: `https://github.com/Moyf/first-light` or `Moyf/first-light`.
+The plugin will be available directly from the [Obsidian plugin browser](https://obsidian.md/plugins?id=harbor-tab).
+Alternatively, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat) by using the following links: `https://github.com/Moyf/harbor-tab` or `Moyf/harbor-tab`.
 
 ---
 # Acknowledgments

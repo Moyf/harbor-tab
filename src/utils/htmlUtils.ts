@@ -46,8 +46,8 @@ export function generateHotkeySuggestion(hotkeySuggestions: hotkeySuggestion[], 
 
     hotkeySuggestions.forEach((hotkeySuggestion) => {
         const suggestionElement = hotkeySuggestionElement.createDiv('prompt-instruction')
-        suggestionElement.createEl('span', {text: hotkeySuggestion.hotkey}).addClass('prompt-instruction-command')
-        suggestionElement.createEl('span', {text: hotkeySuggestion.action})
+        suggestionElement.createSpan({text: hotkeySuggestion.hotkey}).addClass('prompt-instruction-command')
+        suggestionElement.createSpan({text: hotkeySuggestion.action})
     })
 
     return hotkeySuggestionElement        

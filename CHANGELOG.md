@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Compatibility
+
+- **Plugin renamed to Harbor Tab** (`harbor-tab`): the `first-light` id is already taken in the official plugin store, so the submission continues under a new id. The repository moved to `Moyf/harbor-tab` (old links redirect automatically); BRAT users switching from a previous install should point it at the new repo. Obsidian treats the new id as a different plugin — enable it and re-configure its settings once; the old `first-light` folder can be removed from `.obsidian/plugins/`. The lighthouse wordmark/icon is unchanged
+
 ### Bug Fixes
 
 - Fix "ghost" home tabs: after closing a tab, the new-tab replacement could target a detached leaf and resurrect it outside the layout tree, leaving stray empty tabs and stale leaf references that other plugins tripped over. It now verifies the leaf is still attached and falls back to the most recently used empty tab

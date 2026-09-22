@@ -68,7 +68,7 @@ export class IconSelectionModal extends Modal{
                 .setCta()
                 .onClick(() => {
                     if(this.icon){
-                        this.onSubmit(this.icon as IconName)
+                        this.onSubmit(this.icon)
                     }
                     this.close()
                 }))

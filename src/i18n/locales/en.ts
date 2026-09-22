@@ -5,7 +5,7 @@ const en: BaseMessage = {
 		openNewTab: 'Open new tab',
 		replaceCurrentTab: 'Replace current tab',
 	},
-	viewName: 'First Light',
+	viewName: 'Harbor Tab',
 	group: {
 		search: 'Search',
 		files: 'Files',
