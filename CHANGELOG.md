@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+- Fix "ghost" home tabs: after closing a tab, the new-tab replacement could target a detached leaf and resurrect it outside the layout tree, leaving stray empty tabs and stale leaf references that other plugins tripped over. It now verifies the leaf is still attached and falls back to the most recently used empty tab
+- Fix the search suggestions' keyboard scope leaking when "hide on blur" is disabled: after the search bar lost focus, arrow keys and Enter kept being captured by the stale suggestion list (e.g. Enter re-opened the highlighted result instead of editing). The list stays available for mouse clicks, but the keyboard is released
+
 ## [1.4.2] - 2026-09-14
 
 ### Compatibility
