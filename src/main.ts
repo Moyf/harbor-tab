@@ -171,8 +171,18 @@ export default class HomeTab extends Plugin {
 	}
 
 	public activateView(overrideView?: boolean, openNewTab?: boolean):void {
-		const leaf = openNewTab ? this.app.workspace.getLeaf('tab') : this.app.workspace.getMostRecentLeaf()
-		// const leaf = newTab ? this.app.workspace.getLeaf() : this.app.workspace.getMostRecentLeaf()
+		let leaf = openNewTab ? this.app.workspace.getLeaf('tab') : this.app.workspace.getMostRecentLeaf()
+		// getMostRecentLeaf() can return a detached leaf whose tab was already
+		// closed: Obsidian keeps the stale reference and reports its view state
+		// as 'empty'. Calling setViewState() on such a ghost leaf resurrects it
+		// outside the layout tree and corrupts active-leaf bookkeeping (stray
+		// empty tabs, stale getLeaf()/getMostRecentLeaf() results that other
+		// plugins then trip over). Only use the leaf when it is still attached
+		// to the workspace root, otherwise fall back to the most recently used
+		// attached empty leaf.
+		if(leaf && !this.isLeafAttached(leaf)){
+			leaf = this.getMostRecentAttachedEmptyLeaf() ?? (overrideView ? this.app.workspace.getLeaf('tab') : null)
+		}
 		if(leaf && (overrideView || leaf.getViewState().type === 'empty')){
 			void leaf.setViewState({
 				type: VIEW_TYPE,
@@ -180,6 +190,26 @@ export default class HomeTab extends Plugin {
 			// Focus newly opened tab
 			if(openNewTab){void this.app.workspace.revealLeaf(leaf)}
 		}
+	}
+
+	private isLeafAttached(leaf: WorkspaceLeaf): boolean {
+		let attached = false
+		this.app.workspace.iterateRootLeaves((rootLeaf) => {
+			if(rootLeaf === leaf){attached = true}
+		})
+		return attached
+	}
+
+	private getMostRecentAttachedEmptyLeaf(): WorkspaceLeaf | undefined {
+		let mostRecent: WorkspaceLeaf | undefined
+		let activeTime = -1
+		this.app.workspace.iterateRootLeaves((leaf) => {
+			if(leaf.getViewState().type === 'empty' && leaf.activeTime > activeTime){
+				mostRecent = leaf
+				activeTime = leaf.activeTime
+			}
+		})
+		return mostRecent
 	}
 
 	public refreshOpenViews(): void {

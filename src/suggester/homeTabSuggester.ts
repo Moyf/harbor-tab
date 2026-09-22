@@ -118,7 +118,9 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         if (this.inputEl.ownerDocument.activeElement !== this.inputEl) {
             // 当前元素失去焦点，检查 hideOnBlur 设置
             if (!(this.plugin.settings.hideOnBlur ?? true)) {
-                // 如果设置为不隐藏，则不关闭
+                // 设置为不隐藏时保留建议列表供鼠标点击，但仍要释放键盘作用域，
+                // 否则失焦后 ↑/↓/Enter 会继续被残留的建议器劫持
+                this.releaseKeyboardScope();
                 return;
             }
         }
