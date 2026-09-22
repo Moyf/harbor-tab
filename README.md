@@ -1,27 +1,25 @@
 # Harbor Tab
-
-https://github.com/user-attachments/assets/c73c1297-568a-4991-acaf-82c623e116fe
-
-Harbor Tab is a modernized continuation of [Home tab](https://github.com/olrenso/Obsidian-home-tab) by [olrenso](https://github.com/olrenso) — an [Obsidian](https://obsidian.md/) plugin that adds a browser-like default new tab with a search bar and a grid of starred files, now with ongoing updates and new features.
+![](assets/particles.gif)
 
 *Your vault's home port.*
 
-You can search any local file in your vault, both markdown notes and attachments.
+Harbor Tab is a modernized continuation of [Home tab](https://github.com/olrenso/Obsidian-home-tab) plugin by [olrenso](https://github.com/olrenso) — an [Obsidian](https://obsidian.md/) plugin that adds a browser-like default new tab with a search bar and a grid of starred files, now with ongoing updates and new features.
 
-![](images/home-tab.png)
+![](assets/overview.webp)
+
+You can search any local file in your vault, both markdown notes and attachments.
+![](assets/search.webp)
 
 This plugin is not meant to be a replacement for the default Quick switcher or any alternative one like [Another quick switcher](https://github.com/tadashi-aikawa/obsidian-another-quick-switcher) (from which I took inspiration), but rather a faster way to open a note or a file after opening a new tab.
 
 ## What's new
 Compared to the original Home tab, this fork continues development with:
 
-- **Particle wordmark** — render the logo and title as an interactive particle grid that ripples around the cursor, with a monochrome mode, ambient idle-motion modes (wave, float, staggered float, heartbeat, ripple, breathe) and tunable canvas parameters
 - **Heading search & jump** — search through document headings and automatically jump to the matched one, with a smart jump strategy
 - **Web link suggestions** — detect web addresses typed in the search bar and offer to open them with the Web Viewer core plugin
 - **Localization** — English and Simplified Chinese
+- **Particle wordmark** — render the logo and title as an interactive particle grid that ripples around the cursor, with a monochrome mode, ambient idle-motion modes (wave, float, staggered float, heartbeat, ripple, breathe) and tunable canvas parameters
 - **Modernized settings tab** — rebuilt on Obsidian's declarative settings API, organized into sub-pages
-- **Hide on blur** — optionally hide search results when the search bar loses focus
-- **Debug mode** — detailed logging for search and match analysis
 
 ## How to use
 By default, every new empty tab is automatically replaced with the Home tab view. You can disable this behavior in the settings and manually open a new Home tab through the command palette with the commands `Home tab: Open new Home tab` or `Home tab: Replace current tab`.
@@ -32,7 +30,7 @@ To easily find a file you can filter the search by using filters for the file ty
 
 You can activate a filter by writing the filter key (see table below) and pressing tab. To remove the filter press backspace.
 
-![](images/search_filters.png)
+![](assets/ext-filter.webp)
 
 #### Filters keys
 The following filters are available:
@@ -45,8 +43,6 @@ The following filters are available:
 | `audio` | `mp3`, `wav`, `m4a`, `ogg`, `3gp`, `flac` |
 | `pdf` | `pdf` |  
 | `canvas` | `canvas` |
-
-![](images/filters_gif.gif)
 
 ### Embedded search bar
 You can embed the Home tab view in any note with options to show recent files, starred files, or only the search bar.
@@ -64,33 +60,19 @@ show starred files
 ```
 ````
 
-![](images/embedded_searchbar.png)
-
-
-### Starred files
-If enabled, starred files are automatically displayed under the search bar.
-
-By hovering the top right corner, you can unstar a file or change the displayed icon.
-
-![](images/starred_files-options.png)
-
-## Settings
-
-![](images/settings-tab.png)
+![](assets/embeded-search-bar.webp)
 
 ---
-## Known issues
-The plugin may not work with (or interfere with) other plugins that replace the new tabs with their custom view, such as the [Obsidian-Surfing](https://github.com/PKM-er/Obsidian-Surfing) plugin.
 
----
 # How to install
 The plugin will be available directly from the [Obsidian plugin browser](https://obsidian.md/plugins?id=harbor-tab).
+
 Alternatively, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat) by using the following links: `https://github.com/Moyf/harbor-tab` or `Moyf/harbor-tab`.
 
 ---
+
 # Acknowledgments
 
-- The particle wordmark effect is inspired by [Arknights-FlowingPoints](https://github.com/BlackCoder0/Arknights-FlowingPoints) by [BlackCoder0](https://github.com/BlackCoder0) — a canvas-based recreation of the dynamic dot-matrix interaction from the [Arknights](https://ak.hypergryph.com/) official website. Our implementation is an independent rewrite of that idea.
-- Original [Home tab](https://github.com/olrenso/Obsidian-home-tab) plugin by [olrenso](https://github.com/olrenso).
+- Original [Home tab](https://github.com/olrenso/Obsidian-home-tab) plugin by [olrenso](https://github.com/olrenso). ❤️
 - Continued development is permitted by the original author — see [olrenso/obsidian-home-tab#65](https://github.com/olrenso/obsidian-home-tab/issues/65) for details.
-
+- The particle wordmark effect is inspired by [Arknights-FlowingPoints](https://github.com/BlackCoder0/Arknights-FlowingPoints) by [BlackCoder0](https://github.com/BlackCoder0) — Our implementation is an independent rewrite of that idea.
