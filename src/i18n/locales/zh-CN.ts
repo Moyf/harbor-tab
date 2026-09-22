@@ -27,15 +27,15 @@ const zhCN: BaseMessage = {
 	},
 	setting: {
 		replaceNewTabs: {
-			name: '将新标签页替换为 Home tab',
+			name: '将新标签页替换为 Harbor Tab',
 		},
 		newTabOnStart: {
-			name: 'Obsidian 启动时打开 Home tab',
-			desc: '如果已有打开的 Home tab，将聚焦它而不是打开新的。',
+			name: 'Obsidian 启动时打开 Harbor Tab',
+			desc: '如果已有打开的 Harbor Tab，将聚焦它而不是打开新的。',
 		},
 		closePreviousSessionTabs: {
 			name: '启动时关闭上次会话的标签页',
-			desc: '启用后，Obsidian 启动时会关闭所有标签页，只保留一个 Home tab。',
+			desc: '启用后，Obsidian 启动时会关闭所有标签页，只保留一个 Harbor Tab。',
 		},
 		webUrlSuggestions: {
 			name: '网址链接建议',

@@ -27,15 +27,15 @@ const en: BaseMessage = {
 	},
 	setting: {
 		replaceNewTabs: {
-			name: 'Replace new tabs with Home tab',
+			name: 'Replace new tabs with Harbor Tab',
 		},
 		newTabOnStart: {
-			name: 'Open new Home tab on Obsidian start',
-			desc: "If a Home tab is already open it'll focus it instead of opening a new one.",
+			name: 'Open new Harbor Tab on Obsidian start',
+			desc: "If a Harbor Tab is already open it'll focus it instead of opening a new one.",
 		},
 		closePreviousSessionTabs: {
 			name: 'Close previous session tabs on start',
-			desc: 'Enable this to close all the tabs and leave only one Home tab on Obsidian opening.',
+			desc: 'Enable this to close all the tabs and leave only one Harbor Tab on Obsidian opening.',
 		},
 		webUrlSuggestions: {
 			name: 'Web link suggestions',
@@ -211,7 +211,7 @@ const en: BaseMessage = {
 		},
 		particleEffect: {
 			name: 'Enable particle effect',
-			desc: 'Render the home tab logo and title as an interactive particle grid that ripples around the cursor',
+			desc: 'Render the Harbor Tab logo and title as an interactive particle grid that ripples around the cursor',
 		},
 		particleEffectMonochrome: {
 			name: 'Monochrome',
