@@ -729,15 +729,22 @@ export class ParticleWordmarkEngine {
      */
     private applyGlow(context: CanvasRenderingContext2D): void {
         if (this.glow <= 0) return
+        // Energy budget = 2× strength: at max the glow is applied twice, and
+        // the second pass re-blurs the first pass's halo on top, compounding
+        // into a wider and much brighter bloom than a single pass could give.
+        let energy = this.glow * 2
         context.save()
         // Blur in device pixels so the radius looks the same on any display.
         context.setTransform(1, 0, 0, 1, 0, 0)
         context.globalCompositeOperation = 'lighter'
-        context.globalAlpha = this.glow
         context.filter = `blur(${GLOW_BLUR_PX * this.scale}px)`
         // Drawing a canvas onto itself snapshots the bitmap first, so this
         // samples the just-finished frame instead of feeding back.
-        context.drawImage(this.canvas as HTMLCanvasElement, 0, 0)
+        while (energy > 0.01) {
+            context.globalAlpha = Math.min(energy, 1)
+            context.drawImage(this.canvas as HTMLCanvasElement, 0, 0)
+            energy -= 1
+        }
         context.restore()
     }
 
