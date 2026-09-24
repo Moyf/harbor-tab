@@ -25,6 +25,8 @@ export interface ParticleWordmarkOptions {
     gradientFrequency: number
     /** Idle motion speed multiplier (heartbeat: beats per interval). */
     motionFrequency: number
+    /** Bloom glow strength, 0 (off) to 1. */
+    glow: number
     /** Enlargement of the canvas content relative to the original wordmark box. */
     zoom: number
     /** Lattice spacing between sampled particles, CSS pixels. */
@@ -106,6 +108,8 @@ const RIPPLE_AMPLITUDE = 1.4 // CSS px, radial excursion of a ring crest
 // Gradient animation paces (seconds per full pattern cycle at 1× frequency).
 const CYCLE_BASE_PERIOD = 6 // the alternating stop pattern scrolls one gradient-length
 const BREATHE_BASE_PERIOD = 4 // color A fades to B and back to A
+// Bloom glow: blur radius of the additive pass, in CSS pixels.
+const GLOW_BLUR_PX = 6
 
 // Sine lookup table: idle motion replaces up-to-15k Math.sin calls per frame
 // with one array lookup each. Bitwise masking below also folds negative or
@@ -150,6 +154,7 @@ export class ParticleWordmarkEngine {
     private readonly gradientAngle: number
     private readonly gradientFrequency: number
     private readonly motionFrequency: number
+    private readonly glow: number
     private readonly colorA: RGB
     private readonly colorB: RGB
 
@@ -237,6 +242,7 @@ export class ParticleWordmarkEngine {
         this.gradientAngle = options.gradientAngle ?? 180
         this.gradientFrequency = Math.max(options.gradientFrequency ?? 1, 0.01)
         this.motionFrequency = Math.max(options.motionFrequency ?? 1, 0.01)
+        this.glow = Math.min(Math.max(options.glow ?? 0, 0), 1)
         this.colorA = parseHexColor(options.color)
         this.colorB = parseHexColor(options.color2)
     }
@@ -712,6 +718,27 @@ export class ParticleWordmarkEngine {
         else if (motion === 'breathe') this.renderRadialScale(context, particles, 1 + BREATHE_SCALE * lutSin(time * BREATHE_SPEED), frameFill)
         else if (motion === 'ripple') this.renderRipple(context, particles, time, frameFill)
         else this.renderStatic(context, particles, frameFill) // stale setting values (removed modes) fall back safely
+        this.applyGlow(context)
+    }
+
+    /**
+     * Bloom glow: re-draws the finished frame onto itself through a blur
+     * filter with additive blending. One GPU-composited pass whose cost
+     * depends on the canvas size and blur radius only — never on the particle
+     * count — and it is skipped entirely at strength 0.
+     */
+    private applyGlow(context: CanvasRenderingContext2D): void {
+        if (this.glow <= 0) return
+        context.save()
+        // Blur in device pixels so the radius looks the same on any display.
+        context.setTransform(1, 0, 0, 1, 0, 0)
+        context.globalCompositeOperation = 'lighter'
+        context.globalAlpha = this.glow
+        context.filter = `blur(${GLOW_BLUR_PX * this.scale}px)`
+        // Drawing a canvas onto itself snapshots the bitmap first, so this
+        // samples the just-finished frame instead of feeding back.
+        context.drawImage(this.canvas as HTMLCanvasElement, 0, 0)
+        context.restore()
     }
 
     /**

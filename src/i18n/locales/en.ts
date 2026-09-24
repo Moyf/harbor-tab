@@ -284,6 +284,10 @@ const en: BaseMessage = {
 			name: 'Idle motion frequency',
 			desc: 'Speed of the idle motion (higher = faster); for Heartbeat this sets the interval between beats',
 		},
+		particleEffectGlow: {
+			name: 'Glow strength',
+			desc: 'Adds a bloom glow around the particles; 0 disables it, higher values glow brighter',
+		},
 		debugMode: {
 			name: 'Debug mode',
 			desc: 'Enable debug logging for search results and match analysis. Check the developer console for detailed information.',

@@ -284,6 +284,10 @@ const zhCN: BaseMessage = {
 			name: '运动频率',
 			desc: '空闲运动的变化速度（数值越大越快）；心跳模式对应两次心跳的间隔',
 		},
+		particleEffectGlow: {
+			name: '辉光强度',
+			desc: '为粒子添加辉光（泛光）效果；0 为关闭，数值越大越亮',
+		},
 		debugMode: {
 			name: '调试模式',
 			desc: '启用搜索结果与匹配分析的调试日志。详情请查看开发者控制台。',

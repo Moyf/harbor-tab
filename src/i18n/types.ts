@@ -98,6 +98,7 @@ export interface BaseMessage {
 		particleEffectDisturbStrength: SettingEntry
 		particleEffectAmbientMotion: SettingEntry & { options: DropdownOptions }
 		particleEffectMotionFrequency: SettingEntry
+		particleEffectGlow: SettingEntry
 		debugMode: SettingEntry
 	}
 	common: {

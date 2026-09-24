@@ -55,6 +55,7 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectGradientFrequency: number
     particleEffectAmbientMotion?: 'none' | 'wave' | 'float' | 'undulate' | 'pulse' | 'ripple' | 'breathe' // 新增：粒子的默认漂浮运动模式
     particleEffectMotionFrequency: number
+    particleEffectGlow: number
     particleEffectScale: number
     particleEffectSpacing: number
     particleEffectDotSize: number
@@ -117,6 +118,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectGradientFrequency: 1,
     particleEffectAmbientMotion: 'none', // 新增：默认无漂浮运动
     particleEffectMotionFrequency: 1,
+    particleEffectGlow: 0,
     particleEffectScale: 1.9,
     particleEffectSpacing: 2,
     particleEffectDotSize: 0.5,
@@ -586,6 +588,10 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     {
                                         ...this.sliderWithReset('particleEffectMotionFrequency', t.setting.particleEffectMotionFrequency.name, t.setting.particleEffectMotionFrequency.desc, 0.25, 4, 0.05),
                                         visible: () => s.particleEffect && s.particleEffectAmbientMotion !== 'none',
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectGlow', t.setting.particleEffectGlow.name, t.setting.particleEffectGlow.desc, 0, 100, 5),
+                                        visible: () => s.particleEffect,
                                     },
                                 ],
                             },
