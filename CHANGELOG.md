@@ -9,7 +9,7 @@
 ### Bug Fixes
 
 - Fix the cursor ripple settling at different speeds depending on the display refresh rate: the particle physics now steps in 60 Hz reference frames, so a disturbance takes the same wall-clock time on 60 Hz, 120 Hz, and through throttled frames (previously a stalled frame skipped ahead and high-refresh displays settled faster)
-- Make the default particle ripple visibly linger instead of snapping back: particles are now much less damped, so a cursor pass leaves a few clear overshoots that fade out over a second or so, instead of a single barely visible bounce
+- Make the default particle ripple visibly linger instead of snapping back: particles are now much less damped, so a cursor pass leaves a few clear overshoots that fade out over about 3.3 seconds, instead of a single barely visible bounce
 
 <details>
 <summary>中文说明（点击展开）</summary>
@@ -21,7 +21,7 @@
 ### 修复
 
 - 修复粒子涟漪的收敛速度随屏幕刷新率变化的问题：物理积分改为按 60 Hz 参考帧步进，扰动在 60 Hz、120 Hz 以及掉帧时消耗同样的实际时间（此前掉帧会一次性跳过大段时间，高刷屏则收敛更快）
-- 让默认的粒子涟漪真正「荡」起来：大幅降低阻尼，鼠标划过之后会留下数次清晰的过冲并在一秒左右逐渐消散，而不是一次几乎看不见的回弹
+- 让默认的粒子涟漪真正「荡」起来：大幅降低阻尼，鼠标划过之后会留下数次清晰的过冲并在约 3.3 秒内逐渐消散，而不是一次几乎看不见的回弹
 
 </details>
 
