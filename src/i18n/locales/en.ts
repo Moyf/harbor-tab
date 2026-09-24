@@ -267,6 +267,10 @@ const en: BaseMessage = {
 			name: 'Disturbance strength',
 			desc: 'How strongly the cursor pushes particles away',
 		},
+		particleEffectRecoverySpeed: {
+			name: 'Recovery speed',
+			desc: 'How fast particles settle back after the cursor disturbs them; lower values keep the ripple going longer',
+		},
 		particleEffectAmbientMotion: {
 			name: 'Idle motion',
 			desc: 'Gentle floating movement while the particles rest',

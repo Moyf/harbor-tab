@@ -37,6 +37,13 @@ export interface ParticleWordmarkOptions {
     repulsionRadius: number
     /** How strongly the cursor pushes particles away. */
     repulsionStrength: number
+    /**
+     * How fast a disturbed particle settles back home — the knob behind the
+     * "linger vs snap" feel of the cursor ripple. 1 is the default ripple
+     * (visibly underdamped, a few overshoots); lower values let the wave
+     * linger longer, higher values snap back. Clamped to the supported range.
+     */
+    recoverySpeed: number
     /** Idle motion applied on top of the physics, computed at draw time only. */
     ambientMotion: AmbientMotion
 }
@@ -70,8 +77,33 @@ interface CapturedSources {
     hiddenElements: HTMLElement[]
 }
 
-const SPRING_STRENGTH = 0.02
-const DAMPING = 0.12
+// Cursor-ripple physics. Every particle is pulled back to its home position by
+// a spring and bled of velocity by damping; that pair is what decides how long
+// a disturbance keeps moving, i.e. how much the interaction reads as a "wave"
+// instead of a snap-back.
+//
+// The solver is step based — one step per animation frame — so raw
+// spring/damping constants are *per frame* values that only mean the same thing
+// at the same refresh rate: the same pair settles twice as fast in wall-clock
+// time on a 120 Hz display as on 60 Hz. step() therefore receives the frame
+// delta measured in 60 Hz reference frames and scales both terms by it, so the
+// ripple keeps its pace on 60/120 Hz and through throttled frames, while a
+// 60 Hz display still integrates one reference step per frame.
+//
+// The user-facing recovery speed scales both terms together, so it changes the
+// whole response proportionally (ω and the decay rate both grow with it) and
+// the damping ratio only mildly (ζ ∝ √speed). At the default (1) the ripple is
+// clearly underdamped — several visible overshoots over roughly a second; at
+// the slow end (0.6) it lingers noticeably longer, at the fast end (2.5) it is
+// close to the old instant snap-back. The extremes stay well inside the
+// stability region even when a stalled frame is clamped to MAX_FRAME_STEPS.
+const REFERENCE_FRAME_MS = 1000 / 60
+const BASE_SPRING_STRENGTH = 0.011 // per 60 Hz frame at speed 1: ω ≈ 0.105 rad/frame (~1 s period)
+const BASE_DAMPING_RATE = 0.042 // per 60 Hz frame at speed 1: velocity half-life ≈ 0.55 s
+const RECOVERY_SPEED_DEFAULT = 1
+const RECOVERY_SPEED_MIN = 0.6
+const RECOVERY_SPEED_MAX = 2.5
+const MAX_FRAME_STEPS = 3 // a stalled frame (hidden tab, long task) counts as at most 3 reference steps
 const MAX_PARTICLES = 15000
 const RESIZE_DEBOUNCE_MS = 200
 const MIN_ALPHA = 128
@@ -157,6 +189,12 @@ export class ParticleWordmarkEngine {
     private readonly glow: number
     private readonly colorA: RGB
     private readonly colorB: RGB
+    /** Effective recovery speed (option value clamped to the supported range). */
+    private readonly recoverySpeed: number
+    /** Spring stiffness per 60 Hz reference frame. */
+    private readonly springStrength: number
+    /** Velocity decay rate per 60 Hz reference frame (used as exp(-rate × dt)). */
+    private readonly dampingRate: number
 
     private particles: Particle[] = []
     private canvas: HTMLCanvasElement | null = null
@@ -178,6 +216,8 @@ export class ParticleWordmarkEngine {
     private originalContainerPosition: string | null = null
     private resizeObserver: ResizeObserver | null = null
     private resizeTimer: number | null = null
+    /** Timestamp of the previous animation frame, in the container window's clock. */
+    private lastFrameTime: number | null = null
     private rebuildTimestamps: number[] = []
 
     private readonly handleMouseMove = (event: MouseEvent): void => {
@@ -245,6 +285,11 @@ export class ParticleWordmarkEngine {
         this.glow = Math.min(Math.max(options.glow ?? 0, 0), 1)
         this.colorA = parseHexColor(options.color)
         this.colorB = parseHexColor(options.color2)
+        // Tolerate an undefined value (settings loaded from an older schema).
+        const speed = options.recoverySpeed ?? RECOVERY_SPEED_DEFAULT
+        this.recoverySpeed = Math.min(Math.max(speed, RECOVERY_SPEED_MIN), RECOVERY_SPEED_MAX)
+        this.springStrength = BASE_SPRING_STRENGTH * this.recoverySpeed
+        this.dampingRate = BASE_DAMPING_RATE * this.recoverySpeed
     }
 
     /**
@@ -649,6 +694,9 @@ export class ParticleWordmarkEngine {
 
     private startLoop(): void {
         if (this.destroyed || this.rafId !== null) return
+        // The loop may restart after the view was hidden: measure the delta
+        // from the first real frame instead of from the pause.
+        this.lastFrameTime = null
         const frame = (): void => {
             this.rafId = null
             if (this.destroyed) return
@@ -656,7 +704,14 @@ export class ParticleWordmarkEngine {
                 this.destroy()
                 return
             }
-            this.step()
+            const now = this.now()
+            // Frame delta in 60 Hz reference frames (1 = 16.7 ms), clamped so a
+            // stalled frame simulates a short hitch instead of jumping ahead.
+            const dt = this.lastFrameTime === null
+                ? 1
+                : Math.min(Math.max((now - this.lastFrameTime) / REFERENCE_FRAME_MS, 0), MAX_FRAME_STEPS)
+            this.lastFrameTime = now
+            this.step(dt)
             this.render()
             this.rafId = window.requestAnimationFrame(frame)
         }
@@ -668,14 +723,27 @@ export class ParticleWordmarkEngine {
             cancelAnimationFrame(this.rafId)
             this.rafId = null
         }
+        this.lastFrameTime = null
     }
 
-    /** Euler integration: mouse repulsion + spring back home + damping. */
-    private step(): void {
+    /** Monotonic frame clock of the window that hosts the container (popout-safe). */
+    private now(): number {
+        return (this.container.ownerDocument.defaultView ?? window).performance.now()
+    }
+
+    /**
+     * Euler integration: mouse repulsion + spring back home + damping.
+     * `dt` is the frame delta in 60 Hz reference frames (1 = one 16.7 ms step),
+     * so the physics keeps its pace on any refresh rate.
+     */
+    private step(dt = 1): void {
         const radius = this.repulsionRadius
         const radiusSquared = radius * radius
         const mouseX = this.mouse.x
         const mouseY = this.mouse.y
+        const spring = this.springStrength * dt
+        const damping = Math.exp(-this.dampingRate * dt)
+        const travel = dt
         for (const particle of this.particles) {
             const dx = particle.x - mouseX
             const dy = particle.y - mouseY
@@ -684,15 +752,15 @@ export class ParticleWordmarkEngine {
                 const distance = Math.sqrt(distanceSquared)
                 const ratio = (radius - distance) / radius
                 const force = ratio * ratio * this.repulsionStrength
-                particle.vx += (dx / distance) * force
-                particle.vy += (dy / distance) * force
+                particle.vx += (dx / distance) * force * dt
+                particle.vy += (dy / distance) * force * dt
             }
-            particle.vx += (particle.hx - particle.x) * SPRING_STRENGTH
-            particle.vy += (particle.hy - particle.y) * SPRING_STRENGTH
-            particle.vx *= 1 - DAMPING
-            particle.vy *= 1 - DAMPING
-            particle.x += particle.vx
-            particle.y += particle.vy
+            particle.vx += (particle.hx - particle.x) * spring
+            particle.vy += (particle.hy - particle.y) * spring
+            particle.vx *= damping
+            particle.vy *= damping
+            particle.x += particle.vx * travel
+            particle.y += particle.vy * travel
         }
     }
 
@@ -703,7 +771,7 @@ export class ParticleWordmarkEngine {
         const particles = this.particles
         const motion = this.ambientMotion
         // Real time (not a frame counter) so the pace is identical on 60Hz and 120Hz+ displays.
-        const now = (this.container.ownerDocument.defaultView ?? window).performance.now() * 0.001
+        const now = this.now() * 0.001
         // Gradient modes paint every particle with one frame-wide fill (a canvas
         // gradient or an interpolated solid color); the other modes use the
         // per-particle fills captured at sample time.
@@ -786,6 +854,7 @@ export class ParticleWordmarkEngine {
         gradient.addColorStop(0, rgbFillString(a))
         gradient.addColorStop(1, rgbFillString(b))
         return gradient
+
     }
 
     /** The original draw path, kept verbatim for the 'none' mode. */

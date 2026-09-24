@@ -267,6 +267,10 @@ const zhCN: BaseMessage = {
 			name: '扰动力度',
 			desc: '鼠标推开粒子的强度',
 		},
+		particleEffectRecoverySpeed: {
+			name: '恢复速度',
+			desc: '粒子被光标扰动后回归原位的快慢，数值越低涟漪越悠长',
+		},
 		particleEffectAmbientMotion: {
 			name: '默认运动',
 			desc: '粒子静止时的漂浮效果',

@@ -61,6 +61,7 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectDotSize: number
     particleEffectDisturbRadius: number
     particleEffectDisturbStrength: number
+    particleEffectRecoverySpeed: number
     maxResults: number
     showbookmarkedFiles: boolean
     showRecentFiles: boolean
@@ -124,6 +125,9 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectDotSize: 0.5,
     particleEffectDisturbRadius: 124,
     particleEffectDisturbStrength: 1.8,
+    // 1 = the default ripple: disturbed particles overshoot a few times before
+    // settling, so a cursor pass leaves a visible wave instead of a snap-back.
+    particleEffectRecoverySpeed: 1,
     maxResults: 5,
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
@@ -623,6 +627,10 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     },
                                     {
                                         ...this.sliderWithReset('particleEffectDisturbStrength', t.setting.particleEffectDisturbStrength.name, t.setting.particleEffectDisturbStrength.desc, 0.1, 3, 0.1),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectRecoverySpeed', t.setting.particleEffectRecoverySpeed.name, t.setting.particleEffectRecoverySpeed.desc, 0.6, 2.5, 0.1),
                                         visible: () => s.particleEffect,
                                     },
                                 ],

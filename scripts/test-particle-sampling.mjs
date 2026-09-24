@@ -9,6 +9,10 @@ const sandbox = { module: { exports: {} }, window: {} };
 vm.runInNewContext(code, sandbox);
 const { ParticleWordmarkEngine } = sandbox.module.exports;
 
+// The sampling path only needs the container's own window for a touch/pointer
+// check, so a minimal stub keeps the engine constructible outside Obsidian.
+const containerStub = { ownerDocument: { defaultView: {} } };
+
 // Exercise the real sampler with a transparent background and an opaque glyph.
 const width = 337;
 const height = 181;
@@ -24,7 +28,7 @@ let cases = 0;
 for (const scale of [2, 2.1, 2.25, 2.5, 2.75, 3]) {
     for (const spacing of [2, 3.5, 4.5, 5, 7.5, 10]) {
         for (const monochrome of [false, true]) {
-            const engine = new ParticleWordmarkEngine({}, {
+            const engine = new ParticleWordmarkEngine(containerStub, {
                 monochrome, color: '#31e0e3', zoom: 2, spacing,
                 dotSize: 1.3, repulsionRadius: 84, repulsionStrength: 0.8,
             });

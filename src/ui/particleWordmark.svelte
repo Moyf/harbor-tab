@@ -69,6 +69,7 @@
             dotSize: settings.particleEffectDotSize,
             repulsionRadius: settings.particleEffectDisturbRadius,
             repulsionStrength: settings.particleEffectDisturbStrength,
+            recoverySpeed: settings.particleEffectRecoverySpeed ?? 1,
             ambientMotion: settings.particleEffectAmbientMotion ?? 'none',
         })
         engine = next
@@ -142,6 +143,7 @@
             s.particleEffectDotSize,
             s.particleEffectDisturbRadius,
             s.particleEffectDisturbStrength,
+            s.particleEffectRecoverySpeed,
             s.logoType,
             JSON.stringify(s.logo),
             s.iconColorType,

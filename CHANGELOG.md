@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+- **Recovery speed**: new slider in the particle interaction settings that controls how fast a disturbed particle settles back home, i.e. how long a cursor pass keeps rippling. Lower values let the wave linger noticeably longer, higher values snap back almost instantly. The default is the new, clearly rippling motion described below
+
+### Bug Fixes
+
+- Fix the cursor ripple settling at different speeds depending on the display refresh rate: the particle physics now steps in 60 Hz reference frames, so a disturbance takes the same wall-clock time on 60 Hz, 120 Hz, and through throttled frames (previously a stalled frame skipped ahead and high-refresh displays settled faster)
+- Make the default particle ripple visibly linger instead of snapping back: particles are now much less damped, so a cursor pass leaves a few clear overshoots that fade out over about 3.3 seconds, instead of a single barely visible bounce
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+### 新增
+
+- **恢复速度**：粒子交互设置组新增滑块，控制粒子被光标扰动后回归原位的快慢，也就是鼠标划过之后涟漪能持续多久。数值越低，波浪越悠长；越高则几乎立刻回位。默认值即下方新的、更明显的涟漪效果
+
+### 修复
+
+- 修复粒子涟漪的收敛速度随屏幕刷新率变化的问题：物理积分改为按 60 Hz 参考帧步进，扰动在 60 Hz、120 Hz 以及掉帧时消耗同样的实际时间（此前掉帧会一次性跳过大段时间，高刷屏则收敛更快）
+- 让默认的粒子涟漪真正「荡」起来：大幅降低阻尼，鼠标划过之后会留下数次清晰的过冲并在约 3.3 秒内逐渐消散，而不是一次几乎看不见的回弹
+
+</details>
+
 ## [1.5.0] - 2026-09-22
 
 ### Compatibility

@@ -96,6 +96,7 @@ export interface BaseMessage {
 		particleEffectDotSize: SettingEntry
 		particleEffectDisturbRadius: SettingEntry
 		particleEffectDisturbStrength: SettingEntry
+		particleEffectRecoverySpeed: SettingEntry
 		particleEffectAmbientMotion: SettingEntry & { options: DropdownOptions }
 		particleEffectMotionFrequency: SettingEntry
 		particleEffectGlow: SettingEntry
