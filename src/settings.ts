@@ -47,9 +47,15 @@ export interface HomeTabSettings extends ObjectKeys{
     fontColorType: ColorChoices
     fontWeight: number
     particleEffect: boolean
-    particleEffectMonochrome: boolean
+    particleEffectColorMode: 'original' | 'monochrome' | 'gradient'
     particleEffectColor: string
+    particleEffectColor2: string
+    particleEffectGradientAnimation: 'static' | 'cycle' | 'breathe'
+    particleEffectGradientAngle: number
+    particleEffectGradientFrequency: number
     particleEffectAmbientMotion?: 'none' | 'wave' | 'float' | 'undulate' | 'pulse' | 'ripple' | 'breathe' // 新增：粒子的默认漂浮运动模式
+    particleEffectMotionFrequency: number
+    particleEffectGlow: number
     particleEffectScale: number
     particleEffectSpacing: number
     particleEffectDotSize: number
@@ -105,9 +111,15 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     fontColorType: 'default',
     fontWeight: 600,
     particleEffect: false,
-    particleEffectMonochrome: false,
+    particleEffectColorMode: 'original',
     particleEffectColor: '#6C31E3',
+    particleEffectColor2: '#E36C31',
+    particleEffectGradientAnimation: 'static',
+    particleEffectGradientAngle: 180,
+    particleEffectGradientFrequency: 1,
     particleEffectAmbientMotion: 'none', // 新增：默认无漂浮运动
+    particleEffectMotionFrequency: 1,
+    particleEffectGlow: 0,
     particleEffectScale: 1.9,
     particleEffectSpacing: 2,
     particleEffectDotSize: 0.5,
@@ -184,6 +196,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
     override async setControlValue(key: string, value: unknown): Promise<void> {
         this.plugin.settings[key] = value
         await this.plugin.saveSettings()
+        // Re-evaluate the visible() predicates that depend on control values
+        // (e.g. the particle style group behind the particleEffect toggle).
+        this.refreshDomState()
         if (HomeTabSettingTab.REFRESH_OPEN_VIEWS_KEYS.has(key)) {
             this.plugin.refreshOpenViews()
         }
@@ -526,16 +541,14 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 type: 'group',
                                 heading: t.group.particleStyle,
                                 items: [
-                                    {
-                                        name: t.setting.particleEffectMonochrome.name,
-                                        desc: t.setting.particleEffectMonochrome.desc,
+                                    this.dropdownWithReset('particleEffectColorMode', t.setting.particleEffectColorMode.name, t.setting.particleEffectColorMode.desc, t.setting.particleEffectColorMode.options, {
                                         visible: () => s.particleEffect,
-                                        control: { type: 'toggle', key: 'particleEffectMonochrome', defaultValue: false },
-                                    },
+                                        refreshDomAfterChange: true, // re-evaluate the dependent color pickers/mode items in place
+                                    }),
                                     {
                                         name: t.setting.particleEffectColor.name,
                                         desc: t.setting.particleEffectColor.desc,
-                                        visible: () => s.particleEffect && s.particleEffectMonochrome,
+                                        visible: () => s.particleEffect && s.particleEffectColorMode !== 'original',
                                         render: (setting) => {
                                             setting.addColorPicker((picker) => picker
                                                 .setValue(s.particleEffectColor)
@@ -546,9 +559,44 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                             this.addResetButton(setting, 'particleEffectColor')
                                         },
                                     },
+                                    {
+                                        name: t.setting.particleEffectColor2.name,
+                                        desc: t.setting.particleEffectColor2.desc,
+                                        visible: () => s.particleEffect && s.particleEffectColorMode === 'gradient',
+                                        render: (setting) => {
+                                            setting.addColorPicker((picker) => picker
+                                                .setValue(s.particleEffectColor2)
+                                                .onChange((value) => {
+                                                    s.particleEffectColor2 = value
+                                                    void this.plugin.saveSettings()
+                                                }))
+                                            this.addResetButton(setting, 'particleEffectColor2')
+                                        },
+                                    },
+                                    this.dropdownWithReset('particleEffectGradientAnimation', t.setting.particleEffectGradientAnimation.name, t.setting.particleEffectGradientAnimation.desc, t.setting.particleEffectGradientAnimation.options, {
+                                        visible: () => s.particleEffect && s.particleEffectColorMode === 'gradient',
+                                        refreshDomAfterChange: true, // toggles the angle/frequency sliders in place
+                                    }),
+                                    {
+                                        ...this.sliderWithReset('particleEffectGradientAngle', t.setting.particleEffectGradientAngle.name, t.setting.particleEffectGradientAngle.desc, 0, 360, 5),
+                                        visible: () => s.particleEffect && s.particleEffectColorMode === 'gradient' && s.particleEffectGradientAnimation !== 'breathe',
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectGradientFrequency', t.setting.particleEffectGradientFrequency.name, t.setting.particleEffectGradientFrequency.desc, 0.25, 4, 0.05),
+                                        visible: () => s.particleEffect && s.particleEffectColorMode === 'gradient' && s.particleEffectGradientAnimation !== 'static',
+                                    },
                                     this.dropdownWithReset('particleEffectAmbientMotion', t.setting.particleEffectAmbientMotion.name, t.setting.particleEffectAmbientMotion.desc, t.setting.particleEffectAmbientMotion.options, {
                                         visible: () => s.particleEffect,
+                                        refreshDomAfterChange: true, // toggles the motion frequency slider in place
                                     }),
+                                    {
+                                        ...this.sliderWithReset('particleEffectMotionFrequency', t.setting.particleEffectMotionFrequency.name, t.setting.particleEffectMotionFrequency.desc, 0.25, 4, 0.05),
+                                        visible: () => s.particleEffect && s.particleEffectAmbientMotion !== 'none',
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectGlow', t.setting.particleEffectGlow.name, t.setting.particleEffectGlow.desc, 0, 100, 5),
+                                        visible: () => s.particleEffect,
+                                    },
                                 ],
                             },
                             {
@@ -737,7 +785,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         name: string,
         desc: string | undefined,
         options: Record<string, string>,
-        opts?: { visible?: () => boolean; rebuildAfterChange?: boolean; refreshAfterChange?: boolean },
+        opts?: { visible?: () => boolean; rebuildAfterChange?: boolean; refreshAfterChange?: boolean; refreshDomAfterChange?: boolean },
     ): SettingDefinitionRender {
         return {
             name,
@@ -751,8 +799,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         .onChange((value) => {
                             this.plugin.settings[key] = value
                             void this.plugin.saveSettings()
-                            if(opts?.rebuildAfterChange){this.update()}
-                            if(opts?.refreshAfterChange){this.plugin.refreshOpenViews()}
+                            if (opts?.rebuildAfterChange){this.update()}
+                            if (opts?.refreshAfterChange){this.plugin.refreshOpenViews()}
+                            if (opts?.refreshDomAfterChange){this.refreshDomState()}
                         }))
                 this.addResetButton(setting, key)
             },

@@ -14,8 +14,9 @@ const { ParticleWordmarkEngine } = sandbox.module.exports;
 const containerStub = () => ({ ownerDocument: { defaultView: { performance: { now: () => 0 } } } });
 
 const OPTIONS = {
-  monochrome: false,
+  colorMode: 'original',
   color: '#6C31E3',
+  color2: '#E36C31',
   zoom: 1.9,
   spacing: 2.2,
   dotSize: 0.5,

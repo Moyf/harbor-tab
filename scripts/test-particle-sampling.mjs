@@ -27,9 +27,9 @@ for (let y = 36; y < 147; y++) {
 let cases = 0;
 for (const scale of [2, 2.1, 2.25, 2.5, 2.75, 3]) {
     for (const spacing of [2, 3.5, 4.5, 5, 7.5, 10]) {
-        for (const monochrome of [false, true]) {
+        for (const colorMode of ['original', 'monochrome']) {
             const engine = new ParticleWordmarkEngine(containerStub, {
-                monochrome, color: '#31e0e3', zoom: 2, spacing,
+                colorMode, color: '#31e0e3', color2: '#e331e0', zoom: 2, spacing,
                 dotSize: 1.3, repulsionRadius: 84, repulsionStrength: 0.8,
             });
             engine.scale = scale;
@@ -48,7 +48,7 @@ for (const scale of [2, 2.1, 2.25, 2.5, 2.75, 3]) {
                 const y = Math.floor(lattice(particle.hy) + 1e-9);
                 assert.equal(data[(y * width + x) * 4 + 3], 255);
                 assert.match(particle.fill, /^rgb\(\d+, \d+, \d+\)$/);
-                if (!monochrome) assert.equal(particle.fill, 'rgb(35, 100, 220)');
+                if (colorMode === 'original') assert.equal(particle.fill, 'rgb(35, 100, 220)');
             }
             cases++;
         }

@@ -213,13 +213,39 @@ const en: BaseMessage = {
 			name: 'Enable particle effect',
 			desc: 'Render the Harbor Tab logo and title as an interactive particle grid that ripples around the cursor',
 		},
-		particleEffectMonochrome: {
-			name: 'Monochrome',
-			desc: 'When enabled all particles use a single color; when disabled particles inherit the original colors of the logo and title',
+		particleEffectColorMode: {
+			name: 'Color',
+			desc: 'Particle coloring: keep the original logo and title colors, use a single color, or blend two colors in a gradient',
+			options: {
+				original: 'Original',
+				monochrome: 'Monochrome',
+				gradient: 'Gradient',
+			},
 		},
 		particleEffectColor: {
 			name: 'Particle color',
-			desc: 'Color used by all particles in monochrome mode',
+			desc: 'Color used by all particles in monochrome mode, and the first gradient color',
+		},
+		particleEffectColor2: {
+			name: 'Gradient color',
+			desc: 'Second color of the gradient',
+		},
+		particleEffectGradientAnimation: {
+			name: 'Color mode',
+			desc: 'How the gradient changes over time',
+			options: {
+				static: 'Static gradient',
+				cycle: 'Cycling gradient',
+				breathe: 'Breathing light',
+			},
+		},
+		particleEffectGradientAngle: {
+			name: 'Gradient angle',
+			desc: 'Direction of the gradient; 180° runs from top to bottom',
+		},
+		particleEffectGradientFrequency: {
+			name: 'Animation frequency',
+			desc: 'Speed of the cycling and breathing color animations (higher = faster)',
 		},
 		particleEffectScale: {
 			name: 'Canvas scale',
@@ -257,6 +283,14 @@ const en: BaseMessage = {
 				ripple: 'Ripple',
 				breathe: 'Breathe',
 			},
+		},
+		particleEffectMotionFrequency: {
+			name: 'Idle motion frequency',
+			desc: 'Speed of the idle motion (higher = faster); for Heartbeat this sets the interval between beats',
+		},
+		particleEffectGlow: {
+			name: 'Glow strength',
+			desc: 'Adds a bloom glow around the particles; 0 disables it, higher values glow brighter',
 		},
 		debugMode: {
 			name: 'Debug mode',

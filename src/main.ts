@@ -157,6 +157,18 @@ export default class HomeTab extends Plugin {
 
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<HomeTabSettings>)
+		this.migrateLegacySettings()
+	}
+
+	/** Upgrades settings persisted by older plugin versions in place. */
+	private migrateLegacySettings(): void {
+		const legacy = this.settings as HomeTabSettings & { particleEffectMonochrome?: boolean }
+		if (legacy.particleEffectMonochrome === undefined) return
+		// The old monochrome toggle became the colorMode dropdown.
+		if (legacy.particleEffectMonochrome && legacy.particleEffectColorMode === 'original') {
+			legacy.particleEffectColorMode = 'monochrome'
+		}
+		delete legacy.particleEffectMonochrome
 	}
 
 	async saveSettings(): Promise<void> {

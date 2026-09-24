@@ -213,13 +213,39 @@ const zhCN: BaseMessage = {
 			name: '启用粒子特效',
 			desc: '将主页的 Logo 与标题渲染为可交互的粒子点阵，鼠标经过时产生涟漪效果',
 		},
-		particleEffectMonochrome: {
-			name: '单色模式',
-			desc: '开启后所有粒子使用统一颜色；关闭时继承 Logo 与标题的原始颜色',
+		particleEffectColorMode: {
+			name: '颜色',
+			desc: '粒子配色：保留 Logo 与标题的原色、使用单一颜色，或在两种颜色间渐变',
+			options: {
+				original: '原色',
+				monochrome: '单色',
+				gradient: '渐变色',
+			},
 		},
 		particleEffectColor: {
 			name: '粒子颜色',
-			desc: '单色模式下粒子的统一颜色',
+			desc: '单色模式下粒子的统一颜色，也是渐变色的第一个颜色',
+		},
+		particleEffectColor2: {
+			name: '渐变颜色',
+			desc: '渐变色的第二个颜色',
+		},
+		particleEffectGradientAnimation: {
+			name: '颜色模式',
+			desc: '渐变颜色随时间变化的方式',
+			options: {
+				static: '静态渐变',
+				cycle: '循环渐变',
+				breathe: '呼吸灯',
+			},
+		},
+		particleEffectGradientAngle: {
+			name: '渐变角度',
+			desc: '渐变的方向，180° 为从上到下',
+		},
+		particleEffectGradientFrequency: {
+			name: '变化频率',
+			desc: '循环渐变与呼吸灯模式的变化速度（数值越大越快）',
 		},
 		particleEffectScale: {
 			name: '画布倍率',
@@ -257,6 +283,14 @@ const zhCN: BaseMessage = {
 				ripple: '涟漪',
 				breathe: '呼吸',
 			},
+		},
+		particleEffectMotionFrequency: {
+			name: '运动频率',
+			desc: '空闲运动的变化速度（数值越大越快）；心跳模式对应两次心跳的间隔',
+		},
+		particleEffectGlow: {
+			name: '辉光强度',
+			desc: '为粒子添加辉光（泛光）效果；0 为关闭，数值越大越亮',
 		},
 		debugMode: {
 			name: '调试模式',

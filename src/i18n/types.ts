@@ -85,8 +85,12 @@ export interface BaseMessage {
 		titleColor: SettingEntry
 		selectionHighlight: SettingEntry
 		particleEffect: SettingEntry
-		particleEffectMonochrome: SettingEntry
+		particleEffectColorMode: SettingEntry & { options: DropdownOptions }
 		particleEffectColor: SettingEntry
+		particleEffectColor2: SettingEntry
+		particleEffectGradientAnimation: SettingEntry & { options: DropdownOptions }
+		particleEffectGradientAngle: SettingEntry
+		particleEffectGradientFrequency: SettingEntry
 		particleEffectScale: SettingEntry
 		particleEffectSpacing: SettingEntry
 		particleEffectDotSize: SettingEntry
@@ -94,6 +98,8 @@ export interface BaseMessage {
 		particleEffectDisturbStrength: SettingEntry
 		particleEffectRecoverySpeed: SettingEntry
 		particleEffectAmbientMotion: SettingEntry & { options: DropdownOptions }
+		particleEffectMotionFrequency: SettingEntry
+		particleEffectGlow: SettingEntry
 		debugMode: SettingEntry
 	}
 	common: {

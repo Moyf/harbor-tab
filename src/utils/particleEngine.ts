@@ -9,9 +9,24 @@
  * reusable and testable outside the plugin UI layer.
  */
 
+export type ParticleColorMode = 'original' | 'monochrome' | 'gradient'
+export type GradientAnimation = 'static' | 'cycle' | 'breathe'
+
 export interface ParticleWordmarkOptions {
-    monochrome: boolean
+    colorMode: ParticleColorMode
     color: string
+    /** Second gradient color (gradient mode only). */
+    color2: string
+    /** How the gradient animates over time (gradient mode only). */
+    gradientAnimation: GradientAnimation
+    /** Gradient direction in CSS degrees (0° = to top, 180° = to bottom). */
+    gradientAngle: number
+    /** Gradient animation speed multiplier (cycle/breathe). */
+    gradientFrequency: number
+    /** Idle motion speed multiplier (heartbeat: beats per interval). */
+    motionFrequency: number
+    /** Bloom glow strength, 0 (off) to 1. */
+    glow: number
     /** Enlargement of the canvas content relative to the original wordmark box. */
     zoom: number
     /** Lattice spacing between sampled particles, CSS pixels. */
@@ -122,6 +137,11 @@ const BREATHE_SCALE = 0.015 // peak radial expansion (1.5%)
 const RIPPLE_SPEED = 3.0 // rad/s: ripple phase drift
 const RIPPLE_NUMBER = 0.05 // rad per CSS px: ring wavelength of ~125px
 const RIPPLE_AMPLITUDE = 1.4 // CSS px, radial excursion of a ring crest
+// Gradient animation paces (seconds per full pattern cycle at 1× frequency).
+const CYCLE_BASE_PERIOD = 6 // the alternating stop pattern scrolls one gradient-length
+const BREATHE_BASE_PERIOD = 4 // color A fades to B and back to A
+// Bloom glow: blur radius of the additive pass, in CSS pixels.
+const GLOW_BLUR_PX = 6
 
 // Sine lookup table: idle motion replaces up-to-15k Math.sin calls per frame
 // with one array lookup each. Bitwise masking below also folds negative or
@@ -161,6 +181,14 @@ export class ParticleWordmarkEngine {
     private readonly repulsionStrength: number
     private readonly zoom: number
     private readonly ambientMotion: AmbientMotion
+    private readonly colorMode: ParticleColorMode
+    private readonly gradientAnimation: GradientAnimation
+    private readonly gradientAngle: number
+    private readonly gradientFrequency: number
+    private readonly motionFrequency: number
+    private readonly glow: number
+    private readonly colorA: RGB
+    private readonly colorB: RGB
     /** Effective recovery speed (option value clamped to the supported range). */
     private readonly recoverySpeed: number
     /** Spring stiffness per 60 Hz reference frame. */
@@ -249,6 +277,14 @@ export class ParticleWordmarkEngine {
         this.repulsionStrength = options.repulsionStrength
         this.zoom = Math.min(Math.max(options.zoom, 1), MAX_ZOOM)
         this.ambientMotion = options.ambientMotion ?? 'none'
+        this.colorMode = options.colorMode ?? 'original'
+        this.gradientAnimation = options.gradientAnimation ?? 'static'
+        this.gradientAngle = options.gradientAngle ?? 180
+        this.gradientFrequency = Math.max(options.gradientFrequency ?? 1, 0.01)
+        this.motionFrequency = Math.max(options.motionFrequency ?? 1, 0.01)
+        this.glow = Math.min(Math.max(options.glow ?? 0, 0), 1)
+        this.colorA = parseHexColor(options.color)
+        this.colorB = parseHexColor(options.color2)
         // Tolerate an undefined value (settings loaded from an older schema).
         const speed = options.recoverySpeed ?? RECOVERY_SPEED_DEFAULT
         this.recoverySpeed = Math.min(Math.max(speed, RECOVERY_SPEED_MIN), RECOVERY_SPEED_MAX)
@@ -509,7 +545,7 @@ export class ParticleWordmarkEngine {
 
     private sampleParticles(offscreen: HTMLCanvasElement, context: CanvasRenderingContext2D): Particle[] {
         const { data } = context.getImageData(0, 0, offscreen.width, offscreen.height)
-        const mono = this.options.monochrome ? parseHexColor(this.options.color) : null
+        const mono = this.colorMode === 'monochrome' ? parseHexColor(this.options.color) : null
         let step = this.options.spacing * this.scale // device pixels
         let particles = this.collectParticles(data, offscreen.width, offscreen.height, step, mono)
         while (particles.length > MAX_PARTICLES) {
@@ -734,26 +770,99 @@ export class ParticleWordmarkEngine {
         context.clearRect(0, 0, this.cssWidth, this.cssHeight)
         const particles = this.particles
         const motion = this.ambientMotion
-        if (motion === 'none') {
-            this.renderStatic(context, particles)
-            return
-        }
         // Real time (not a frame counter) so the pace is identical on 60Hz and 120Hz+ displays.
-        const time = this.now() * 0.001
-        if (motion === 'wave') this.renderWave(context, particles, time)
-        else if (motion === 'float') this.renderFloat(context, particles, time)
-        else if (motion === 'undulate') this.renderUndulate(context, particles, time)
-        else if (motion === 'pulse') this.renderHeartbeat(context, particles, time)
-        else if (motion === 'breathe') this.renderRadialScale(context, particles, 1 + BREATHE_SCALE * lutSin(time * BREATHE_SPEED))
-        else if (motion === 'ripple') this.renderRipple(context, particles, time)
-        else this.renderStatic(context, particles) // stale setting values (removed modes) fall back safely
+        const now = this.now() * 0.001
+        // Gradient modes paint every particle with one frame-wide fill (a canvas
+        // gradient or an interpolated solid color); the other modes use the
+        // per-particle fills captured at sample time.
+        const frameFill = this.colorMode === 'gradient' ? this.gradientFrameFill(context, now * this.gradientFrequency) : null
+        const time = now * this.motionFrequency
+        if (motion === 'none') {
+            this.renderStatic(context, particles, frameFill)
+        } else if (motion === 'wave') this.renderWave(context, particles, time, frameFill)
+        else if (motion === 'float') this.renderFloat(context, particles, time, frameFill)
+        else if (motion === 'undulate') this.renderUndulate(context, particles, time, frameFill)
+        else if (motion === 'pulse') this.renderHeartbeat(context, particles, time, frameFill)
+        else if (motion === 'breathe') this.renderRadialScale(context, particles, 1 + BREATHE_SCALE * lutSin(time * BREATHE_SPEED), frameFill)
+        else if (motion === 'ripple') this.renderRipple(context, particles, time, frameFill)
+        else this.renderStatic(context, particles, frameFill) // stale setting values (removed modes) fall back safely
+        this.applyGlow(context)
+    }
+
+    /**
+     * Bloom glow: re-draws the finished frame onto itself through a blur
+     * filter with additive blending. One GPU-composited pass whose cost
+     * depends on the canvas size and blur radius only — never on the particle
+     * count — and it is skipped entirely at strength 0.
+     */
+    private applyGlow(context: CanvasRenderingContext2D): void {
+        if (this.glow <= 0) return
+        // Energy budget = 2× strength: at max the glow is applied twice, and
+        // the second pass re-blurs the first pass's halo on top, compounding
+        // into a wider and much brighter bloom than a single pass could give.
+        let energy = this.glow * 2
+        context.save()
+        // Blur in device pixels so the radius looks the same on any display.
+        context.setTransform(1, 0, 0, 1, 0, 0)
+        context.globalCompositeOperation = 'lighter'
+        context.filter = `blur(${GLOW_BLUR_PX * this.scale}px)`
+        // Drawing a canvas onto itself snapshots the bitmap first, so this
+        // samples the just-finished frame instead of feeding back.
+        while (energy > 0.01) {
+            context.globalAlpha = Math.min(energy, 1)
+            context.drawImage(this.canvas as HTMLCanvasElement, 0, 0)
+            energy -= 1
+        }
+        context.restore()
+    }
+
+    /**
+     * Frame-wide fill for the gradient color modes: an interpolated solid
+     * color for the "breathe" animation, a canvas linear gradient otherwise.
+     * Drawing particles with a gradient fill samples the gradient at each
+     * particle's position, so a spatial gradient costs no per-particle work.
+     */
+    private gradientFrameFill(context: CanvasRenderingContext2D, time: number): CanvasGradient | string {
+        const a = this.colorA
+        const b = this.colorB
+        if (this.gradientAnimation === 'breathe') return lerpFillString(a, b, breatheMix(time))
+        // CSS convention: 0° points up, 90° right, 180° down (the default).
+        const angle = (this.gradientAngle * Math.PI) / 180
+        const dx = Math.sin(angle)
+        const dy = -Math.cos(angle)
+        const centerX = this.cssWidth / 2
+        const centerY = this.cssHeight / 2
+        // Projection half-span of the canvas corners onto the gradient
+        // direction: the axis below covers the whole canvas.
+        const extent = (this.cssWidth / 2) * Math.abs(dx) + (this.cssHeight / 2) * Math.abs(dy)
+        const length = extent * 2
+        if (this.gradientAnimation === 'cycle') {
+            // The alternating stops repeat every `length`, so a 3-period axis
+            // shifted by up to one period still covers the canvas: the scroll
+            // loops seamlessly at CYCLE_BASE_PERIOD / frequency seconds.
+            const offset = ((time / CYCLE_BASE_PERIOD) % 1) * length
+            const gradient = context.createLinearGradient(
+                centerX - dx * (extent + length - offset),
+                centerY - dy * (extent + length - offset),
+                centerX + dx * (extent + length + offset),
+                centerY + dy * (extent + length + offset),
+            )
+            for (let i = 0; i <= 6; i++) gradient.addColorStop(i / 6, i % 2 === 0 ? rgbFillString(a) : rgbFillString(b))
+            return gradient
+        }
+        const gradient = context.createLinearGradient(centerX - dx * extent, centerY - dy * extent, centerX + dx * extent, centerY + dy * extent)
+        gradient.addColorStop(0, rgbFillString(a))
+        gradient.addColorStop(1, rgbFillString(b))
+        return gradient
+
     }
 
     /** The original draw path, kept verbatim for the 'none' mode. */
-    private renderStatic(context: CanvasRenderingContext2D, particles: Particle[]): void {
+    private renderStatic(context: CanvasRenderingContext2D, particles: Particle[], frameFill: CanvasGradient | string | null): void {
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (const particle of particles) {
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -765,11 +874,12 @@ export class ParticleWordmarkEngine {
      * Coordinated ripple: the phase comes from each particle's home position,
      * so crests sweep across the wordmark diagonally — no per-particle data.
      */
-    private renderWave(context: CanvasRenderingContext2D, particles: Particle[], time: number): void {
+    private renderWave(context: CanvasRenderingContext2D, particles: Particle[], time: number, frameFill: CanvasGradient | string | null): void {
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -779,12 +889,13 @@ export class ParticleWordmarkEngine {
     }
 
     /** The whole wordmark bobs up and down together: one sine per frame, one add per particle. */
-    private renderFloat(context: CanvasRenderingContext2D, particles: Particle[], time: number): void {
+    private renderFloat(context: CanvasRenderingContext2D, particles: Particle[], time: number, frameFill: CanvasGradient | string | null): void {
         const dy = lutSin(time * FLOAT_SPEED) * FLOAT_AMPLITUDE
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -800,12 +911,13 @@ export class ParticleWordmarkEngine {
      * motion with no traveling crest. One global sine per frame; one table
      * lookup per particle, no per-particle data.
      */
-    private renderUndulate(context: CanvasRenderingContext2D, particles: Particle[], time: number): void {
+    private renderUndulate(context: CanvasRenderingContext2D, particles: Particle[], time: number, frameFill: CanvasGradient | string | null): void {
         const clock = lutSin(time * UNDULATE_SPEED) * UNDULATE_AMPLITUDE
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -815,15 +927,16 @@ export class ParticleWordmarkEngine {
     }
 
     /** Shared radial breathing (breathe): the scale is computed once per frame. */
-    private renderRadialScale(context: CanvasRenderingContext2D, particles: Particle[], scale: number): void {
+    private renderRadialScale(context: CanvasRenderingContext2D, particles: Particle[], scale: number, frameFill: CanvasGradient | string | null): void {
         // The canvas content is centered, so the canvas center doubles as the expansion origin.
         const centerX = this.cssWidth / 2
         const centerY = this.cssHeight / 2
         const stretch = scale - 1
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -841,7 +954,7 @@ export class ParticleWordmarkEngine {
      * instead of scaling the whole wordmark rigidly. Center particles need no
      * special case: their (x−center) factors shrink the offset to zero anyway.
      */
-    private renderHeartbeat(context: CanvasRenderingContext2D, particles: Particle[], time: number): void {
+    private renderHeartbeat(context: CanvasRenderingContext2D, particles: Particle[], time: number, frameFill: CanvasGradient | string | null): void {
         const centerX = this.cssWidth / 2
         const centerY = this.cssHeight / 2
         // Reference radius: the widest half-span, so particles at the rim of the
@@ -849,9 +962,10 @@ export class ParticleWordmarkEngine {
         const maxDistance = Math.max(centerX, centerY)
         const gain = HEARTBEAT_SCALE_OUTER - HEARTBEAT_SCALE_INNER
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -867,13 +981,14 @@ export class ParticleWordmarkEngine {
     }
 
     /** Ring-shaped wave spreading from the canvas center; particles rise and fall radially. */
-    private renderRipple(context: CanvasRenderingContext2D, particles: Particle[], time: number): void {
+    private renderRipple(context: CanvasRenderingContext2D, particles: Particle[], time: number, frameFill: CanvasGradient | string | null): void {
         const centerX = this.cssWidth / 2
         const centerY = this.cssHeight / 2
         let lastFill = ''
+        if (frameFill !== null) context.fillStyle = frameFill
         for (let i = 0; i < particles.length; i++) {
             const particle = particles[i]
-            if (particle.fill !== lastFill) {
+            if (frameFill === null && particle.fill !== lastFill) {
                 context.fillStyle = particle.fill
                 lastFill = particle.fill
             }
@@ -914,4 +1029,16 @@ function shadedFillString(base: RGB, factor: number): string {
     const clamped = Math.min(SHADE_MAX, Math.max(SHADE_MIN, factor))
     const channel = (value: number) => Math.min(255, Math.round(value * clamped))
     return `rgb(${channel(base.r)}, ${channel(base.g)}, ${channel(base.b)})`
+}
+
+/** Cosine-eased mix between the two gradient colors: 0 at the start, 1 at the half cycle, back to 0. */
+function breatheMix(time: number): number {
+    const phase = ((time / BREATHE_BASE_PERIOD) % 1 + 1) % 1
+    return (1 - Math.cos(phase * Math.PI * 2)) / 2
+}
+
+/** Linear interpolation between the two gradient colors, as a fill string. */
+function lerpFillString(a: RGB, b: RGB, mix: number): string {
+    const channel = (x: number, y: number) => Math.round(x + (y - x) * mix)
+    return `rgb(${channel(a.r, b.r)}, ${channel(a.g, b.g)}, ${channel(a.b, b.b)})`
 }
