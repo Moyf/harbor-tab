@@ -109,3 +109,7 @@ show starred files
 - 持续开发已获得原作者许可 —— 详见 [olrenso/obsidian-home-tab#65](https://github.com/olrenso/obsidian-home-tab/issues/65)
 - 粒子字标效果灵感来自 [BlackCoder0](https://github.com/BlackCoder0) 的 [Arknights-FlowingPoints](https://github.com/BlackCoder0/Arknights-FlowingPoints) —— 我们的实现是对该创意的独立重写
 - 背景图片使用 [style context](https://github.com/Moyf/style-context) 插件实现
+
+## 支持作者
+
+如果 Harbor Tab 对你有帮助，欢迎[请我喝杯咖啡（Ko-fi）](https://ko-fi.com/moy) ☕

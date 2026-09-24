@@ -111,3 +111,7 @@ Alternatively, you can install with [BRAT](https://github.com/TfTHacker/obsidian
 - The particle wordmark effect is inspired by [Arknights-FlowingPoints](https://github.com/BlackCoder0/Arknights-FlowingPoints) by [BlackCoder0](https://github.com/BlackCoder0) — our implementation is an independent rewrite of that idea
 - **Background image** is implemented using the [style context](https://github.com/Moyf/style-context) plugin
 
+## Support
+
+If you like Harbor Tab, consider [buying me a coffee on Ko-fi](https://ko-fi.com/moy) ☕
+
