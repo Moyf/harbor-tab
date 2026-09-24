@@ -1,10 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [1.6.0] - 2026-09-24
 
 ### Features
 
 - **Recovery speed**: new slider in the particle interaction settings that controls how fast a disturbed particle settles back home, i.e. how long a cursor pass keeps rippling. Lower values let the wave linger noticeably longer, higher values snap back almost instantly. The default is the new, clearly rippling motion described below
+- **Gradient particle colors**: the old monochrome toggle becomes a color mode dropdown — Original / Monochrome / Gradient. Gradient blends two colors (the first reuses the existing particle color setting) and supports three animations: static gradient with an adjustable angle, cycling gradient that scrolls seamlessly along the angle, and breathing light where the two colors fade into each other and back. Cycling and breathing speed are configurable via a new animation frequency slider
+- **Particle glow**: new strength slider that makes particles bloom with a soft light halo
+- **Idle motion frequency**: new slider that scales how fast the idle particle motion changes (for Heartbeat it sets the interval between beats). The existing idle motion modes are unchanged otherwise
 
 ### Bug Fixes
 
@@ -17,6 +20,9 @@
 ### 新增
 
 - **恢复速度**：粒子交互设置组新增滑块，控制粒子被光标扰动后回归原位的快慢，也就是鼠标划过之后涟漪能持续多久。数值越低，波浪越悠长；越高则几乎立刻回位。默认值即下方新的、更明显的涟漪效果
+- **渐变粒子颜色**：原「单色」开关升级为颜色模式下拉——原始 / 单色 / 渐变。渐变模式混合两种颜色（第一种沿用现有粒子颜色设置），支持三种动画：可调角度的静态渐变、沿角度无缝滚动的循环渐变、以及两色互相淡入淡出的呼吸灯。循环与呼吸的速度由新增的动画频率滑块控制
+- **粒子辉光**：新增强度滑块，让粒子带上柔和的光晕
+- **待机运动频率**：新增滑块，缩放待机粒子运动的变化速度（心跳模式下为两次心跳的间隔）。其余待机运动模式行为不变
 
 ### 修复
 

@@ -1,38 +1,38 @@
 {
-	"name": "harbor-tab",
-	"version": "1.5.0",
-	"description": "A browser-like home tab with instant file search, starred and recent files, and an optional interactive particle wordmark.",
-	"main": "main.js",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/copy-styles.mjs",
-		"build:local": "pnpm run build && pnpm run copy-to-local",
-		"copy-to-local": "node scripts/copy-to-local.mjs",
-		"test": "node scripts/test-particle-sampling.mjs && node scripts/test-particle-recovery.mjs",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
-	},
-	"keywords": [],
-	"author": "Renso",
-	"license": "MIT",
-	"packageManager": "pnpm@10.33.4",
-	"devDependencies": {
-		"@tsconfig/svelte": "^3.0.0",
-		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
-		"esbuild": "0.14.47",
-		"esbuild-svelte": "^0.7.1",
-		"obsidian": "1.13.1",
-		"svelte": "^3.50.1",
-		"svelte-popperjs": "^1.3.2",
-		"svelte-preprocess": "^4.10.7",
-		"tslib": "2.4.0",
-		"typescript": "4.7.4"
-	},
-	"dependencies": {
-		"@popperjs/core": "^2.11.6",
-		"font-list": "^1.4.5",
-		"fuse.js": "^6.6.2",
-		"lucide-svelte": "^0.88.0"
-	}
+  "name": "harbor-tab",
+  "version": "1.6.0",
+  "description": "A browser-like home tab with instant file search, starred and recent files, and an optional interactive particle wordmark.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/copy-styles.mjs",
+    "build:local": "pnpm run build && pnpm run copy-to-local",
+    "copy-to-local": "node scripts/copy-to-local.mjs",
+    "test": "node scripts/test-particle-sampling.mjs && node scripts/test-particle-recovery.mjs",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "keywords": [],
+  "author": "Renso",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.4",
+  "devDependencies": {
+    "@tsconfig/svelte": "^3.0.0",
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "5.29.0",
+    "@typescript-eslint/parser": "5.29.0",
+    "esbuild": "0.14.47",
+    "esbuild-svelte": "^0.7.1",
+    "obsidian": "1.13.1",
+    "svelte": "^3.50.1",
+    "svelte-popperjs": "^1.3.2",
+    "svelte-preprocess": "^4.10.7",
+    "tslib": "2.4.0",
+    "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "font-list": "^1.4.5",
+    "fuse.js": "^6.6.2",
+    "lucide-svelte": "^0.88.0"
+  }
 }
