@@ -56,8 +56,13 @@
         if (!rootEl || !settings) return
         reserveLayout()
         const next = new ParticleWordmarkEngine(rootEl, {
-            monochrome: settings.particleEffectMonochrome,
+            colorMode: settings.particleEffectColorMode ?? 'original',
             color: settings.particleEffectColor,
+            color2: settings.particleEffectColor2,
+            gradientAnimation: settings.particleEffectGradientAnimation ?? 'static',
+            gradientAngle: settings.particleEffectGradientAngle ?? 180,
+            gradientFrequency: settings.particleEffectGradientFrequency ?? 1,
+            motionFrequency: settings.particleEffectMotionFrequency ?? 1,
             zoom: settings.particleEffectScale,
             spacing: settings.particleEffectSpacing,
             dotSize: settings.particleEffectDotSize,
@@ -122,9 +127,14 @@
     function appearanceSignature(s: HomeTabSettings): string {
         return [
             s.particleEffect,
-            s.particleEffectMonochrome,
+            s.particleEffectColorMode,
             s.particleEffectColor,
+            s.particleEffectColor2,
+            s.particleEffectGradientAnimation,
+            s.particleEffectGradientAngle,
+            s.particleEffectGradientFrequency,
             s.particleEffectAmbientMotion,
+            s.particleEffectMotionFrequency,
             s.particleEffectScale,
             s.particleEffectSpacing,
             s.particleEffectDotSize,
