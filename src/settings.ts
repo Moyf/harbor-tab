@@ -190,6 +190,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
     override async setControlValue(key: string, value: unknown): Promise<void> {
         this.plugin.settings[key] = value
         await this.plugin.saveSettings()
+        // Re-evaluate the visible() predicates that depend on control values
+        // (e.g. the particle style group behind the particleEffect toggle).
+        this.refreshDomState()
         if (HomeTabSettingTab.REFRESH_OPEN_VIEWS_KEYS.has(key)) {
             this.plugin.refreshOpenViews()
         }
@@ -534,6 +537,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 items: [
                                     this.dropdownWithReset('particleEffectColorMode', t.setting.particleEffectColorMode.name, t.setting.particleEffectColorMode.desc, t.setting.particleEffectColorMode.options, {
                                         visible: () => s.particleEffect,
+                                        refreshDomAfterChange: true, // re-evaluate the dependent color pickers/mode items in place
                                     }),
                                     {
                                         name: t.setting.particleEffectColor.name,
@@ -565,6 +569,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     },
                                     this.dropdownWithReset('particleEffectGradientAnimation', t.setting.particleEffectGradientAnimation.name, t.setting.particleEffectGradientAnimation.desc, t.setting.particleEffectGradientAnimation.options, {
                                         visible: () => s.particleEffect && s.particleEffectColorMode === 'gradient',
+                                        refreshDomAfterChange: true, // toggles the angle/frequency sliders in place
                                     }),
                                     {
                                         ...this.sliderWithReset('particleEffectGradientAngle', t.setting.particleEffectGradientAngle.name, t.setting.particleEffectGradientAngle.desc, 0, 360, 5),
@@ -576,6 +581,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     },
                                     this.dropdownWithReset('particleEffectAmbientMotion', t.setting.particleEffectAmbientMotion.name, t.setting.particleEffectAmbientMotion.desc, t.setting.particleEffectAmbientMotion.options, {
                                         visible: () => s.particleEffect,
+                                        refreshDomAfterChange: true, // toggles the motion frequency slider in place
                                     }),
                                     {
                                         ...this.sliderWithReset('particleEffectMotionFrequency', t.setting.particleEffectMotionFrequency.name, t.setting.particleEffectMotionFrequency.desc, 0.25, 4, 0.05),
@@ -765,7 +771,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         name: string,
         desc: string | undefined,
         options: Record<string, string>,
-        opts?: { visible?: () => boolean; rebuildAfterChange?: boolean; refreshAfterChange?: boolean },
+        opts?: { visible?: () => boolean; rebuildAfterChange?: boolean; refreshAfterChange?: boolean; refreshDomAfterChange?: boolean },
     ): SettingDefinitionRender {
         return {
             name,
@@ -779,8 +785,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         .onChange((value) => {
                             this.plugin.settings[key] = value
                             void this.plugin.saveSettings()
-                            if(opts?.rebuildAfterChange){this.update()}
-                            if(opts?.refreshAfterChange){this.plugin.refreshOpenViews()}
+                            if (opts?.rebuildAfterChange){this.update()}
+                            if (opts?.refreshAfterChange){this.plugin.refreshOpenViews()}
+                            if (opts?.refreshDomAfterChange){this.refreshDomState()}
                         }))
                 this.addResetButton(setting, key)
             },
