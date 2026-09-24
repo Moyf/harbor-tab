@@ -206,7 +206,7 @@ function passAt(speed, options) {
 }
 
 // --- 1. Recovery speed drives the real physics, monotonically -----------------
-const speeds = [0.6, 0.8, 1, 1.5, 2, 2.5];
+const speeds = [0.6, 0.8, 1, 1.4, 2, 2.5];
 const runs = speeds.map((speed) => passAt(speed));
 for (const run of runs) {
     assert.ok(Number.isFinite(run.peak) && run.peak > 0, 'the cursor must disturb the particles');
@@ -226,7 +226,7 @@ for (let i = 1; i < runs.length; i++) {
 
 // --- 2. The new default ripples markedly longer than the old fixed solver -----
 const legacy = legacyPass();
-const [slowest, , defaultRun, , , fastest] = runs;
+const [slowest, , , defaultRun, , fastest] = runs;
 assert.ok(
     defaultRun.visibleAfterLeave > 2 * legacy.visibleAfterLeave,
     `default ripple (${defaultRun.visibleAfterLeave.toFixed(2)}s) must linger well past the old solver ` +
@@ -276,8 +276,8 @@ assert.ok(maxDisplacement(hitch.particles) < 150, 'clamped steps must not blow u
 
 assert.equal(createEngine(0.01).recoverySpeed, 0.6, 'values below the range clamp to the slowest');
 assert.equal(createEngine(99).recoverySpeed, 2.5, 'values above the range clamp to the fastest');
-assert.equal(createEngine(undefined).recoverySpeed, 1, 'a missing value falls back to the default');
-assert.equal(createEngine(1).recoverySpeed, 1, 'the default is used as-is');
+assert.equal(createEngine(undefined).recoverySpeed, 1.4, 'a missing value falls back to the default');
+assert.equal(createEngine(1.4).recoverySpeed, 1.4, 'the default is used as-is');
 
 const legacyCaller = createEngine(undefined);
 makeRow(legacyCaller);

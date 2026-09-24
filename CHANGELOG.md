@@ -2,32 +2,32 @@
 
 ## [1.6.0] - 2026-09-24
 
+![Harbor Tab particle effect](docs/harbor-tab-particles.webm)
+
 ### Features
 
-- **Recovery speed**: new slider in the particle interaction settings that controls how fast a disturbed particle settles back home, i.e. how long a cursor pass keeps rippling. Lower values let the wave linger noticeably longer, higher values snap back almost instantly. The default is the new, clearly rippling motion described below
-- **Gradient particle colors**: the old monochrome toggle becomes a color mode dropdown — Original / Monochrome / Gradient. Gradient blends two colors (the first reuses the existing particle color setting) and supports three animations: static gradient with an adjustable angle, cycling gradient that scrolls seamlessly along the angle, and breathing light where the two colors fade into each other and back. Cycling and breathing speed are configurable via a new animation frequency slider
-- **Particle glow**: new strength slider that makes particles bloom with a soft light halo
-- **Idle motion frequency**: new slider that scales how fast the idle particle motion changes (for Heartbeat it sets the interval between beats). The existing idle motion modes are unchanged otherwise
+- **Recovery speed**: a new slider in the particle interaction settings controls how fast a disturbed particle settles back home — i.e. how long the ripple keeps waving after the cursor passes. Lower values keep the wave lingering; higher values snap back almost instantly.
+- **Gradient particle colors**: the old Monochrome toggle becomes a color mode with Monochrome and Gradient options. Gradient mode blends two colors and supports three display effects.
+- **Particle glow**: particles can now glow, with an adjustable strength (0 disables it).
+- **Idle motion frequency**: the frequency of the idle particle motion can now be adjusted.
 
 ### Bug Fixes
 
-- Fix the cursor ripple settling at different speeds depending on the display refresh rate: the particle physics now steps in 60 Hz reference frames, so a disturbance takes the same wall-clock time on 60 Hz, 120 Hz, and through throttled frames (previously a stalled frame skipped ahead and high-refresh displays settled faster)
-- Make the default particle ripple visibly linger instead of snapping back: particles are now much less damped, so a cursor pass leaves a few clear overshoots that fade out over about 3.3 seconds, instead of a single barely visible bounce
+- Fix the cursor ripple settling at different speeds depending on the display refresh rate.
 
 <details>
 <summary>中文说明（点击展开）</summary>
 
 ### 新增
 
-- **恢复速度**：粒子交互设置组新增滑块，控制粒子被光标扰动后回归原位的快慢，也就是鼠标划过之后涟漪能持续多久。数值越低，波浪越悠长；越高则几乎立刻回位。默认值即下方新的、更明显的涟漪效果
-- **渐变粒子颜色**：原「单色」开关升级为颜色模式下拉——原始 / 单色 / 渐变。渐变模式混合两种颜色（第一种沿用现有粒子颜色设置），支持三种动画：可调角度的静态渐变、沿角度无缝滚动的循环渐变、以及两色互相淡入淡出的呼吸灯。循环与呼吸的速度由新增的动画频率滑块控制
-- **粒子辉光**：新增强度滑块，让粒子带上柔和的光晕
-- **待机运动频率**：新增滑块，缩放待机粒子运动的变化速度（心跳模式下为两次心跳的间隔）。其余待机运动模式行为不变
+- **扰动恢复速度**：粒子交互设置组新增滑块，控制粒子被光标扰动后回归原位的快慢，也就是鼠标划过之后涟漪能持续多久。
+- **渐变粒子颜色**：原「单色」开关升级为颜色模式，可选单色或渐变色。渐变模式混合两种颜色，支持三种显示效果。
+- **粒子辉光**：新增辉光功能，可以让粒子发光，强度设置为0则不启用。
+- **待机运动频率**：现在可以调整待机粒子运动的变化频率。
 
 ### 修复
 
-- 修复粒子涟漪的收敛速度随屏幕刷新率变化的问题：物理积分改为按 60 Hz 参考帧步进，扰动在 60 Hz、120 Hz 以及掉帧时消耗同样的实际时间（此前掉帧会一次性跳过大段时间，高刷屏则收敛更快）
-- 让默认的粒子涟漪真正「荡」起来：大幅降低阻尼，鼠标划过之后会留下数次清晰的过冲并在约 3.3 秒内逐渐消散，而不是一次几乎看不见的回弹
+- 修复粒子涟漪的收敛速度随屏幕刷新率变化的问题。
 
 </details>
 

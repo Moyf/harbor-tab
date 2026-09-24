@@ -100,7 +100,7 @@ interface CapturedSources {
 const REFERENCE_FRAME_MS = 1000 / 60
 const BASE_SPRING_STRENGTH = 0.011 // per 60 Hz frame at speed 1: ω ≈ 0.105 rad/frame (~1 s period)
 const BASE_DAMPING_RATE = 0.042 // per 60 Hz frame at speed 1: velocity half-life ≈ 0.55 s
-const RECOVERY_SPEED_DEFAULT = 1
+const RECOVERY_SPEED_DEFAULT = 1.4
 const RECOVERY_SPEED_MIN = 0.6
 const RECOVERY_SPEED_MAX = 2.5
 const MAX_FRAME_STEPS = 3 // a stalled frame (hidden tab, long task) counts as at most 3 reference steps

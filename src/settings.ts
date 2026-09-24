@@ -127,7 +127,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectDisturbStrength: 1.8,
     // 1 = the default ripple: disturbed particles overshoot a few times before
     // settling, so a cursor pass leaves a visible wave instead of a snap-back.
-    particleEffectRecoverySpeed: 1,
+    particleEffectRecoverySpeed: 1.4,
     maxResults: 5,
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
@@ -518,15 +518,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
                             },
                         ],
                     },
-                    {
-                        type: 'page',
-                        name: t.page.selectionHighlight.name,
-                        desc: t.page.selectionHighlight.desc,
-                        items: [
-                            this.dropdownWithReset('selectionHighlight', t.setting.selectionHighlight.name, t.setting.selectionHighlight.desc,
-                                { default: t.common.themeDefault, accentColor: t.common.accentColor }, { refreshAfterChange: true }),
-                        ],
-                    },
+                    this.dropdownWithReset('selectionHighlight', t.setting.selectionHighlight.name, t.setting.selectionHighlight.desc,
+                        { default: t.common.themeDefault, accentColor: t.common.accentColor }, { refreshAfterChange: true }),
                     {
                         type: 'page',
                         name: t.page.particleEffect.name,
