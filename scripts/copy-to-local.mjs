@@ -15,8 +15,11 @@ if (!existsSync(obsidianDir)) throw new Error(`Vault directory does not contain 
 const manifest = JSON.parse(readFileSync(join(rootDir, "manifest.json"), "utf8"));
 const pluginDir = join(obsidianDir, "plugins", manifest.id);
 mkdirSync(pluginDir, { recursive: true });
+const stylesSource = existsSync(join(rootDir, "styles.css"))
+	? join(rootDir, "styles.css")
+	: join(rootDir, "dist", "styles.css");
 for (const file of ["main.js", "manifest.json", "styles.css"]) {
-	const source = join(rootDir, file);
+	const source = file === "styles.css" ? stylesSource : join(rootDir, file);
 	if (existsSync(source)) copyFileSync(source, join(pluginDir, file));
 	else if (file !== "styles.css") throw new Error(`Required build artifact is missing: ${source}`);
 }
