@@ -9,6 +9,7 @@
 	import type { recentFile } from 'src/recentFiles';
 	import BookmarkedFiles from './bookmarkedFiles.svelte';
 	import RecentFiles from './recentFiles.svelte';
+	import VaultStats from './vaultStats.svelte';
 	import type { bookmarkedFile } from 'src/bookmarkedFiles';
 	import type HomeTab from 'src/main';
     
@@ -181,6 +182,10 @@
     {#if plugin.recentFileManager && recentFileList.length > 0  && renderRecentFiles}
         <RecentFiles {recentFileList} {view} {pluginSettings} recentFileManager={plugin.recentFileManager} {HomeTabSearchBar}/>
     {/if}
+
+    {#if pluginSettings.vaultStats && !embeddedView}
+        <VaultStats {view} {pluginSettings}/>
+    {/if}
 </main>
   
 <style>
@@ -190,6 +195,9 @@
        not become a scroll container and vertical scrolling stays on .view-content. */
     .home-tab{
         overflow-x: clip;
+        /* 全高定位容器：库数据 (VaultStats) 以绝对定位钉在主页偏下方 */
+        position: relative;
+        min-height: 100%;
     }
     .home-tab-logo svg{
         height: unset;

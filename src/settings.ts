@@ -16,6 +16,11 @@ type LogoChoices = 'default' | 'imagePath' | 'imageLink' | 'lucideIcon' | 'oldLo
 type LogoPosition = 'top' | 'bottom' | 'left' | 'right'
 type FontChoices = 'interfaceFont' | 'textFont' | 'monospaceFont' | 'custom'
 
+// 新增：库数据（vault stats）可显示的统计项
+export type VaultStatItemKey = 'files' | 'notes' | 'attachments' | 'folders' | 'tags'
+
+export const VAULT_STAT_KEYS: readonly VaultStatItemKey[] = ['files', 'notes', 'attachments', 'folders', 'tags']
+
 interface ObjectKeys {
     [key: string]: unknown
 }
@@ -88,6 +93,9 @@ export interface HomeTabSettings extends ObjectKeys{
     webUrlSuggestions: boolean // 新增：网址功能开关，检测搜索栏输入的网址并建议用网页浏览器打开
     debugMode?: boolean // 新增：调试模式，显示搜索和匹配的详细信息
     hideOnBlur?: boolean // 新增：失去焦点时是否隐藏搜索结果
+    vaultStats: boolean // 新增：在主页偏下方显示库数据（总开关）
+    vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
+    vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -156,6 +164,24 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     webUrlSuggestions: true, // 新增：默认开启网址功能（仅当网页浏览器核心插件可用时生效）
     debugMode: false, // 新增：默认关闭调试模式
     hideOnBlur: true, // 新增：默认情况下失去焦点时隐藏搜索结果
+    vaultStats: false, // 新增：默认关闭库数据显示
+    vaultStatsItems: [...VAULT_STAT_KEYS], // 新增：默认全部启用，按默认顺序显示
+    vaultStatsOrder: [...VAULT_STAT_KEYS], // 新增：默认顺序
+}
+
+/**
+ * 修复旧版本 data.json 中缺失或含未知项的库数据设置：
+ * vaultStatsOrder 必须包含全部统计项，vaultStatsItems 只能包含其中的有效项。
+ */
+export function normalizeVaultStatsSettings(settings: HomeTabSettings): void {
+    const order = (settings.vaultStatsOrder ?? []).filter((key): key is VaultStatItemKey =>
+        VAULT_STAT_KEYS.includes(key as VaultStatItemKey))
+    VAULT_STAT_KEYS.forEach((key) => {
+        if(!order.includes(key)){order.push(key)}
+    })
+    settings.vaultStatsOrder = order
+    settings.vaultStatsItems = (settings.vaultStatsItems ?? []).filter((key): key is VaultStatItemKey =>
+        order.includes(key))
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -377,6 +403,20 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     }))
                             this.addResetButton(setting, 'maxRecentFiles')
                         },
+                    },
+                    // 新增：库数据 SubPage —— 总开关、各统计项开关与排序
+                    {
+                        type: 'page',
+                        name: t.page.vaultStats.name,
+                        desc: t.page.vaultStats.desc,
+                        items: [
+                            {
+                                name: t.setting.vaultStats.name,
+                                desc: t.setting.vaultStats.desc,
+                                control: { type: 'toggle', key: 'vaultStats', defaultValue: false },
+                            },
+                            ...s.vaultStatsOrder.map((key, index) => this.vaultStatsItemSetting(key, index, t)),
+                        ],
                     },
                 ],
             },
@@ -811,5 +851,59 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings()
                         this.update()
                     }))
+    }
+
+    // 新增：单个库数据项的设置行 —— 启用开关 + 上移/下移排序按钮
+    private vaultStatsItemSetting(key: VaultStatItemKey, index: number, t: ReturnType<typeof getLocale>): SettingDefinitionItem {
+        const s = this.plugin.settings
+        return {
+            name: this.vaultStatsItemName(key, t),
+            visible: () => s.vaultStats,
+            render: (setting) => {
+                setting
+                    .addToggle((toggle) => toggle
+                        .setValue(s.vaultStatsItems.includes(key))
+                        .onChange(async (value) => {
+                            s.vaultStatsItems = value
+                                ? [...s.vaultStatsItems, key]
+                                : s.vaultStatsItems.filter((item) => item !== key)
+                            await this.plugin.saveSettings()
+                        }))
+                    .addExtraButton((button) => button
+                        .setIcon('arrow-up')
+                        .setTooltip(t.setting.vaultStatsMoveUp.name)
+                        .setDisabled(index <= 0)
+                        .onClick(async () => this.moveVaultStatItem(key, -1)))
+                    .addExtraButton((button) => button
+                        .setIcon('arrow-down')
+                        .setTooltip(t.setting.vaultStatsMoveDown.name)
+                        .setDisabled(index >= s.vaultStatsOrder.length - 1)
+                        .onClick(async () => this.moveVaultStatItem(key, 1)))
+            },
+        }
+    }
+
+    // 新增：在 vaultStatsOrder 中把某个统计项与相邻项交换，并重建设置页以反映新顺序
+    private moveVaultStatItem(key: VaultStatItemKey, direction: -1 | 1): void {
+        const s = this.plugin.settings
+        const index = s.vaultStatsOrder.indexOf(key)
+        const target = index + direction
+        if(index === -1 || target < 0 || target >= s.vaultStatsOrder.length){return}
+        const order = [...s.vaultStatsOrder]
+        order[index] = order[target]
+        order[target] = key
+        s.vaultStatsOrder = order
+        void this.plugin.saveSettings()
+        this.update()
+    }
+
+    private vaultStatsItemName(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): string {
+        switch (key) {
+            case 'files': return t.setting.vaultStatsFiles.name
+            case 'notes': return t.setting.vaultStatsNotes.name
+            case 'attachments': return t.setting.vaultStatsAttachments.name
+            case 'folders': return t.setting.vaultStatsFolders.name
+            case 'tags': return t.setting.vaultStatsTags.name
+        }
     }
 }

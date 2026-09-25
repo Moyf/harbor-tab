@@ -6,7 +6,7 @@ import {
 	MarkdownView
 } from 'obsidian';
 import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
-import { HomeTabSettingTab, DEFAULT_SETTINGS, type HomeTabSettings } from './settings'
+import { HomeTabSettingTab, DEFAULT_SETTINGS, normalizeVaultStatsSettings, type HomeTabSettings } from './settings'
 import { t } from './i18n'
 import { pluginSettingsStore, bookmarkedFiles } from './store'
 import { RecentFileManager } from './recentFiles';
@@ -158,6 +158,7 @@ export default class HomeTab extends Plugin {
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<HomeTabSettings>)
 		this.migrateLegacySettings()
+		normalizeVaultStatsSettings(this.settings)
 	}
 
 	/** Upgrades settings persisted by older plugin versions in place. */

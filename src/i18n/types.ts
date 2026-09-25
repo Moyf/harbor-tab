@@ -34,6 +34,7 @@ export interface BaseMessage {
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry
+		vaultStats: SettingEntry
 	}
 	setting: {
 		replaceNewTabs: SettingEntry
@@ -99,6 +100,14 @@ export interface BaseMessage {
 		particleEffectAmbientMotion: SettingEntry & { options: DropdownOptions }
 		particleEffectMotionFrequency: SettingEntry
 		particleEffectGlow: SettingEntry
+		vaultStats: SettingEntry
+		vaultStatsFiles: SettingEntry
+		vaultStatsNotes: SettingEntry
+		vaultStatsAttachments: SettingEntry
+		vaultStatsFolders: SettingEntry
+		vaultStatsTags: SettingEntry
+		vaultStatsMoveUp: SettingEntry
+		vaultStatsMoveDown: SettingEntry
 		debugMode: SettingEntry
 	}
 	common: {
