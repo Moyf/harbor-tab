@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { Platform } from "obsidian";
+    import { Platform, getIcon } from "obsidian";
     import { filterKeys, type FilterKey, type SearchBarFilterType } from "src/homeTabSearchbar";
     import type HomeTabSearchBar from "src/homeTabSearchbar";
-    import { recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+    import { pluginSettingsStore, recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+    import { t } from "src/i18n";
     import { onMount } from 'svelte';
     
     export let HomeTabSearchBar: HomeTabSearchBar
@@ -61,6 +62,12 @@
         <div class='nav-file-tag home-tab-suggestion-file-tag hide' bind:this={$activeExtEl}></div>
         <input type="search" spellcheck="false" placeholder="Type to start search..." bind:value={inputValue} bind:this={inputEl}
         on:keydown={(e) => handleKeydown(e)}>
+        {#if $pluginSettingsStore?.showNewNoteButton}
+            <button type="button" class="home-tab-new-note-button" aria-label={t().newNoteModal.title}
+                on:click={() => HomeTabSearchBar.openNewNote()}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">{@html getIcon('plus')?.innerHTML}</svg>
+            </button>
+        {/if}
     </div>
 </div>
 
@@ -103,5 +110,28 @@
 
     .home-tab-suggestion-file-tag.hide{
         display: none;
+    }
+
+    .home-tab-new-note-button{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        aspect-ratio: 1;
+        padding: 0;
+        margin-left: 4px;
+        background: none;
+        border: none;
+        border-radius: var(--input-radius);
+        box-shadow: none;
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+    .home-tab-new-note-button:hover{
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+    .home-tab-new-note-button svg{
+        display: block;
     }
 </style>

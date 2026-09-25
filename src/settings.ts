@@ -3,6 +3,8 @@ import type { IconName, SettingDefinitionItem, SettingDefinitionRender } from 'o
 import type HomeTab from './main'
 import iconSuggester from './suggester/iconSuggester'
 import ImageFileSuggester from './suggester/imageSuggester'
+import CommandSuggester from './suggester/commandSuggester'
+import FolderSuggester from './suggester/folderSuggester'
 import cssUnitValidator from './utils/cssUnitValidator'
 import isLink from './utils/isLink'
 import fontSuggester from './suggester/fontSuggester'
@@ -88,6 +90,10 @@ export interface HomeTabSettings extends ObjectKeys{
     webUrlSuggestions: boolean // 新增：网址功能开关，检测搜索栏输入的网址并建议用网页浏览器打开
     debugMode?: boolean // 新增：调试模式，显示搜索和匹配的详细信息
     hideOnBlur?: boolean // 新增：失去焦点时是否隐藏搜索结果
+    showNewNoteButton: boolean // 新增：显示「新建笔记」按钮
+    newNoteUseCommand: boolean // 新增：点击按钮时执行指定命令而不是新建笔记
+    newNoteCommandId: string // 新增：命令覆盖时执行的命令 ID
+    newNoteDefaultFolder: string // 新增：新建笔记弹窗默认填写的文件夹
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -156,6 +162,10 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     webUrlSuggestions: true, // 新增：默认开启网址功能（仅当网页浏览器核心插件可用时生效）
     debugMode: false, // 新增：默认关闭调试模式
     hideOnBlur: true, // 新增：默认情况下失去焦点时隐藏搜索结果
+    showNewNoteButton: true, // 新增：默认显示「新建笔记」按钮
+    newNoteUseCommand: false, // 新增：默认不使用命令覆盖
+    newNoteCommandId: '', // 新增：命令 ID 默认为空
+    newNoteDefaultFolder: '', // 新增：默认文件夹默认留空（仓库根目录）
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -178,6 +188,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'showbookmarkedFiles',
         'showRecentFiles',
         'selectionHighlight',
+        'showNewNoteButton',
     ])
     // NOTE: particle-effect settings are intentionally NOT in this set — the
     // ParticleWordmark component rebuilds itself in place from prop/store
@@ -345,6 +356,29 @@ export class HomeTabSettingTab extends PluginSettingTab {
                 type: 'group',
                 heading: t.group.files,
                 items: [
+                    {
+                        name: t.setting.showNewNoteButton.name,
+                        desc: t.setting.showNewNoteButton.desc,
+                        control: { type: 'toggle', key: 'showNewNoteButton', defaultValue: true },
+                    },
+                    {
+                        name: t.setting.newNoteUseCommand.name,
+                        desc: t.setting.newNoteUseCommand.desc,
+                        visible: () => s.showNewNoteButton,
+                        control: { type: 'toggle', key: 'newNoteUseCommand', defaultValue: false },
+                    },
+                    {
+                        name: t.setting.newNoteCommandId.name,
+                        desc: t.setting.newNoteCommandId.desc,
+                        visible: () => s.showNewNoteButton && s.newNoteUseCommand,
+                        render: (setting) => this.renderNewNoteCommand(setting, t),
+                    },
+                    {
+                        name: t.setting.newNoteDefaultFolder.name,
+                        desc: t.setting.newNoteDefaultFolder.desc,
+                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                        render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
+                    },
                     {
                         name: t.setting.showBookmarkedFiles.name,
                         desc: t.setting.showBookmarkedFiles.desc,
@@ -744,6 +778,56 @@ export class HomeTabSettingTab extends PluginSettingTab {
             })
             .inputEl.parentElement?.addClass('wide-input-container')
         })
+    }
+
+    /** Command ID input for the new-note button override, with command suggester + validity marker */
+    private renderNewNoteCommand(setting: Setting, t: ReturnType<typeof getLocale>): void {
+        const s = this.plugin.settings
+        let invalidCommandIcon: HTMLElement
+        setting
+            .addExtraButton((button) => {button
+                .setIcon('alert-circle')
+                .setTooltip(t.setting.newNoteCommandId.invalid)
+                invalidCommandIcon = button.extraSettingsEl
+                invalidCommandIcon.toggleVisibility(false)
+                invalidCommandIcon.addClass('mod-warning')})
+
+        setting
+            .addText((text) => {
+                new CommandSuggester(this.app, text.inputEl)
+                text
+                    .setPlaceholder(t.setting.newNoteCommandId.placeholder)
+                    .setValue(s.newNoteCommandId)
+                    .onChange((value) => {
+                        // Empty clears the override; otherwise the command must exist
+                        const isValid = value === '' || !!this.app.commands?.commands?.[value]
+                        invalidCommandIcon.toggleVisibility(!isValid)
+                        if(isValid){
+                            s.newNoteCommandId = value
+                            void this.plugin.saveSettings()
+                        }
+                    })
+                    .inputEl.parentElement?.addClass('wide-input-container')
+            })
+        this.addResetButton(setting, 'newNoteCommandId')
+    }
+
+    /** Default folder input for the new-note modal, with folder suggester */
+    private renderNewNoteDefaultFolder(setting: Setting, t: ReturnType<typeof getLocale>): void {
+        const s = this.plugin.settings
+        setting
+            .addText((text) => {
+                new FolderSuggester(this.app, text.inputEl)
+                text
+                    .setPlaceholder(t.setting.newNoteDefaultFolder.placeholder)
+                    .setValue(s.newNoteDefaultFolder)
+                    .onChange((value) => {
+                        s.newNoteDefaultFolder = normalizePath(value)
+                        void this.plugin.saveSettings()
+                    })
+                    .inputEl.parentElement?.addClass('wide-input-container')
+            })
+        this.addResetButton(setting, 'newNoteDefaultFolder')
     }
 
     private sliderWithReset(

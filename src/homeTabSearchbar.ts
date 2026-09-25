@@ -7,6 +7,8 @@ import SurfingSuggester from "./suggester/surfingSuggester";
 import WebViewerSuggester from "./suggester/webViewerSuggester";
 import { fileTypes, type FileExtension, type FileType, fileExtensions } from "./utils/getFileTypeUtils";
 import { isValidUrl } from "./utils/urlUtils";
+import { NewNoteModal } from "./newNoteModal";
+import { t } from "./i18n";
 
 export type SearchBarFilterType = 'fileExtension' | 'fileType' | 'webSearch' | 'omnisearch' | 'default'
 
@@ -122,6 +124,23 @@ export default class HomeTabSearchBar{
         // Set cursor on search bar
         if (this.searchBarEl)
             get(this.searchBarEl).focus();
+    }
+
+    /**
+     * Handler of the "new note" button: executes the configured override
+     * command when enabled, otherwise opens the create-note modal.
+     */
+    public openNewNote(): void {
+        const settings = this.plugin.settings;
+        if (settings.newNoteUseCommand && settings.newNoteCommandId) {
+            if (this.app.commands?.commands?.[settings.newNoteCommandId]) {
+                this.app.commands.executeCommandById(settings.newNoteCommandId);
+                return;
+            }
+            // Command was removed/unloaded since it was configured: fall back to the modal
+            new Notice(t().newNoteModal.commandNotFound);
+        }
+        new NewNoteModal(this.app, this.plugin).open();
     }
 
     public load(): void {

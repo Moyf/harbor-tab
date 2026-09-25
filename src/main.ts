@@ -5,6 +5,7 @@ import {
 	WorkspaceTabs,
 	MarkdownView
 } from 'obsidian';
+import type { Command } from 'obsidian';
 import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
 import { HomeTabSettingTab, DEFAULT_SETTINGS, type HomeTabSettings } from './settings'
 import { t } from './i18n'
@@ -62,6 +63,15 @@ declare module 'obsidian'{
 	}
 	interface TFile{
 		deleted: boolean
+	}
+	// The command registry is not part of the public typings
+	interface CommandRegistry{
+		commands: { [id: string]: Command }
+		listCommands: () => Command[]
+		executeCommandById: (id: string) => void
+	}
+	interface App{
+		commands: CommandRegistry
 	}
 }
 

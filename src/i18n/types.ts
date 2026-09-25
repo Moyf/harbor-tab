@@ -17,6 +17,21 @@ export interface BaseMessage {
 		replaceCurrentTab: string
 	}
 	viewName: string
+	newNoteModal: {
+		title: string
+		fileName: string
+		fileNamePlaceholder: string
+		folder: string
+		folderDesc: string
+		folderPlaceholder: string
+		create: string
+		cancel: string
+		invalidFileName: string
+		folderIsFile: string
+		fileExists: string
+		createFailed: string
+		commandNotFound: string
+	}
 	group: {
 		search: string
 		files: string
@@ -58,6 +73,10 @@ export interface BaseMessage {
 		showRecentFiles: SettingEntry
 		storeRecentFile: SettingEntry
 		maxRecentFiles: SettingEntry
+		showNewNoteButton: SettingEntry
+		newNoteUseCommand: SettingEntry
+		newNoteCommandId: SettingEntry & { invalid: string; placeholder: string }
+		newNoteDefaultFolder: SettingEntry & { placeholder: string }
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string

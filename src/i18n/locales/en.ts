@@ -6,6 +6,21 @@ const en: BaseMessage = {
 		replaceCurrentTab: 'Replace current tab',
 	},
 	viewName: 'Harbor Tab',
+	newNoteModal: {
+		title: 'New note',
+		fileName: 'File name',
+		fileNamePlaceholder: 'Type a file name ...',
+		folder: 'Create folder',
+		folderDesc: 'The note is created here; intermediate folders are created automatically.',
+		folderPlaceholder: 'Leave empty for the vault root',
+		create: 'Create',
+		cancel: 'Cancel',
+		invalidFileName: 'The file name is empty or contains invalid characters (\\ / : * ? " < > | # ^ [ ]).',
+		folderIsFile: 'A file already exists at this folder path.',
+		fileExists: 'A file with this name already exists.',
+		createFailed: 'Failed to create the note. Check the developer console for details.',
+		commandNotFound: 'The configured command is not available. Opening the create dialog instead.',
+	},
 	group: {
 		search: 'Search',
 		files: 'Files',
@@ -116,6 +131,25 @@ const en: BaseMessage = {
 		maxRecentFiles: {
 			name: 'Recent files',
 			desc: 'Set how many recent files display.',
+		},
+		showNewNoteButton: {
+			name: 'Show new note button',
+			desc: 'Adds a button next to the search bar to quickly create a new note.',
+		},
+		newNoteUseCommand: {
+			name: 'Override with a command',
+			desc: 'When enabled, clicking the button runs the configured command instead of opening the create dialog. Useful to integrate other plugins.',
+		},
+		newNoteCommandId: {
+			name: 'Command',
+			desc: 'Command to run when the button is clicked. Type to search all registered commands.',
+			placeholder: 'Type to search commands ...',
+			invalid: 'The command does not exist.',
+		},
+		newNoteDefaultFolder: {
+			name: 'Default folder',
+			desc: 'Folder pre-filled when creating a note. Leave empty to use the vault root.',
+			placeholder: 'Leave empty for the vault root',
 		},
 		logo: {
 			name: 'Logo',

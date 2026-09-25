@@ -6,6 +6,21 @@ const zhCN: BaseMessage = {
 		replaceCurrentTab: '替换当前标签页',
 	},
 	viewName: 'Harbor Tab',
+	newNoteModal: {
+		title: '新建笔记',
+		fileName: '文件名',
+		fileNamePlaceholder: '输入文件名 ...',
+		folder: '创建文件夹',
+		folderDesc: '笔记将创建在此路径，不存在的文件夹会自动创建。',
+		folderPlaceholder: '留空则在仓库根目录创建',
+		create: '创建',
+		cancel: '取消',
+		invalidFileName: '文件名为空或包含非法字符（\\ / : * ? " < > | # ^ [ ]）。',
+		folderIsFile: '该路径已存在同名文件，无法创建文件夹。',
+		fileExists: '同名文件已存在。',
+		createFailed: '创建笔记失败，详情请查看开发者控制台。',
+		commandNotFound: '配置的命令不可用，已回退到新建笔记弹窗。',
+	},
 	group: {
 		search: '搜索',
 		files: '文件',
@@ -116,6 +131,25 @@ const zhCN: BaseMessage = {
 		maxRecentFiles: {
 			name: '最近文件数量',
 			desc: '设置显示的最近文件数量。',
+		},
+		showNewNoteButton: {
+			name: '显示新建笔记按钮',
+			desc: '在搜索栏旁显示「新建笔记」按钮，快速创建笔记。',
+		},
+		newNoteUseCommand: {
+			name: '使用指定命令覆盖',
+			desc: '开启后，点击按钮将执行下方配置的命令，而不是打开新建笔记弹窗，可用于联动其他插件。',
+		},
+		newNoteCommandId: {
+			name: '命令',
+			desc: '点击按钮时执行的命令，输入即可搜索所有已注册命令。',
+			placeholder: '输入以搜索命令 ...',
+			invalid: '命令不存在。',
+		},
+		newNoteDefaultFolder: {
+			name: '默认文件夹',
+			desc: '新建笔记时默认填写的文件夹，留空则使用仓库根目录。',
+			placeholder: '留空则在仓库根目录创建',
 		},
 		logo: {
 			name: 'Logo',
