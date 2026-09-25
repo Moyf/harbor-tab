@@ -323,8 +323,12 @@ const zhCN: BaseMessage = {
 			desc: '循环渐变与呼吸灯模式的变化速度（数值越大越快）',
 		},
 		particleEffectScale: {
-			name: '画布倍率',
-			desc: '粒子画布内容相对原 Logo 与标题区域的放大倍数',
+			name: '画布倍率（桌面端）',
+			desc: '粒子画布内容相对原 Logo 与标题区域的放大倍数，仅桌面端生效',
+		},
+		particleEffectScaleMobile: {
+			name: '画布倍率（移动端）',
+			desc: '手机与平板上使用的画布倍率，与桌面端分别设置',
 		},
 		particleEffectSpacing: {
 			name: '粒子间距',

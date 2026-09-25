@@ -66,6 +66,7 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectMotionFrequency: number
     particleEffectGlow: number
     particleEffectScale: number
+    particleEffectScaleMobile: number
     particleEffectSpacing: number
     particleEffectDotSize: number
     particleEffectDisturbRadius: number
@@ -145,6 +146,8 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectMotionFrequency: 1,
     particleEffectGlow: 0,
     particleEffectScale: 1.9,
+    // Mobile renders at 1× so the zoomed canvas never overflows the narrow layout.
+    particleEffectScaleMobile: 1,
     particleEffectSpacing: 2,
     particleEffectDotSize: 0.5,
     particleEffectDisturbRadius: 124,
@@ -210,6 +213,16 @@ export function normalizeVaultStatsSettings(settings: HomeTabSettings): void {
     settings.vaultStatsOrder = order
     settings.vaultStatsItems = (settings.vaultStatsItems ?? []).filter((key): key is VaultStatItemKey =>
         order.includes(key))
+}
+
+/**
+ * The canvas scale follows the platform: desktop and mobile keep independent
+ * settings (so the zoomed canvas can stay 1× on small screens), and each one
+ * only applies while the plugin runs on its own platform.
+ */
+export function effectiveParticleEffectScale(settings: HomeTabSettings): number {
+    if (Platform.isMobile) return settings.particleEffectScaleMobile ?? DEFAULT_SETTINGS.particleEffectScaleMobile
+    return settings.particleEffectScale ?? DEFAULT_SETTINGS.particleEffectScale
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -768,6 +781,10 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 items: [
                                     {
                                         ...this.sliderWithReset('particleEffectScale', t.setting.particleEffectScale.name, t.setting.particleEffectScale.desc, 1, 3, 0.1),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectScaleMobile', t.setting.particleEffectScaleMobile.name, t.setting.particleEffectScaleMobile.desc, 1, 3, 0.1),
                                         visible: () => s.particleEffect,
                                     },
                                     {

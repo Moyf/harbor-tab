@@ -128,6 +128,7 @@ export interface BaseMessage {
 		particleEffectGradientAngle: SettingEntry
 		particleEffectGradientFrequency: SettingEntry
 		particleEffectScale: SettingEntry
+		particleEffectScaleMobile: SettingEntry
 		particleEffectSpacing: SettingEntry
 		particleEffectDotSize: SettingEntry
 		particleEffectDisturbRadius: SettingEntry
