@@ -39,6 +39,7 @@ const en: BaseMessage = {
   titleStyle: { name: 'Title', desc: 'Title text, font, size, weight, and color.' },
 		particleEffect: { name: 'Particle effect', desc: 'Interactive particle rendering for the logo and title.' },
 		periodicNotes: { name: 'Periodic notes', desc: 'Show the current daily, weekly, monthly or yearly note under the search bar, using the Daily notes core plugin, the Periodic Notes plugin, or custom rules.' },
+		vaultStats: { name: 'Vault stats', desc: 'Show vault statistics near the bottom of the home tab.' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -365,6 +366,31 @@ const en: BaseMessage = {
 		particleEffectGlow: {
 			name: 'Glow strength',
 			desc: 'Adds a bloom glow around the particles; 0 disables it, higher values glow brighter',
+		},
+		vaultStats: {
+			name: 'Show vault stats',
+			desc: 'Display vault statistics (files, notes, attachments, folders, tags) near the bottom of the home tab.',
+		},
+		vaultStatsFiles: {
+			name: 'Total files',
+		},
+		vaultStatsNotes: {
+			name: 'Notes',
+		},
+		vaultStatsAttachments: {
+			name: 'Attachments',
+		},
+		vaultStatsFolders: {
+			name: 'Folders',
+		},
+		vaultStatsTags: {
+			name: 'Tags',
+		},
+		vaultStatsMoveUp: {
+			name: 'Move up',
+		},
+		vaultStatsMoveDown: {
+			name: 'Move down',
 		},
 		debugMode: {
 			name: 'Debug mode',

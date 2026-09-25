@@ -39,6 +39,7 @@ const zhCN: BaseMessage = {
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
 		particleEffect: { name: '粒子特效', desc: 'Logo 与标题的交互式粒子渲染' },
 		periodicNotes: { name: '周期笔记', desc: '在搜索栏下方显示当前的日记、周记、月记或年记，支持 Daily Notes 核心插件、Periodic Notes 插件或自定义规则' },
+		vaultStats: { name: '库数据', desc: '在主页下方显示库的统计信息' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -365,6 +366,31 @@ const zhCN: BaseMessage = {
 		particleEffectGlow: {
 			name: '辉光强度',
 			desc: '为粒子添加辉光（泛光）效果；0 为关闭，数值越大越亮',
+		},
+		vaultStats: {
+			name: '显示库数据',
+			desc: '在主页偏下方的位置显示库统计信息（总文件数、笔记数、附件数、文件夹数、标签数）。',
+		},
+		vaultStatsFiles: {
+			name: '总文件数',
+		},
+		vaultStatsNotes: {
+			name: '笔记数',
+		},
+		vaultStatsAttachments: {
+			name: '附件数',
+		},
+		vaultStatsFolders: {
+			name: '文件夹数',
+		},
+		vaultStatsTags: {
+			name: '标签数',
+		},
+		vaultStatsMoveUp: {
+			name: '上移',
+		},
+		vaultStatsMoveDown: {
+			name: '下移',
 		},
 		debugMode: {
 			name: '调试模式',
