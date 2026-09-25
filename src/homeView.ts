@@ -13,6 +13,7 @@ export class EmbeddedHomeTab extends MarkdownRenderChild{
     view: View
     recentFiles: boolean | undefined
     bookmarkedFiles: boolean | undefined
+    periodicNotes: boolean | undefined
     searchbarOnly: boolean | undefined
 
     constructor(containerEl: HTMLElement, view: View, plugin: HomeTab, codeBlockContent: string){
@@ -59,6 +60,9 @@ export class EmbeddedHomeTab extends MarkdownRenderChild{
                     break
                 case line === 'show bookmarked files':
                     this.bookmarkedFiles = true
+                    break
+                case line === 'show periodic notes':
+                    this.periodicNotes = true
                     break
             }
         });

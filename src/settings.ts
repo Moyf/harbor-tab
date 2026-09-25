@@ -10,6 +10,8 @@ import isLink from './utils/isLink'
 import fontSuggester from './suggester/fontSuggester'
 import type { recentFileStore } from './recentFiles'
 import type { bookmarkedFileStore } from './bookmarkedFiles'
+import type { PeriodicNoteCustomEntry } from './periodicNotes'
+import { getAutoPeriodConfigs, hasAutoPeriodSource } from './periodicNotes'
 import { checkFont } from './utils/fontValidator'
 import { t as getLocale } from './i18n'
 
@@ -69,6 +71,14 @@ export interface HomeTabSettings extends ObjectKeys{
     showRecentFiles: boolean
     maxRecentFiles: number
     storeRecentFile: boolean
+    showPeriodicNotes: boolean // 新增：是否在主页显示周期笔记
+    periodicNotesMode: 'auto' | 'custom' // 新增：周期笔记来源，自动读取插件配置或自定义规则
+    periodicNotesShowDaily: boolean // 新增：显示日记
+    periodicNotesShowWeekly: boolean // 新增：显示周记
+    periodicNotesShowMonthly: boolean // 新增：显示月记
+    periodicNotesShowQuarterly: boolean // 新增：显示季记
+    periodicNotesShowYearly: boolean // 新增：显示年记
+    periodicNotesCustom: PeriodicNoteCustomEntry[] // 新增：自定义周期笔记规则（名称 + 路径规则）
     showPath: boolean
     selectionHighlight: ColorChoices
     showShortcuts: boolean
@@ -141,6 +151,14 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     showRecentFiles: true,
     maxRecentFiles: 12,
     storeRecentFile: true,
+    showPeriodicNotes: false, // 新增：默认关闭周期笔记
+    periodicNotesMode: 'auto', // 新增：默认跟随插件配置
+    periodicNotesShowDaily: true, // 新增：默认只显示日记（单个就日记）
+    periodicNotesShowWeekly: false, // 新增：周记默认关闭，可按需开启
+    periodicNotesShowMonthly: false, // 新增：月记默认关闭，可按需开启
+    periodicNotesShowQuarterly: false, // 新增：季记默认关闭，可按需开启
+    periodicNotesShowYearly: false, // 新增：年记默认关闭，可按需开启
+    periodicNotesCustom: [], // 新增：默认没有自定义周期笔记
     showPath: true,
     selectionHighlight: 'default',
     showShortcuts: true,
@@ -187,6 +205,13 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'hideOnBlur',
         'showbookmarkedFiles',
         'showRecentFiles',
+        'showPeriodicNotes',
+        'periodicNotesMode',
+        'periodicNotesShowDaily',
+        'periodicNotesShowWeekly',
+        'periodicNotesShowMonthly',
+        'periodicNotesShowQuarterly',
+        'periodicNotesShowYearly',
         'selectionHighlight',
         'showNewNoteButton',
     ])
@@ -411,6 +436,79 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     }))
                             this.addResetButton(setting, 'maxRecentFiles')
                         },
+                    },
+                    {
+                        type: 'page',
+                        name: t.page.periodicNotes.name,
+                        desc: t.page.periodicNotes.desc,
+                        items: [
+                            {
+                                name: t.setting.showPeriodicNotes.name,
+                                desc: t.setting.showPeriodicNotes.desc,
+                                control: { type: 'toggle', key: 'showPeriodicNotes' },
+                            },
+                            this.dropdownWithReset('periodicNotesMode', t.setting.periodicNotesMode.name, t.setting.periodicNotesMode.desc, t.setting.periodicNotesMode.options, {
+                                visible: () => s.showPeriodicNotes,
+                                refreshDomAfterChange: true, // toggle the auto/custom sections in place
+                            }),
+                            {
+                                // Info-only row shown when no source plugin provides periodic notes
+                                name: t.setting.periodicNotesUnavailable.name,
+                                desc: t.setting.periodicNotesUnavailable.desc,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !hasAutoPeriodSource(this.app),
+                            },
+                            {
+                                name: t.setting.periodicNotesShowDaily.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).daily,
+                                control: { type: 'toggle', key: 'periodicNotesShowDaily' },
+                            },
+                            {
+                                name: t.setting.periodicNotesShowWeekly.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).weekly,
+                                control: { type: 'toggle', key: 'periodicNotesShowWeekly' },
+                            },
+                            {
+                                name: t.setting.periodicNotesShowMonthly.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).monthly,
+                                control: { type: 'toggle', key: 'periodicNotesShowMonthly' },
+                            },
+                            {
+                                name: t.setting.periodicNotesShowQuarterly.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).quarterly,
+                                control: { type: 'toggle', key: 'periodicNotesShowQuarterly' },
+                            },
+                            {
+                                name: t.setting.periodicNotesShowYearly.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).yearly,
+                                control: { type: 'toggle', key: 'periodicNotesShowYearly' },
+                            },
+                            ...s.periodicNotesCustom.map((entry, index) => ({
+                                name: index === 0 ? t.setting.periodicNotesCustomEntries.name : `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom',
+                                render: (setting: Setting) => this.renderCustomPeriodicEntry(setting, index, t, entry),
+                            })),
+                            {
+                                name: t.setting.periodicNotesCustomEntries.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom' && s.periodicNotesCustom.length === 0,
+                                render: (setting: Setting) => {
+                                    setting.setName(t.setting.periodicNotesCustomEntries.emptyName)
+                                    setting.setDesc(t.setting.periodicNotesCustomEntries.desc ?? '')
+                                    setting.addButton((button) => button
+                                        .setButtonText(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .setTooltip(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .onClick(() => this.addCustomPeriodicEntry(t)))
+                                },
+                            },
+                            {
+                                name: '',
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom' && s.periodicNotesCustom.length > 0,
+                                render: (setting: Setting) => {
+                                    setting.addButton((button) => button
+                                        .setButtonText(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .onClick(() => this.addCustomPeriodicEntry(t)))
+                                },
+                            },
+                        ],
                     },
                 ],
             },
@@ -828,6 +926,60 @@ export class HomeTabSettingTab extends PluginSettingTab {
                     .inputEl.parentElement?.addClass('wide-input-container')
             })
         this.addResetButton(setting, 'newNoteDefaultFolder')
+    /** One editor row (label / folder / format + delete) for a custom periodic note rule */
+    private renderCustomPeriodicEntry(
+        setting: Setting,
+        index: number,
+        t: ReturnType<typeof getLocale>,
+        entry: PeriodicNoteCustomEntry,
+    ): void {
+        setting.settingEl.addClass('harbor-periodic-custom-entry')
+        setting.setName(entry.label.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+        setting
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.labelPlaceholder)
+                .setValue(entry.label)
+                .onChange((value) => {
+                    entry.label = value
+                    setting.setName(value.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+                    void this.plugin.saveSettings()
+                }))
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.folderPlaceholder)
+                .setValue(entry.folder)
+                .onChange((value) => {
+                    entry.folder = value
+                    void this.plugin.saveSettings()
+                }))
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.formatPlaceholder)
+                .setValue(entry.format)
+                .onChange((value) => {
+                    entry.format = value
+                    void this.plugin.saveSettings()
+                }))
+            .addExtraButton((button) => button
+                .setIcon('trash-2')
+                .setTooltip(t.common.delete)
+                .onClick(async () => {
+                    this.plugin.settings.periodicNotesCustom.splice(index, 1)
+                    await this.plugin.saveSettings()
+                    this.update()
+                    this.plugin.refreshOpenViews()
+                }))
+    }
+
+    /** Appends a new custom periodic note rule and rebuilds the settings page */
+    private addCustomPeriodicEntry(t: ReturnType<typeof getLocale>): void {
+        this.plugin.settings.periodicNotesCustom.push({
+            label: t.setting.periodicNotesCustomEntries.defaultName,
+            folder: '',
+            format: 'YYYY-MM-DD',
+        })
+        void this.plugin.saveSettings().then(() => {
+            this.update()
+            this.plugin.refreshOpenViews()
+        })
     }
 
     private sliderWithReset(

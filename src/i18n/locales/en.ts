@@ -38,6 +38,7 @@ const en: BaseMessage = {
 		logo: { name: 'Logo', desc: 'Logo type, source, color, and size.' },
   titleStyle: { name: 'Title', desc: 'Title text, font, size, weight, and color.' },
 		particleEffect: { name: 'Particle effect', desc: 'Interactive particle rendering for the logo and title.' },
+		periodicNotes: { name: 'Periodic notes', desc: 'Show the current daily, weekly, monthly or yearly note under the search bar, using the Daily notes core plugin, the Periodic Notes plugin, or custom rules.' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -150,6 +151,46 @@ const en: BaseMessage = {
 			name: 'Default folder',
 			desc: 'Folder pre-filled when creating a note. Leave empty to use the vault root.',
 			placeholder: 'Leave empty for the vault root',
+		showPeriodicNotes: {
+			name: 'Show periodic notes',
+			desc: 'Displays the current daily/weekly/monthly/yearly notes under the search bar. Notes that do not exist yet are created when opened.',
+		},
+		periodicNotesMode: {
+			name: 'Source',
+			desc: 'Read the folder and format from the Daily notes / Periodic Notes plugins, or define custom rules.',
+			options: {
+				auto: 'From plugins (auto)',
+				custom: 'Custom rules',
+			},
+		},
+		periodicNotesUnavailable: {
+			name: 'No periodic notes detected',
+			desc: 'Neither the Daily notes core plugin nor the Periodic Notes plugin is configured. Switch the source to "Custom rules" to define your own.',
+		},
+		periodicNotesShowDaily: {
+			name: 'Show daily note',
+		},
+		periodicNotesShowWeekly: {
+			name: 'Show weekly note',
+		},
+		periodicNotesShowMonthly: {
+			name: 'Show monthly note',
+		},
+		periodicNotesShowQuarterly: {
+			name: 'Show quarterly note',
+		},
+		periodicNotesShowYearly: {
+			name: 'Show yearly note',
+		},
+		periodicNotesCustomEntries: {
+			name: 'Custom periodic notes',
+			desc: 'Each rule resolves to <folder>/<format>.md and supports moment.js tokens like YYYY, MM, DD, gggg and ww. The label is shown on the home tab.',
+			emptyName: 'No custom periodic notes',
+			defaultName: 'Custom note',
+			addLabel: 'Add periodic note',
+			labelPlaceholder: 'Label (e.g. Journal)',
+			folderPlaceholder: 'Folder (e.g. Daily)',
+			formatPlaceholder: 'Format (e.g. YYYY-MM-DD)',
 		},
 		logo: {
 			name: 'Logo',
@@ -335,6 +376,7 @@ const en: BaseMessage = {
 		accentColor: 'Accent color',
 		custom: 'Custom',
 		resetToDefault: 'Reset to default',
+		delete: 'Delete',
 	},
 }
 

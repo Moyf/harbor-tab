@@ -83,6 +83,7 @@ To embed the search bar to a note, you have to create a `search-bar` code block 
 
 To show only the search bar, without the title and the logo/icon, add (in a new line) `only search bar`.
 To show the starred and recent files add, respectively, `show starred files` and `show recent files`.
+Periodic notes (if enabled in the settings) can be added with `show periodic notes`.
 
 For example, the following code block will render the search bar and the starred files.
 

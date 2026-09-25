@@ -49,6 +49,7 @@ export interface BaseMessage {
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry
+		periodicNotes: SettingEntry
 	}
 	setting: {
 		replaceNewTabs: SettingEntry
@@ -77,6 +78,22 @@ export interface BaseMessage {
 		newNoteUseCommand: SettingEntry
 		newNoteCommandId: SettingEntry & { invalid: string; placeholder: string }
 		newNoteDefaultFolder: SettingEntry & { placeholder: string }
+		showPeriodicNotes: SettingEntry
+		periodicNotesMode: SettingEntry & { options: DropdownOptions }
+		periodicNotesUnavailable: SettingEntry
+		periodicNotesShowDaily: SettingEntry
+		periodicNotesShowWeekly: SettingEntry
+		periodicNotesShowMonthly: SettingEntry
+		periodicNotesShowQuarterly: SettingEntry
+		periodicNotesShowYearly: SettingEntry
+		periodicNotesCustomEntries: SettingEntry & {
+			emptyName: string
+			defaultName: string
+			addLabel: string
+			labelPlaceholder: string
+			folderPlaceholder: string
+			formatPlaceholder: string
+		}
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string
@@ -125,5 +142,6 @@ export interface BaseMessage {
 		accentColor: string
 		custom: string
 		resetToDefault: string
+		delete: string
 	}
 }

@@ -9,6 +9,7 @@
 	import type { recentFile } from 'src/recentFiles';
 	import BookmarkedFiles from './bookmarkedFiles.svelte';
 	import RecentFiles from './recentFiles.svelte';
+	import PeriodicNotes from './periodicNotes.svelte';
 	import type { bookmarkedFile } from 'src/bookmarkedFiles';
 	import type HomeTab from 'src/main';
     
@@ -42,6 +43,8 @@
     const renderRecentFiles: boolean = embeddedView ? embeddedView.recentFiles : pluginSettings.showRecentFiles
     // @ts-ignore
     const renderbookmarkedFiles: boolean = embeddedView ? embeddedView.bookmarkedFiles : pluginSettings.showbookmarkedFiles
+    // @ts-ignore
+    const renderPeriodicNotes: boolean = embeddedView ? embeddedView.periodicNotes : pluginSettings.showPeriodicNotes
 
     // Logo placement relative to the title (falls back to the original left layout)
     $: logoPosition = pluginSettings?.logoPosition ?? 'left'
@@ -173,6 +176,10 @@
     {/if}
     
     <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false}/>
+
+    {#if renderPeriodicNotes}
+        <PeriodicNotes {view} {pluginSettings}/>
+    {/if}
 
     {#if isbookmarkedPluginEnabled && bookmarkedFileList && renderbookmarkedFiles}
         <BookmarkedFiles bookmarkedFiles={bookmarkedFileList} {view} {pluginSettings} bookmarkedFileManager={plugin.bookmarkedFileManager}/>

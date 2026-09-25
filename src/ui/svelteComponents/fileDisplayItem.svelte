@@ -1,49 +1,64 @@
 <script lang="ts">
-    import { File, FilePieChart, FileText, FileAudio, FileImage, FileVideo, LayoutDashboard, Table, Database, X as DeleteIcon, MoreHorizontal} from 'lucide-svelte'
+    import { File, FilePieChart, FileText, FileAudio, FileImage, FileVideo, LayoutDashboard, Table, Database, X as DeleteIcon, MoreHorizontal, Plus} from 'lucide-svelte'
     import { type TFile, type IconName, Keymap, type PaneType, App, Menu, getIcon } from 'obsidian';
     import { getFileTypeFromExtension } from 'src/utils/getFileTypeUtils';
 	import type { HomeTabSettings } from 'src/settings';
 	import { createEventDispatcher } from 'svelte';
 
     export let app: App
-    export let file: TFile
+    // file is optional for virtual entries (periodic notes that do not exist yet)
+    export let file: TFile | undefined = undefined
     export let pluginSettings: HomeTabSettings
     export let contextualMenu: Menu
     export let customIcon: IconName | undefined = undefined
     export let selected: boolean = false
+    // Display name override (e.g. a custom periodic note label)
+    export let displayName: string | undefined = undefined
+    // Resolves (creating if needed) the file to open; enables virtual entries
+    export let customOpen: ((newTab?: boolean | PaneType) => Promise<TFile | undefined>) | undefined = undefined
+    // Hide the hover menu button when the parent handles menus itself
+    export let showMenuButton: boolean = true
+    // Marks not-yet-created notes with a small plus badge
+    export let pending: boolean = false
 
     // Trim filename if too long
     // const filename = file.basename.length > 38 ? file.basename.slice(0,35) + '...' : file.basename
-    const filename = file.basename
-    const fileType = getFileTypeFromExtension(file.extension)
+    const filename = displayName ?? file?.basename ?? ''
+    const fileType = file ? getFileTypeFromExtension(file.extension) : 'markdown'
 
     const dispatch = createEventDispatcher<{itemMenu:{file: TFile}}>()
 
-    function handleFileOpening(file: TFile, newTab?: boolean | PaneType){
+    async function handleFileOpening(target: TFile | undefined, newTab?: boolean | PaneType): Promise<void>{
+        const resolvedFile = customOpen ? await customOpen(newTab) : target
+        if(!resolvedFile) return
         const leaf = app.workspace.getLeaf(newTab)
-        leaf.openFile(file)
+        await leaf.openFile(resolvedFile)
     }
 
-    function handleMouseClick(e: MouseEvent, file: TFile): void{
+    function handleMouseClick(e: MouseEvent, target: TFile | undefined): void{
         if ((e.target as HTMLElement).classList.contains('home-tab-file-item-remove_btn')) return
         else if(e.button != 2){
-            handleFileOpening(file, Keymap.isModEvent(e))
+            handleFileOpening(target, Keymap.isModEvent(e))
         }
+    }
+
+    function handleMenuClick(e: MouseEvent): void{
+        contextualMenu.showAtMouseEvent(e)
+        dispatch('itemMenu', {file: file as TFile})
     }
 </script>
 
 <div class="home-tab-file-item" class:use-accent-color="{pluginSettings.selectionHighlight === 'accentColor'}"
     class:selected="{selected}"
     on:mousedown|preventDefault="{e => handleMouseClick(e, file)}">
-    
+
+    {#if showMenuButton}
     <!-- svelte-ignore a11y-click-events-have-key-events (mouse-driven UI, keyboard users have alternative paths) -->
     <div class="home-tab-file-item-remove_btn" aria-label="File options"
-        on:click={(e) => {
-            contextualMenu.showAtMouseEvent(e)
-            dispatch('itemMenu', {file: file})
-            }}>
+        on:click={handleMenuClick}>
         <MoreHorizontal strokeWidth={1} width={24} height={24} class='svg-icon lucide-x'/>
     </div>
+    {/if}
 
     <div class="home-tab-file-item-preview-icon">
         {#if customIcon}
@@ -78,6 +93,12 @@
     <div class="home-tab-file-item-name">
         {filename}
     </div>
+
+    {#if pending}
+        <div class="home-tab-file-item-pending" aria-label="Not created yet">
+            <Plus strokeWidth={2} width={12} height={12}/>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -132,6 +153,21 @@
         opacity: 1;
     }
 
+    .home-tab-file-item-pending{
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        color: var(--text-on-accent);
+        background-color: var(--interactive-accent);
+        opacity: 0.85;
+    }
+
     @media(max-width: 600px){
         .home-tab-file-item{
             display: flex;
@@ -170,6 +206,13 @@
             top: 50%;
             right: 4px;
             transform: translateY(-50%);
+        }
+        .home-tab-file-item-pending{
+            top: 2px;
+            left: unset;
+            right: 2px;
+            width: 14px;
+            height: 14px;
         }
     }
 </style>
