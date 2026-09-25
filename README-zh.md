@@ -82,6 +82,7 @@ Harbor Tab 是一款 [Obsidian](https://obsidian.md/) 插件，为默认新标�
 
 只显示搜索栏（不显示标题和 Logo/图标）：在新的一行添加 `only search bar`。
 显示星标文件和最近文件：分别添加 `show starred files` 和 `show recent files`。
+周期笔记（需在设置中开启）可通过 `show periodic notes` 显示。
 
 例如，以下代码块会渲染出搜索栏和星标文件：
 

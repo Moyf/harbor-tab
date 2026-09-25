@@ -23,6 +23,7 @@ const zhCN: BaseMessage = {
 		logo: { name: 'Logo', desc: 'Logo 图标、来源、颜色与尺寸' },
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
 		particleEffect: { name: '粒子特效', desc: 'Logo 与标题的交互式粒子渲染' },
+		periodicNotes: { name: '周期笔记', desc: '在搜索栏下方显示当前的日记、周记、月记或年记，支持 Daily Notes 核心插件、Periodic Notes 插件或自定义规则' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -116,6 +117,47 @@ const zhCN: BaseMessage = {
 		maxRecentFiles: {
 			name: '最近文件数量',
 			desc: '设置显示的最近文件数量。',
+		},
+		showPeriodicNotes: {
+			name: '显示周期笔记',
+			desc: '在搜索栏下方显示当前的日记/周记/月记/年记，尚未创建的笔记会在打开时自动创建。',
+		},
+		periodicNotesMode: {
+			name: '来源',
+			desc: '从 Daily Notes / Periodic Notes 插件读取路径规则，或自定义规则。',
+			options: {
+				auto: '自动（跟随插件）',
+				custom: '自定义规则',
+			},
+		},
+		periodicNotesUnavailable: {
+			name: '未检测到周期笔记',
+			desc: '未启用 Daily Notes 核心插件或 Periodic Notes 插件，可将来源切换为“自定义规则”。',
+		},
+		periodicNotesShowDaily: {
+			name: '显示日记',
+		},
+		periodicNotesShowWeekly: {
+			name: '显示周记',
+		},
+		periodicNotesShowMonthly: {
+			name: '显示月记',
+		},
+		periodicNotesShowQuarterly: {
+			name: '显示季记',
+		},
+		periodicNotesShowYearly: {
+			name: '显示年记',
+		},
+		periodicNotesCustomEntries: {
+			name: '自定义周期笔记',
+			desc: '每条规则解析为 <文件夹>/<格式>.md，支持 moment.js 占位符（如 YYYY、MM、DD、gggg、ww）。名称将显示在主页上。',
+			emptyName: '暂无自定义周期笔记',
+			defaultName: '自定义笔记',
+			addLabel: '添加周期笔记',
+			labelPlaceholder: '名称（如：日记）',
+			folderPlaceholder: '文件夹（如：Daily）',
+			formatPlaceholder: '格式（如：YYYY-MM-DD）',
 		},
 		logo: {
 			name: 'Logo',
@@ -301,6 +343,7 @@ const zhCN: BaseMessage = {
 		accentColor: '强调色',
 		custom: '自定义',
 		resetToDefault: '重置为默认值',
+		delete: '删除',
 	},
 }
 
