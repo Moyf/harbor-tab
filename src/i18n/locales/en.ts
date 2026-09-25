@@ -247,8 +247,12 @@ const en: BaseMessage = {
 			desc: 'Speed of the cycling and breathing color animations (higher = faster)',
 		},
 		particleEffectScale: {
-			name: 'Canvas scale',
-			desc: 'How much the particle canvas content is enlarged relative to the original logo and title area',
+			name: 'Canvas scale (desktop)',
+			desc: 'How much the particle canvas content is enlarged relative to the original logo and title area; applies on desktop only',
+		},
+		particleEffectScaleMobile: {
+			name: 'Canvas scale (mobile)',
+			desc: 'Canvas scale used on phones and tablets; set independently from the desktop value',
 		},
 		particleEffectSpacing: {
 			name: 'Particle spacing',

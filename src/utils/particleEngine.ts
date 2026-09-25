@@ -4,6 +4,8 @@
  * Rasterizes the home tab logo and/or title onto an offscreen canvas, samples
  * the pixels into a grid of physics particles, and animates them on an overlay
  * canvas, repelling them around the cursor (Arknights-website-style ripple).
+ * Touch platforms have no hover: there each tap fires a one-shot radial burst
+ * that spreads outward and springs back home.
  *
  * Pure TypeScript on purpose: no Svelte and no Obsidian imports, so it stays
  * reusable and testable outside the plugin UI layer.
@@ -108,6 +110,14 @@ const MAX_PARTICLES = 15000
 const RESIZE_DEBOUNCE_MS = 200
 const MIN_ALPHA = 128
 const TOUCH_REPULSION_FACTOR = 0.85
+// Touch devices have no hover: instead of the persistent cursor repulsion
+// field, every tap fires a one-shot radial burst. The burst radius is a bit
+// wider than the cursor field (fingers are imprecise) and the impulse is
+// scaled up so a single frame's kick still reads as a splash; the regular
+// spring + damping physics then pull everything back home, so the burst
+// always recovers on its own — no pointer position is ever left behind.
+const TOUCH_BURST_RADIUS_FACTOR = 1.25
+const TOUCH_BURST_IMPULSE = 1.6
 const MAX_ZOOM = 4
 const LUMA_REFERENCE = 128 // sampled luminance that maps to the base color as-is
 const SHADE_MIN = 0.6 // darkest shade factor in monochrome mode
@@ -191,6 +201,8 @@ export class ParticleWordmarkEngine {
     private readonly colorB: RGB
     /** Effective recovery speed (option value clamped to the supported range). */
     private readonly recoverySpeed: number
+    /** Touch platforms interact through tap bursts instead of the cursor field. */
+    private readonly isTouch: boolean
     /** Spring stiffness per 60 Hz reference frame. */
     private readonly springStrength: number
     /** Velocity decay rate per 60 Hz reference frame (used as exp(-rate × dt)). */
@@ -233,6 +245,12 @@ export class ParticleWordmarkEngine {
         this.mouse.y = -9999
     }
 
+    /** Tap position in canvas-local coords, feeding a one-shot radial burst. */
+    private readonly handleClick = (event: MouseEvent): void => {
+        const rect = this.container.getBoundingClientRect()
+        this.applyTouchBurst(event.clientX - rect.left + this.mouseOffsetX, event.clientY - rect.top + this.mouseOffsetY)
+    }
+
     private readonly handleVisibilityChange = (): void => {
         if (this.destroyed) return
         // The view (and therefore the container) may live in a popout window:
@@ -273,7 +291,8 @@ export class ParticleWordmarkEngine {
         this.container = container
         this.options = options
         // Resolve from the window that hosts the container (popout-safe)
-        this.repulsionRadius = options.repulsionRadius * ('ontouchstart' in (container.ownerDocument.defaultView ?? window) ? TOUCH_REPULSION_FACTOR : 1)
+        this.isTouch = 'ontouchstart' in (container.ownerDocument.defaultView ?? window)
+        this.repulsionRadius = options.repulsionRadius * (this.isTouch ? TOUCH_REPULSION_FACTOR : 1)
         this.repulsionStrength = options.repulsionStrength
         this.zoom = Math.min(Math.max(options.zoom, 1), MAX_ZOOM)
         this.ambientMotion = options.ambientMotion ?? 'none'
@@ -595,8 +614,16 @@ export class ParticleWordmarkEngine {
     private activate(sources: CapturedSources): void {
         this.installCanvas()
         this.hideCapturedElements(sources.hiddenElements)
-        this.container.addEventListener('mousemove', this.handleMouseMove, { passive: true })
-        this.container.addEventListener('mouseleave', this.handleMouseLeave)
+        if (this.isTouch) {
+            // Touch has no hover: taps fire a one-shot burst. Keeping a
+            // persistent pointer position (mousemove without mouseleave)
+            // would repel the same spot forever and the particles would
+            // never recover — exactly what the burst model avoids.
+            this.container.addEventListener('click', this.handleClick, { passive: true })
+        } else {
+            this.container.addEventListener('mousemove', this.handleMouseMove, { passive: true })
+            this.container.addEventListener('mouseleave', this.handleMouseLeave)
+        }
         this.container.ownerDocument.addEventListener('visibilitychange', this.handleVisibilityChange)
         this.resizeObserver = new ResizeObserver(this.handleResize)
         this.resizeObserver.observe(this.container)
@@ -677,6 +704,7 @@ export class ParticleWordmarkEngine {
         }
         this.container.removeEventListener('mousemove', this.handleMouseMove)
         this.container.removeEventListener('mouseleave', this.handleMouseLeave)
+        this.container.removeEventListener('click', this.handleClick)
         this.container.ownerDocument.removeEventListener('visibilitychange', this.handleVisibilityChange)
         this.stopLoop()
         if (this.canvas) {
@@ -761,6 +789,31 @@ export class ParticleWordmarkEngine {
             particle.vy *= damping
             particle.x += particle.vx * travel
             particle.y += particle.vy * travel
+        }
+    }
+
+    /**
+     * One-shot outward impulse around a tap point (touch interaction). Every
+     * particle inside the burst radius gets an immediate velocity kick with
+     * the same squared falloff as the cursor repulsion; from the next frame
+     * the regular spring + damping physics take over, so the splash spreads
+     * outward, overshoots and settles back home on its own.
+     */
+    private applyTouchBurst(x: number, y: number): void {
+        const radius = this.repulsionRadius * TOUCH_BURST_RADIUS_FACTOR
+        const radiusSquared = radius * radius
+        const impulse = this.repulsionStrength * TOUCH_BURST_IMPULSE
+        for (const particle of this.particles) {
+            const dx = particle.x - x
+            const dy = particle.y - y
+            const distanceSquared = dx * dx + dy * dy
+            if (distanceSquared < radiusSquared && distanceSquared > 0.0001) {
+                const distance = Math.sqrt(distanceSquared)
+                const ratio = (radius - distance) / radius
+                const force = ratio * ratio * impulse
+                particle.vx += (dx / distance) * force
+                particle.vy += (dy / distance) * force
+            }
         }
     }
 
