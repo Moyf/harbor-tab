@@ -152,6 +152,7 @@ const zhCN: BaseMessage = {
 			name: '默认文件夹',
 			desc: '新建笔记时默认填写的文件夹，留空则使用仓库根目录。',
 			placeholder: '留空则在仓库根目录创建',
+		},
 		showPeriodicNotes: {
 			name: '显示周期笔记',
 			desc: '在搜索栏下方显示当前的日记/周记/月记/年记，尚未创建的笔记会在打开时自动创建。',

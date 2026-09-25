@@ -547,6 +547,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                         .onClick(() => this.addCustomPeriodicEntry(t)))
                                 },
                             },
+                        ],
+                    },
                     // 新增：库数据 SubPage —— 总开关、各统计项开关与排序
                     {
                         type: 'page',
@@ -981,6 +983,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
                     .inputEl.parentElement?.addClass('wide-input-container')
             })
         this.addResetButton(setting, 'newNoteDefaultFolder')
+    }
+
     /** One editor row (label / folder / format + delete) for a custom periodic note rule */
     private renderCustomPeriodicEntry(
         setting: Setting,

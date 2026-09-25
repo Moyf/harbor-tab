@@ -152,6 +152,7 @@ const en: BaseMessage = {
 			name: 'Default folder',
 			desc: 'Folder pre-filled when creating a note. Leave empty to use the vault root.',
 			placeholder: 'Leave empty for the vault root',
+		},
 		showPeriodicNotes: {
 			name: 'Show periodic notes',
 			desc: 'Displays the current daily/weekly/monthly/yearly notes under the search bar. Notes that do not exist yet are created when opened.',
