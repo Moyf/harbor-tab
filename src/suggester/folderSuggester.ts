@@ -33,11 +33,11 @@ export default class FolderSuggester extends TextInputSuggester<TFolder>{
 
     getSuggestions(input: string): TFolder[] {
         const query = input.trim().toLowerCase()
+        // 与文件过滤器一致：空输入不显示列表，输入后才过滤
+        if(!query) return []
         const folders = this.app.vault.getAllFolders().filter((folder) => folder.path !== '/')
-        const matched = query
-            ? folders.filter((folder) => folder.path.toLowerCase().includes(query))
-            : folders
-        // 按路径深度排序（浅层靠前，同级按字母序），与库数据-文件夹的行为保持一致
+        const matched = folders.filter((folder) => folder.path.toLowerCase().includes(query))
+        // 按路径深度排序（浅层靠前，同级按字母序）
         return matched
             .sort((a, b) => {
                 const depthDiff = a.path.split('/').length - b.path.split('/').length

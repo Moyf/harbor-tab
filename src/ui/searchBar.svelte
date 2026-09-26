@@ -49,6 +49,8 @@
             if(!e.shiftKey && filterKeys.find(item => item === key)){
                 // Activate search filter with tab
                 HomeTabSearchBar.updateActiveSuggester(key as FilterKey)
+                // 过滤词已完成使命（显示在过滤标签上），清空搜索框等待真正的搜索内容
+                inputValue = ''
             }
             // Shift+Tab (reverse loop): walk the sections chain backwards (recent list first)
             else if(e.shiftKey){
