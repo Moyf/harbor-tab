@@ -22,8 +22,8 @@ const zhCN: BaseMessage = {
 		commandNotFound: '配置的命令不可用，已回退到新建笔记弹窗。',
 	},
 	group: {
-		search: '搜索',
-		files: '文件',
+		search: '搜索框',
+		files: '显示内容',
 		appearance: '外观',
 		developer: '开发者',
 		headingJump: '标题跳转',
@@ -35,6 +35,7 @@ const zhCN: BaseMessage = {
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
+		recentFiles: { name: '最近文件', desc: '最近文件列表的显示、记录与数量' },
 		logo: { name: 'Logo', desc: 'Logo 图标、来源、颜色与尺寸' },
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
 		particleEffect: { name: '粒子特效', desc: 'Logo 与标题的交互式粒子渲染' },
