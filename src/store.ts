@@ -7,11 +7,11 @@ export const pluginSettingsStore = writable<HomeTabSettings>()
 export const bookmarkedFiles = writable<bookmarkedFile[]>()
 export const recentFiles = writable<recentFile[]>([])
 
-// Tab focus chain: search bar -> bookmarks filter -> bookmarks list -> recent filter -> recent list -> back to the search bar.
+// Tab focus chain: periodic notes -> bookmarks filter -> bookmarks list -> recent filter -> recent list -> back to the search bar.
 // Shift+Tab walks the same chain in reverse. Sections that cannot take focus
 // (hidden, collapsed, empty...) forward the request to the next element.
-export type SectionFocusTarget = 'bookmarks-filter' | 'bookmarks-list' | 'recent-filter' | 'recent-list'
-const FOCUS_CHAIN_FORWARD: SectionFocusTarget[] = ['bookmarks-filter', 'bookmarks-list', 'recent-filter', 'recent-list']
+export type SectionFocusTarget = 'periodic' | 'bookmarks-filter' | 'bookmarks-list' | 'recent-filter' | 'recent-list'
+const FOCUS_CHAIN_FORWARD: SectionFocusTarget[] = ['periodic', 'bookmarks-filter', 'bookmarks-list', 'recent-filter', 'recent-list']
 const FOCUS_CHAIN_BACKWARD: SectionFocusTarget[] = [...FOCUS_CHAIN_FORWARD].reverse()
 
 export interface SectionFocusRequest {
@@ -20,8 +20,8 @@ export interface SectionFocusRequest {
     seq: number
 }
 
-interface FocusChainAvailability { bookmarks: boolean; recent: boolean }
-let chainAvailability: FocusChainAvailability = { bookmarks: true, recent: true }
+interface FocusChainAvailability { bookmarks: boolean; recent: boolean; periodic: boolean }
+let chainAvailability: FocusChainAvailability = { bookmarks: true, recent: true, periodic: false }
 
 /** Which sections currently exist in the view; unavailable targets are skipped by the chain */
 export function setFocusChainAvailability(availability: FocusChainAvailability): void {
@@ -29,11 +29,17 @@ export function setFocusChainAvailability(availability: FocusChainAvailability):
 }
 
 function isTargetAvailable(target: SectionFocusTarget): boolean {
+    if (target === 'periodic') return chainAvailability.periodic
     return target.startsWith('bookmarks') ? chainAvailability.bookmarks : chainAvailability.recent
 }
 
 let sectionFocusSeq = 0
 export const sectionFocusRequest = writable<SectionFocusRequest>({ target: FOCUS_CHAIN_FORWARD[0], backward: false, seq: 0 })
+
+// Request the periodic notes list to grab focus on its first item (forward navigation into the section)
+export const periodicFocusRequest = writable(0)
+// Request the periodic notes list to grab focus on its last item (backward navigation into the section)
+export const periodicFocusBackRequest = writable(0)
 
 /** Next focusable element in the Tab chain when leaving `from` in the given direction ('search' = the search bar, undefined = nowhere to go) */
 export function nextFocusTarget(from: SectionFocusTarget | 'search', backward: boolean): SectionFocusTarget | 'search' | undefined {
@@ -61,6 +67,13 @@ export function advanceSectionFocus(from: SectionFocusTarget | 'search', backwar
         return
     }
     if (next) {
+        // The periodic notes section listens on its own request stores (bridged here),
+        // all other sections follow the shared sectionFocusRequest store.
+        if (next === 'periodic') {
+            if (backward) periodicFocusBackRequest.update(n => n + 1)
+            else periodicFocusRequest.update(n => n + 1)
+            return
+        }
         sectionFocusRequest.update(() => ({ target: next, backward, seq: ++sectionFocusSeq }))
     }
 }

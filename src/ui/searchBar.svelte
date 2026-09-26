@@ -2,11 +2,11 @@
     import { Platform, getIcon } from "obsidian";
     import { filterKeys, type FilterKey, type SearchBarFilterType } from "src/homeTabSearchbar";
     import type HomeTabSearchBar from "src/homeTabSearchbar";
-    import { pluginSettingsStore, recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+    import { pluginSettingsStore } from "src/store";
     import { t } from "src/i18n";
     import { advanceSectionFocus } from "src/store";
     import { onMount } from 'svelte';
-    
+
     export let HomeTabSearchBar: HomeTabSearchBar
     export let embedded: boolean = false
     const searchBarEl = HomeTabSearchBar.searchBarEl

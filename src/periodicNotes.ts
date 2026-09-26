@@ -1,4 +1,5 @@
 import { App, moment, normalizePath, TFile, type IconName } from 'obsidian'
+import { t } from './i18n'
 import type { HomeTabSettings } from './settings'
 
 /**
@@ -9,6 +10,9 @@ import type { HomeTabSettings } from './settings'
 const momentFn = moment as unknown as () => { format: (format: string) => string }
 
 export type PeriodType = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+
+/** How a periodic note is labeled on the home tab */
+export type PeriodicNoteLabelMode = 'filename' | 'text' | 'custom'
 
 /** Folder / format / template configuration resolved from a source plugin */
 export interface PeriodicNoteConfig {
@@ -65,6 +69,37 @@ const PERIOD_SETTING_KEYS: Record<PeriodType, keyof HomeTabSettings> = {
 	monthly: 'periodicNotesShowMonthly',
 	quarterly: 'periodicNotesShowQuarterly',
 	yearly: 'periodicNotesShowYearly',
+}
+
+const PERIOD_LABEL_MODE_KEYS: Record<PeriodType, keyof HomeTabSettings> = {
+	daily: 'periodicNotesLabelModeDaily',
+	weekly: 'periodicNotesLabelModeWeekly',
+	monthly: 'periodicNotesLabelModeMonthly',
+	quarterly: 'periodicNotesLabelModeQuarterly',
+	yearly: 'periodicNotesLabelModeYearly',
+}
+
+const PERIOD_LABEL_CUSTOM_KEYS: Record<PeriodType, keyof HomeTabSettings> = {
+	daily: 'periodicNotesLabelCustomDaily',
+	weekly: 'periodicNotesLabelCustomWeekly',
+	monthly: 'periodicNotesLabelCustomMonthly',
+	quarterly: 'periodicNotesLabelCustomQuarterly',
+	yearly: 'periodicNotesLabelCustomYearly',
+}
+
+/**
+ * Renders {{token}} placeholders (the token content is a moment.js format,
+ * e.g. "{{MM}}月{{DD}}日" -> "09月26日") used by custom display names.
+ */
+export function formatPeriodicLabel(input: string): string {
+	const now = momentFn()
+	return input.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (_match, token: string) => now.format(token.trim()))
+}
+
+/** Fixed localized label of a period ("Today", "This week", ...) */
+function periodTextLabel(type: PeriodType): string {
+	const labels = t().periodicNoteText
+	return labels[type]
 }
 
 interface RawPluginConfig {
@@ -128,14 +163,18 @@ export function hasAutoPeriodSource(app: App): boolean {
 	return Object.keys(getAutoPeriodConfigs(app)).length > 0
 }
 
-function buildEntry(app: App, noteName: string, folder: string, format: string, template: string, icon: IconName, label?: string): PeriodicNoteEntry {
+function buildEntry(app: App, noteName: string, folder: string, format: string, template: string, icon: IconName, labelInput?: string): PeriodicNoteEntry {
 	const normalizedFolder = folder.trim().replace(/^\/+|\/+$/g, '')
 	const path = normalizePath(normalizedFolder ? `${normalizedFolder}/${noteName}.md` : `${noteName}.md`)
 	const abstract = app.vault.getAbstractFileByPath(path)
 	const file = abstract instanceof TFile ? abstract : undefined
+	// Label: custom text (with {{token}} placeholders) when provided,
+	// otherwise just the note file name without its folder path
+	const trimmedLabel = labelInput?.trim()
+	const label = trimmedLabel ? formatPeriodicLabel(trimmedLabel) : noteName.slice(noteName.lastIndexOf('/') + 1)
 	return {
 		path,
-		label: label?.trim() ? label.trim() : noteName,
+		label,
 		icon,
 		file,
 		exists: file !== undefined,
@@ -171,7 +210,15 @@ export function buildPeriodicNoteEntries(app: App, settings: HomeTabSettings): P
 		if (!settings[PERIOD_SETTING_KEYS[type]]) return
 		const config = configs[type]
 		if (!config) return
-		entries.push(buildEntry(app, now.format(config.format), config.folder, config.format, config.template, PERIOD_ICONS[type]))
+		// Display name: file name (default), fixed period text, or custom text with placeholders
+		const labelMode = settings[PERIOD_LABEL_MODE_KEYS[type]] as PeriodicNoteLabelMode | undefined
+		let labelInput: string | undefined
+		if (labelMode === 'text') {
+			labelInput = periodTextLabel(type)
+		} else if (labelMode === 'custom') {
+			labelInput = (settings[PERIOD_LABEL_CUSTOM_KEYS[type]] as string) ?? ''
+		}
+		entries.push(buildEntry(app, now.format(config.format), config.folder, config.format, config.template, PERIOD_ICONS[type], labelInput))
 	})
 	return entries
 }

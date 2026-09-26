@@ -20,6 +20,13 @@ const zhCN: BaseMessage = {
 		fileExists: '同名文件已存在。',
 		createFailed: '创建笔记失败，详情请查看开发者控制台。',
 		commandNotFound: '配置的命令不可用，已回退到新建笔记弹窗。',
+		},
+	periodicNoteText: {
+		daily: '今天',
+		weekly: '本周',
+		monthly: '本月',
+		quarterly: '本季',
+		yearly: '今年',
 	},
 	group: {
 		search: '搜索框',
@@ -203,6 +210,21 @@ const zhCN: BaseMessage = {
 		periodicNotesShowYearly: {
 			name: '显示年记',
 		},
+		periodicNotesLabelMode: {
+			name: '显示名称',
+			desc: '图标下方显示的内容：笔记文件名（不含路径）、周期文字，或带日期占位符的自定义名称。',
+			options: {
+				filename: '文件名',
+				text: '周期文字',
+				custom: '自定义',
+			},
+		},
+		periodicNotesLabelCustom: {
+			name: '自定义显示名称',
+			desc: '支持日期占位符，如 {{YYYY}}、{{MM}}、{{DD}}、{{gggg}}、{{ww}}，会替换为当前日期。',
+			placeholder: '例如：{{MM}}月{{DD}}日',
+		},
+		periodicNotesLabelPreview: '预览',
 		periodicNotesCustomEntries: {
 			name: '自定义周期笔记',
 			desc: '每条规则解析为 <文件夹>/<格式>.md，支持 moment.js 占位符（如 YYYY、MM、DD、gggg、ww）。名称将显示在主页上。',

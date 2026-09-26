@@ -39,6 +39,7 @@
     $: setFocusChainAvailability({
         bookmarks: isbookmarkedPluginEnabled && renderbookmarkedFiles && (pluginSettings?.showbookmarkedFiles ?? false),
         recent: renderRecentFiles && (pluginSettings?.showRecentFiles ?? false),
+        periodic: renderPeriodicNotes,
     })
 
     const vaultAdapter = app.vault.adapter
@@ -189,7 +190,7 @@
     <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false}/>
 
     {#if renderPeriodicNotes}
-        <PeriodicNotes {view} {pluginSettings}/>
+        <PeriodicNotes {view} {pluginSettings} {HomeTabSearchBar}/>
     {/if}
 
     {#if isbookmarkedPluginEnabled && bookmarkedFileList && renderbookmarkedFiles}

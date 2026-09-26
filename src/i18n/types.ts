@@ -32,6 +32,14 @@ export interface BaseMessage {
 		createFailed: string
 		commandNotFound: string
 	}
+	/** Fixed period text used by the "Period text" display-name mode */
+	periodicNoteText: {
+		daily: string
+		weekly: string
+		monthly: string
+		quarterly: string
+		yearly: string
+	}
 	group: {
 		search: string
 		files: string
@@ -94,6 +102,9 @@ export interface BaseMessage {
 		periodicNotesShowMonthly: SettingEntry
 		periodicNotesShowQuarterly: SettingEntry
 		periodicNotesShowYearly: SettingEntry
+		periodicNotesLabelMode: SettingEntry & { options: DropdownOptions }
+		periodicNotesLabelCustom: SettingEntry & { placeholder: string }
+		periodicNotesLabelPreview: string
 		periodicNotesCustomEntries: SettingEntry & {
 			emptyName: string
 			defaultName: string
