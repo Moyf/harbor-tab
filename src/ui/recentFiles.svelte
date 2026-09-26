@@ -54,8 +54,6 @@
     }
 
     function expandAndFocusFilter() {
-        // A chain request into a collapsed section expands it first
-        sectionCollapsed = false
         filterExpanded = true
         // Focus the input after DOM update
         setTimeout(() => filterInputEl?.focus(), 50)
@@ -81,11 +79,11 @@
     }
 
     function canAcceptFilterFocus(): boolean {
-        return pluginSettings.showRecentFilesFilter
+        return pluginSettings.showRecentFilesFilter && !sectionCollapsed
     }
 
     function canAcceptListFocus(): boolean {
-        return filteredFileList.length > 0
+        return !sectionCollapsed && filteredFileList.length > 0
     }
 
     function handleSectionFocusRequest(request: SectionFocusRequest): void {
@@ -98,9 +96,6 @@
         }
         else if (request.target === 'recent-list') {
             if (canAcceptListFocus()) {
-
-                sectionCollapsed = false
-
                 focusFirstListItem()
             } else {
                 advanceSectionFocus('recent-list', request.backward, focusSearchBar)
@@ -246,7 +241,7 @@
         {:else}
             <span class="home-tab-recent-files-title-text">Recent files</span>
         {/if}
-        {#if pluginSettings.showRecentFilesFilter}
+        {#if pluginSettings.showRecentFilesFilter && !sectionCollapsed}
         <div class="home-tab-recent-files-filter" class:expanded={filterExpanded}>
             <input
                 class="home-tab-recent-files-filter-input"
