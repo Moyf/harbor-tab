@@ -68,9 +68,15 @@ export default class HomeTabSearchBar{
         this.searchBarEl.set(el);
         
         // 添加输入事件监听
-        el.addEventListener('input', () => {
+        el.addEventListener('input', (e: Event) => {
+            // IME 组合输入（拼音等）过程中不搜索，避免中间态导致下拉框反复开关闪烁
+            if((e as InputEvent).isComposing) return
             const query = el.value.trim();
             this.handleInput(query);
+        });
+        // 中文输入法候选词上屏后统一触发一次搜索
+        el.addEventListener('compositionend', () => {
+            this.handleInput(el.value.trim());
         });
     }
 

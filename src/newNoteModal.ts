@@ -57,13 +57,16 @@ export class NewNoteModal extends Modal {
                 .onClick(() => void this.submit()))
 
         // When the name was pre-filled from the search input, editing focus
-        // goes straight to the folder field
-        if(this.initialFileName){
-            this.folderInputEl.focus()
-        }
-        else{
-            this.fileNameInputEl.focus()
-        }
+        // goes straight to the folder field. Deferred so the modal's own
+        // open/focus handling cannot override it.
+        window.setTimeout(() => {
+            if(this.initialFileName){
+                this.folderInputEl.focus()
+            }
+            else{
+                this.fileNameInputEl.focus()
+            }
+        }, 0)
     }
 
     private registerInputKeydown(inputEl: HTMLInputElement): void {
