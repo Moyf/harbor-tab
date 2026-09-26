@@ -17,6 +17,29 @@ export interface BaseMessage {
 		replaceCurrentTab: string
 	}
 	viewName: string
+	newNoteModal: {
+		title: string
+		fileName: string
+		fileNamePlaceholder: string
+		folder: string
+		folderDesc: string
+		folderPlaceholder: string
+		create: string
+		cancel: string
+		invalidFileName: string
+		folderIsFile: string
+		fileExists: string
+		createFailed: string
+		commandNotFound: string
+	}
+	/** Fixed period text used by the "Period text" display-name mode */
+	periodicNoteText: {
+		daily: string
+		weekly: string
+		monthly: string
+		quarterly: string
+		yearly: string
+	}
 	group: {
 		search: string
 		files: string
@@ -28,12 +51,18 @@ export interface BaseMessage {
 		particleStyle: string
 		particleCanvas: string
 		particleInteraction: string
+		vaultStatsItems: string
 	}
 	page: {
 		search: SettingEntry
+		bookmarkedFiles: SettingEntry
+		recentFiles: SettingEntry
+		newNote: SettingEntry
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry
+		periodicNotes: SettingEntry
+		vaultStats: SettingEntry
 	}
 	setting: {
 		replaceNewTabs: SettingEntry
@@ -55,9 +84,37 @@ export interface BaseMessage {
 		hideOnBlur: SettingEntry
 		showOmnisearchExcerpt: SettingEntry
 		showBookmarkedFiles: SettingEntry
+		showBookmarkedFilesFilter: SettingEntry
+		bookmarkedGroups: SettingEntry
 		showRecentFiles: SettingEntry
+		showRecentFilesFilter: SettingEntry
+		sectionCollapsible: SettingEntry
 		storeRecentFile: SettingEntry
 		maxRecentFiles: SettingEntry
+		showNewNoteButton: SettingEntry
+		newNoteUseCommand: SettingEntry
+		newNoteCommandId: SettingEntry & { invalid: string; placeholder: string }
+		newNoteDefaultFolder: SettingEntry & { placeholder: string }
+		showPeriodicNotes: SettingEntry
+		periodicNotesMode: SettingEntry & { options: DropdownOptions }
+		periodicNotesUnavailable: SettingEntry
+		periodicNotesShowDaily: SettingEntry
+		periodicNotesShowWeekly: SettingEntry
+		periodicNotesShowMonthly: SettingEntry
+		periodicNotesShowQuarterly: SettingEntry
+		periodicNotesShowYearly: SettingEntry
+		periodicNotesLabelMode: SettingEntry & { options: DropdownOptions }
+		periodicNotesLabelCustom: SettingEntry & { placeholder: string }
+		periodicNotesLabelPreview: string
+		periodicNotesCustomEntries: SettingEntry & {
+			emptyName: string
+			defaultName: string
+			addLabel: string
+			labelPlaceholder: string
+			folderPlaceholder: string
+			formatPlaceholder: string
+		}
+		newNoteOnUnmatchedName: SettingEntry
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string
@@ -91,6 +148,7 @@ export interface BaseMessage {
 		particleEffectGradientAngle: SettingEntry
 		particleEffectGradientFrequency: SettingEntry
 		particleEffectScale: SettingEntry
+		particleEffectScaleMobile: SettingEntry
 		particleEffectSpacing: SettingEntry
 		particleEffectDotSize: SettingEntry
 		particleEffectDisturbRadius: SettingEntry
@@ -99,6 +157,12 @@ export interface BaseMessage {
 		particleEffectAmbientMotion: SettingEntry & { options: DropdownOptions }
 		particleEffectMotionFrequency: SettingEntry
 		particleEffectGlow: SettingEntry
+		vaultStats: SettingEntry
+		vaultStatsFiles: SettingEntry
+		vaultStatsNotes: SettingEntry
+		vaultStatsAttachments: SettingEntry
+		vaultStatsFolders: SettingEntry
+		vaultStatsTags: SettingEntry
 		debugMode: SettingEntry
 	}
 	common: {
@@ -106,5 +170,11 @@ export interface BaseMessage {
 		accentColor: string
 		custom: string
 		resetToDefault: string
+		delete: string
+		clickToFilter: string
+	}
+	ui: {
+		folderRevealFailed: string
+		tagPaneFailed: string
 	}
 }

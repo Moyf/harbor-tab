@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte'
     import { pluginSettingsStore } from '../store'
     import { ParticleWordmarkEngine } from '../utils/particleEngine'
-    import type { HomeTabSettings } from '../settings'
+    import { effectiveParticleEffectScale, type HomeTabSettings } from '../settings'
 
     // Deliberately prop-free: everything is read from the settings store, so
     // parent re-renders can never invalidate this component and trigger
@@ -39,7 +39,7 @@
         if (!content) return
         const height = content.getBoundingClientRect().height
         if (height <= 0) return
-        rootEl.style.padding = `${((settings.particleEffectScale - 1) * height) / 2}px 0`
+        rootEl.style.padding = `${((effectiveParticleEffectScale(settings) - 1) * height) / 2}px 0`
     }
 
     function releaseLayout(): void {
@@ -64,7 +64,7 @@
             gradientFrequency: settings.particleEffectGradientFrequency ?? 1,
             motionFrequency: settings.particleEffectMotionFrequency ?? 1,
             glow: (settings.particleEffectGlow ?? 0) / 100,
-            zoom: settings.particleEffectScale,
+            zoom: effectiveParticleEffectScale(settings),
             spacing: settings.particleEffectSpacing,
             dotSize: settings.particleEffectDotSize,
             repulsionRadius: settings.particleEffectDisturbRadius,
@@ -139,6 +139,7 @@
             s.particleEffectMotionFrequency,
             s.particleEffectGlow,
             s.particleEffectScale,
+            s.particleEffectScaleMobile,
             s.particleEffectSpacing,
             s.particleEffectDotSize,
             s.particleEffectDisturbRadius,

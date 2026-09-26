@@ -2,13 +2,15 @@
     import SearchBar from './searchBar.svelte';
     import ParticleWordmark from './particleWordmark.svelte';
     import type { HomeTabSettings } from 'src/settings';
-    import { pluginSettingsStore, recentFiles, bookmarkedFiles } from '../store'
+    import { pluginSettingsStore, recentFiles, bookmarkedFiles, setFocusChainAvailability } from '../store'
     import { getIcon, View } from 'obsidian'
     import type { EmbeddedHomeTab } from '../homeView';
     import type HomeTabSearchBar from 'src/homeTabSearchbar';
 	import type { recentFile } from 'src/recentFiles';
 	import BookmarkedFiles from './bookmarkedFiles.svelte';
 	import RecentFiles from './recentFiles.svelte';
+	import PeriodicNotes from './periodicNotes.svelte';
+	import VaultStats from './vaultStats.svelte';
 	import type { bookmarkedFile } from 'src/bookmarkedFiles';
 	import type HomeTab from 'src/main';
     
@@ -24,13 +26,20 @@
     
     pluginSettingsStore.subscribe((settings) => {
         pluginSettings = settings
-    
+
         if(pluginSettings.showbookmarkedFiles){
             bookmarkedFiles.subscribe((files) => bookmarkedFileList = files)
         }
         if(pluginSettings.showRecentFiles){
             recentFiles.subscribe((files) => recentFileList = files)
         }
+    })
+
+    // Keep the Tab focus chain aware of which sections actually exist
+    $: setFocusChainAvailability({
+        bookmarks: isbookmarkedPluginEnabled && renderbookmarkedFiles && (pluginSettings?.showbookmarkedFiles ?? false),
+        recent: renderRecentFiles && (pluginSettings?.showRecentFiles ?? false),
+        periodic: renderPeriodicNotes,
     })
 
     const vaultAdapter = app.vault.adapter
@@ -42,6 +51,8 @@
     const renderRecentFiles: boolean = embeddedView ? embeddedView.recentFiles : pluginSettings.showRecentFiles
     // @ts-ignore
     const renderbookmarkedFiles: boolean = embeddedView ? embeddedView.bookmarkedFiles : pluginSettings.showbookmarkedFiles
+    // @ts-ignore
+    const renderPeriodicNotes: boolean = embeddedView ? embeddedView.periodicNotes : pluginSettings.showPeriodicNotes
 
     // Logo placement relative to the title (falls back to the original left layout)
     $: logoPosition = pluginSettings?.logoPosition ?? 'left'
@@ -172,10 +183,18 @@
         </ParticleWordmark>
     {/if}
     
+    {#if pluginSettings.vaultStats && !embeddedView}
+        <VaultStats {view} {pluginSettings} {HomeTabSearchBar}/>
+    {/if}
+
     <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false}/>
 
+    {#if renderPeriodicNotes}
+        <PeriodicNotes {view} {pluginSettings} {HomeTabSearchBar}/>
+    {/if}
+
     {#if isbookmarkedPluginEnabled && bookmarkedFileList && renderbookmarkedFiles}
-        <BookmarkedFiles bookmarkedFiles={bookmarkedFileList} {view} {pluginSettings} bookmarkedFileManager={plugin.bookmarkedFileManager}/>
+        <BookmarkedFiles bookmarkedFiles={bookmarkedFileList} {view} {pluginSettings} bookmarkedFileManager={plugin.bookmarkedFileManager} {HomeTabSearchBar}/>
     {/if}
 
     {#if plugin.recentFileManager && recentFileList.length > 0  && renderRecentFiles}

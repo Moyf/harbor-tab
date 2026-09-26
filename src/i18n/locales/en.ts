@@ -6,9 +6,31 @@ const en: BaseMessage = {
 		replaceCurrentTab: 'Replace current tab',
 	},
 	viewName: 'Harbor Tab',
+	newNoteModal: {
+		title: 'New note',
+		fileName: 'File name',
+		fileNamePlaceholder: 'Type a file name ...',
+		folder: 'Create folder',
+		folderDesc: 'The note is created here; intermediate folders are created automatically.',
+		folderPlaceholder: 'Leave empty for the vault root',
+		create: 'Create',
+		cancel: 'Cancel',
+		invalidFileName: 'The file name is empty or contains invalid characters (\\ / : * ? " < > | # ^ [ ]).',
+		folderIsFile: 'A file already exists at this folder path.',
+		fileExists: 'A file with this name already exists.',
+		createFailed: 'Failed to create the note. Check the developer console for details.',
+		commandNotFound: 'The configured command is not available. Opening the create dialog instead.',
+		},
+	periodicNoteText: {
+		daily: 'Today',
+		weekly: 'This week',
+		monthly: 'This month',
+		quarterly: 'This quarter',
+		yearly: 'This year',
+	},
 	group: {
-		search: 'Search',
-		files: 'Files',
+		search: 'Search box',
+		files: 'Displayed content',
 		appearance: 'Appearance',
 		developer: 'Developer',
 		headingJump: 'Heading navigation',
@@ -17,12 +39,18 @@ const en: BaseMessage = {
 		particleStyle: 'Style',
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
+		vaultStatsItems: 'Items',
 	},
 	page: {
 		search: { name: 'Search', desc: 'Search behavior, result display, and heading navigation.' },
+		bookmarkedFiles: { name: 'Bookmarks', desc: 'Bookmarks display, filter, and group filtering.' },
+		recentFiles: { name: 'Recent files', desc: 'Display, tracking, and count of the recent files list.' },
+		newNote: { name: 'New note', desc: 'New-note button, create dialog defaults, and command override.' },
 		logo: { name: 'Logo', desc: 'Logo type, source, color, and size.' },
   titleStyle: { name: 'Title', desc: 'Title text, font, size, weight, and color.' },
 		particleEffect: { name: 'Particle effect', desc: 'Interactive particle rendering for the logo and title.' },
+		periodicNotes: { name: 'Periodic notes', desc: 'Show the current daily, weekly, monthly or yearly note under the search bar, using the Daily notes core plugin, the Periodic Notes plugin, or custom rules.' },
+		vaultStats: { name: 'Vault stats', desc: 'Show vault statistics near the bottom of the home tab.' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -87,7 +115,7 @@ const en: BaseMessage = {
 		},
 		maxResults: {
 			name: 'Search results',
-			desc: 'Set how many results display.',
+			desc: 'How many items the search results and the folder/command pickers display.',
 		},
 		searchDelay: {
 			name: 'Search delay',
@@ -109,6 +137,22 @@ const en: BaseMessage = {
 			name: 'Show recent files',
 			desc: 'Displays recent files under the search bar.',
 		},
+		sectionCollapsible: {
+			name: 'Collapsible sections',
+			desc: 'Shows a collapse button next to the Recent files and Bookmarks titles; click it to collapse or expand the section.',
+		},
+		showBookmarkedFilesFilter: {
+			name: 'Bookmarks filter',
+			desc: 'Shows a filter (magnifying glass) next to the Bookmarks title to narrow the list; Tab navigation skips it when off.',
+		},
+		bookmarkedGroups: {
+			name: 'Bookmark groups filter',
+			desc: 'Comma-separated bookmark group paths (nest groups with /, e.g. "Work/Sub"). Only bookmarks inside these groups are shown; leave empty to show all bookmarks.',
+		},
+		showRecentFilesFilter: {
+			name: 'Recent files filter',
+			desc: 'Shows a filter (magnifying glass) next to the Recent files title to narrow the list; Tab navigation skips it when off.',
+		},
 		storeRecentFile: {
 			name: 'Store last recent files',
 			desc: 'Remembers the recent files of the previous session.',
@@ -116,6 +160,85 @@ const en: BaseMessage = {
 		maxRecentFiles: {
 			name: 'Recent files',
 			desc: 'Set how many recent files display.',
+		},
+		showNewNoteButton: {
+			name: 'Show new note button',
+			desc: 'Adds a button next to the search bar to quickly create a new note.',
+		},
+		newNoteUseCommand: {
+			name: 'Override with a command',
+			desc: 'When enabled, clicking the button runs the configured command instead of opening the create dialog. Useful to integrate other plugins.',
+		},
+		newNoteCommandId: {
+			name: 'Command',
+			desc: 'Command to run when the button is clicked. Type to search all registered commands.',
+			placeholder: 'Type to search commands ...',
+			invalid: 'The command does not exist.',
+		},
+		newNoteDefaultFolder: {
+			name: 'Default folder',
+			desc: 'Folder pre-filled when creating a note. Leave empty to use the vault root.',
+			placeholder: 'Leave empty for the vault root',
+		},
+		showPeriodicNotes: {
+			name: 'Show periodic notes',
+			desc: 'Displays the current daily/weekly/monthly/yearly notes under the search bar. Notes that do not exist yet are created when opened.',
+		},
+		periodicNotesMode: {
+			name: 'Source',
+			desc: 'Read the folder and format from the Daily notes / Periodic Notes plugins, or define custom rules.',
+			options: {
+				auto: 'From plugins (auto)',
+				custom: 'Custom rules',
+			},
+		},
+		periodicNotesUnavailable: {
+			name: 'No periodic notes detected',
+			desc: 'Neither the Daily notes core plugin nor the Periodic Notes plugin is configured. Switch the source to "Custom rules" to define your own.',
+		},
+		periodicNotesShowDaily: {
+			name: 'Show daily note',
+		},
+		periodicNotesShowWeekly: {
+			name: 'Show weekly note',
+		},
+		periodicNotesShowMonthly: {
+			name: 'Show monthly note',
+		},
+		periodicNotesShowQuarterly: {
+			name: 'Show quarterly note',
+		},
+		periodicNotesShowYearly: {
+			name: 'Show yearly note',
+		},
+		periodicNotesLabelMode: {
+			name: 'Display name',
+			desc: 'What is shown under the icon: the note file name (without its folder), a fixed period text, or a custom name with date placeholders.',
+			options: {
+				filename: 'File name',
+				text: 'Period text',
+				custom: 'Custom',
+			},
+		},
+		periodicNotesLabelCustom: {
+			name: 'Custom display name',
+			desc: 'Supports date placeholders like {{YYYY}}, {{MM}}, {{DD}}, {{gggg}}, {{ww}}; they are replaced with the current date.',
+			placeholder: 'e.g. {{MM}}/{{DD}}',
+		},
+		periodicNotesLabelPreview: 'Preview',
+		periodicNotesCustomEntries: {
+			name: 'Custom periodic notes',
+			desc: 'Each rule resolves to <folder>/<format>.md and supports moment.js tokens like YYYY, MM, DD, gggg and ww. The label is shown on the home tab.',
+			emptyName: 'No custom periodic notes',
+			defaultName: 'Custom note',
+			addLabel: 'Add periodic note',
+			labelPlaceholder: 'Label (e.g. Journal)',
+			folderPlaceholder: 'Folder (e.g. Daily)',
+			formatPlaceholder: 'Format (e.g. YYYY-MM-DD)',
+		},
+		newNoteOnUnmatchedName: {
+			name: 'Quick create for unmatched names',
+			desc: 'When the search input matches no existing note, highlight the new-note button; pressing Enter then opens the create dialog with the typed name pre-filled.',
 		},
 		logo: {
 			name: 'Logo',
@@ -247,8 +370,12 @@ const en: BaseMessage = {
 			desc: 'Speed of the cycling and breathing color animations (higher = faster)',
 		},
 		particleEffectScale: {
-			name: 'Canvas scale',
-			desc: 'How much the particle canvas content is enlarged relative to the original logo and title area',
+			name: 'Canvas scale (desktop)',
+			desc: 'How much the particle canvas content is enlarged relative to the original logo and title area; applies on desktop only',
+		},
+		particleEffectScaleMobile: {
+			name: 'Canvas scale (mobile)',
+			desc: 'Canvas scale used on phones and tablets; set independently from the desktop value',
 		},
 		particleEffectSpacing: {
 			name: 'Particle spacing',
@@ -291,6 +418,25 @@ const en: BaseMessage = {
 			name: 'Glow strength',
 			desc: 'Adds a bloom glow around the particles; 0 disables it, higher values glow brighter',
 		},
+		vaultStats: {
+			name: 'Show vault stats',
+			desc: 'Display vault statistics (files, notes, attachments, folders, tags) near the bottom of the home tab.',
+		},
+		vaultStatsFiles: {
+			name: 'Total files',
+		},
+		vaultStatsNotes: {
+			name: 'Notes',
+		},
+		vaultStatsAttachments: {
+			name: 'Attachments',
+		},
+		vaultStatsFolders: {
+			name: 'Folders',
+		},
+		vaultStatsTags: {
+			name: 'Tags',
+		},
 		debugMode: {
 			name: 'Debug mode',
 			desc: 'Enable debug logging for search results and match analysis. Check the developer console for detailed information.',
@@ -301,6 +447,12 @@ const en: BaseMessage = {
 		accentColor: 'Accent color',
 		custom: 'Custom',
 		resetToDefault: 'Reset to default',
+		delete: 'Delete',
+		clickToFilter: 'Click to filter',
+	},
+	ui: {
+		folderRevealFailed: 'Could not reveal the folder in the file explorer.',
+		tagPaneFailed: 'Could not open the tags pane.',
 	},
 }
 

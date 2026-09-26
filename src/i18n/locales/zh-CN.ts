@@ -6,9 +6,31 @@ const zhCN: BaseMessage = {
 		replaceCurrentTab: '替换当前标签页',
 	},
 	viewName: 'Harbor Tab',
+	newNoteModal: {
+		title: '新建笔记',
+		fileName: '文件名',
+		fileNamePlaceholder: '输入文件名 ...',
+		folder: '创建文件夹',
+		folderDesc: '笔记将创建在此路径，不存在的文件夹会自动创建。',
+		folderPlaceholder: '留空则在仓库根目录创建',
+		create: '创建',
+		cancel: '取消',
+		invalidFileName: '文件名为空或包含非法字符（\\ / : * ? " < > | # ^ [ ]）。',
+		folderIsFile: '该路径已存在同名文件，无法创建文件夹。',
+		fileExists: '同名文件已存在。',
+		createFailed: '创建笔记失败，详情请查看开发者控制台。',
+		commandNotFound: '配置的命令不可用，已回退到新建笔记弹窗。',
+		},
+	periodicNoteText: {
+		daily: '今天',
+		weekly: '本周',
+		monthly: '本月',
+		quarterly: '本季',
+		yearly: '今年',
+	},
 	group: {
-		search: '搜索',
-		files: '文件',
+		search: '搜索框',
+		files: '显示内容',
 		appearance: '外观',
 		developer: '开发者',
 		headingJump: '标题跳转',
@@ -17,12 +39,18 @@ const zhCN: BaseMessage = {
 		particleStyle: '样式',
 		particleCanvas: '画布',
 		particleInteraction: '交互',
+		vaultStatsItems: '统计项',
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
+		bookmarkedFiles: { name: '书签', desc: '书签的显示、筛选与分组过滤' },
+		recentFiles: { name: '最近文件', desc: '最近文件列表的显示、记录与数量' },
+		newNote: { name: '新建笔记', desc: '新建笔记按钮、创建弹窗默认值与命令覆盖' },
 		logo: { name: 'Logo', desc: 'Logo 图标、来源、颜色与尺寸' },
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
 		particleEffect: { name: '粒子特效', desc: 'Logo 与标题的交互式粒子渲染' },
+		periodicNotes: { name: '周期笔记', desc: '在搜索栏下方显示当前的日记、周记、月记或年记，支持 Daily Notes 核心插件、Periodic Notes 插件或自定义规则' },
+		vaultStats: { name: '库数据', desc: '在主页下方显示库的统计信息' },
 	},
 	setting: {
 		replaceNewTabs: {
@@ -87,7 +115,7 @@ const zhCN: BaseMessage = {
 		},
 		maxResults: {
 			name: '搜索结果数量',
-			desc: '设置显示的搜索结果数量。',
+			desc: '设置搜索结果以及文件夹/命令选择框显示的条数。',
 		},
 		searchDelay: {
 			name: '搜索延迟',
@@ -109,6 +137,22 @@ const zhCN: BaseMessage = {
 			name: '显示最近文件',
 			desc: '在搜索栏下方显示最近打开的文件。',
 		},
+		sectionCollapsible: {
+			name: '分区可折叠',
+			desc: '在最近文件和书签标题左侧显示折叠按钮，点击可折叠或展开对应分区。',
+		},
+		showBookmarkedFilesFilter: {
+			name: '书签筛选器',
+			desc: '在书签标题旁显示筛选按钮（放大镜），可快速过滤列表；关闭后 Tab 导航会跳过它。',
+		},
+		bookmarkedGroups: {
+			name: '按分组过滤书签',
+			desc: '填写书签分组路径（英文逗号分隔，嵌套分组用 / 连接，如 Work/Sub），仅显示这些分组内的书签；留空显示全部书签。',
+		},
+		showRecentFilesFilter: {
+			name: '最近文件筛选器',
+			desc: '在最近文件标题旁显示筛选按钮（放大镜），可快速过滤列表；关闭后 Tab 导航会跳过它。',
+		},
 		storeRecentFile: {
 			name: '记住上次的最近文件',
 			desc: '记住上一次会话的最近文件列表。',
@@ -116,6 +160,85 @@ const zhCN: BaseMessage = {
 		maxRecentFiles: {
 			name: '最近文件数量',
 			desc: '设置显示的最近文件数量。',
+		},
+		showNewNoteButton: {
+			name: '显示新建笔记按钮',
+			desc: '在搜索栏旁显示「新建笔记」按钮，快速创建笔记。',
+		},
+		newNoteUseCommand: {
+			name: '使用指定命令覆盖',
+			desc: '开启后，点击按钮将执行下方配置的命令，而不是打开新建笔记弹窗，可用于联动其他插件。',
+		},
+		newNoteCommandId: {
+			name: '命令',
+			desc: '点击按钮时执行的命令，输入即可搜索所有已注册命令。',
+			placeholder: '输入以搜索命令 ...',
+			invalid: '命令不存在。',
+		},
+		newNoteDefaultFolder: {
+			name: '默认文件夹',
+			desc: '新建笔记时默认填写的文件夹，留空则使用仓库根目录。',
+			placeholder: '留空则在仓库根目录创建',
+		},
+		showPeriodicNotes: {
+			name: '显示周期笔记',
+			desc: '在搜索栏下方显示当前的日记/周记/月记/年记，尚未创建的笔记会在打开时自动创建。',
+		},
+		periodicNotesMode: {
+			name: '来源',
+			desc: '从 Daily Notes / Periodic Notes 插件读取路径规则，或自定义规则。',
+			options: {
+				auto: '自动（跟随插件）',
+				custom: '自定义规则',
+			},
+		},
+		periodicNotesUnavailable: {
+			name: '未检测到周期笔记',
+			desc: '未启用 Daily Notes 核心插件或 Periodic Notes 插件，可将来源切换为“自定义规则”。',
+		},
+		periodicNotesShowDaily: {
+			name: '显示日记',
+		},
+		periodicNotesShowWeekly: {
+			name: '显示周记',
+		},
+		periodicNotesShowMonthly: {
+			name: '显示月记',
+		},
+		periodicNotesShowQuarterly: {
+			name: '显示季记',
+		},
+		periodicNotesShowYearly: {
+			name: '显示年记',
+		},
+		periodicNotesLabelMode: {
+			name: '显示名称',
+			desc: '图标下方显示的内容：笔记文件名（不含路径）、周期文字，或带日期占位符的自定义名称。',
+			options: {
+				filename: '文件名',
+				text: '周期文字',
+				custom: '自定义',
+			},
+		},
+		periodicNotesLabelCustom: {
+			name: '自定义显示名称',
+			desc: '支持日期占位符，如 {{YYYY}}、{{MM}}、{{DD}}、{{gggg}}、{{ww}}，会替换为当前日期。',
+			placeholder: '例如：{{MM}}月{{DD}}日',
+		},
+		periodicNotesLabelPreview: '预览',
+		periodicNotesCustomEntries: {
+			name: '自定义周期笔记',
+			desc: '每条规则解析为 <文件夹>/<格式>.md，支持 moment.js 占位符（如 YYYY、MM、DD、gggg、ww）。名称将显示在主页上。',
+			emptyName: '暂无自定义周期笔记',
+			defaultName: '自定义笔记',
+			addLabel: '添加周期笔记',
+			labelPlaceholder: '名称（如：日记）',
+			folderPlaceholder: '文件夹（如：Daily）',
+			formatPlaceholder: '格式（如：YYYY-MM-DD）',
+		},
+		newNoteOnUnmatchedName: {
+			name: '输入不存在的笔记名时快速新建',
+			desc: '搜索内容没有匹配到任何笔记时，高亮新建笔记按钮；此时按回车直接打开新建弹窗，自动填入输入的名称并聚焦文件夹输入框。',
 		},
 		logo: {
 			name: 'Logo',
@@ -247,8 +370,12 @@ const zhCN: BaseMessage = {
 			desc: '循环渐变与呼吸灯模式的变化速度（数值越大越快）',
 		},
 		particleEffectScale: {
-			name: '画布倍率',
-			desc: '粒子画布内容相对原 Logo 与标题区域的放大倍数',
+			name: '画布倍率（桌面端）',
+			desc: '粒子画布内容相对原 Logo 与标题区域的放大倍数，仅桌面端生效',
+		},
+		particleEffectScaleMobile: {
+			name: '画布倍率（移动端）',
+			desc: '手机与平板上使用的画布倍率，与桌面端分别设置',
 		},
 		particleEffectSpacing: {
 			name: '粒子间距',
@@ -291,6 +418,25 @@ const zhCN: BaseMessage = {
 			name: '辉光强度',
 			desc: '为粒子添加辉光（泛光）效果；0 为关闭，数值越大越亮',
 		},
+		vaultStats: {
+			name: '显示库数据',
+			desc: '在主页偏下方的位置显示库统计信息（总文件数、笔记数、附件数、文件夹数、标签数）。',
+		},
+		vaultStatsFiles: {
+			name: '总文件数',
+		},
+		vaultStatsNotes: {
+			name: '笔记数',
+		},
+		vaultStatsAttachments: {
+			name: '附件数',
+		},
+		vaultStatsFolders: {
+			name: '文件夹数',
+		},
+		vaultStatsTags: {
+			name: '标签数',
+		},
 		debugMode: {
 			name: '调试模式',
 			desc: '启用搜索结果与匹配分析的调试日志。详情请查看开发者控制台。',
@@ -301,6 +447,12 @@ const zhCN: BaseMessage = {
 		accentColor: '强调色',
 		custom: '自定义',
 		resetToDefault: '重置为默认值',
+		delete: '删除',
+		clickToFilter: '点击筛选',
+	},
+	ui: {
+		folderRevealFailed: '无法在文件浏览器中定位该文件夹。',
+		tagPaneFailed: '无法打开标签面板。',
 	},
 }
 

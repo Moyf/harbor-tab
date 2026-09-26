@@ -5,8 +5,9 @@ import {
 	WorkspaceTabs,
 	MarkdownView
 } from 'obsidian';
+import type { Command } from 'obsidian';
 import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
-import { HomeTabSettingTab, DEFAULT_SETTINGS, type HomeTabSettings } from './settings'
+import { HomeTabSettingTab, DEFAULT_SETTINGS, normalizeVaultStatsSettings, type HomeTabSettings } from './settings'
 import { t } from './i18n'
 import { pluginSettingsStore, bookmarkedFiles } from './store'
 import { RecentFileManager } from './recentFiles';
@@ -41,7 +42,8 @@ declare module 'obsidian'{
 	interface BookmarkItem{
 		type: string,
 		title: string | undefined,
-		path: string
+		path: string,
+		items?: BookmarkItem[]
 	}
 	interface config{
 		nativeMenus: boolean
@@ -62,6 +64,15 @@ declare module 'obsidian'{
 	}
 	interface TFile{
 		deleted: boolean
+	}
+	// The command registry is not part of the public typings
+	interface CommandRegistry{
+		commands: { [id: string]: Command }
+		listCommands: () => Command[]
+		executeCommandById: (id: string) => void
+	}
+	interface App{
+		commands: CommandRegistry
 	}
 }
 
@@ -158,6 +169,7 @@ export default class HomeTab extends Plugin {
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<HomeTabSettings>)
 		this.migrateLegacySettings()
+		normalizeVaultStatsSettings(this.settings)
 	}
 
 	/** Upgrades settings persisted by older plugin versions in place. */

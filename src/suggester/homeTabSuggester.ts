@@ -6,7 +6,7 @@ import type HomeTabSearchBar from "src/homeTabSearchbar"
 import { generateSearchFile,  getParentFolderFromPath,  getSearchFiles, getUnresolvedMarkdownFiles } from 'src/utils/getFilesUtils'
 import { TextInputSuggester } from './suggester'
 import { generateHotkeySuggestion } from 'src/utils/htmlUtils'
-import { isValidExtension, type FileExtension, type FileType } from 'src/utils/getFileTypeUtils'
+import { isValidExtension, MEDIA_FILE_TYPES, type FileExtension, type FileType } from 'src/utils/getFileTypeUtils'
 import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
@@ -142,6 +142,10 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
     }
 
     filterSearchFileArray(filterKey: FileType | FileExtension, fileArray: SearchFile[]): SearchFile[]{
+        // media 是聚合类型：文件存储的 fileType 为具体的 image/video/audio，需单独匹配
+        if(filterKey === 'media'){
+            return fileArray.filter(file => (MEDIA_FILE_TYPES as readonly string[]).includes(file.fileType ?? ''))
+        }
         const arrayToFilter = fileArray
         return arrayToFilter.filter(file => isValidExtension(filterKey) ? file.extension === filterKey : file.fileType === filterKey)
     }
@@ -187,32 +191,10 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
     }
 
     onNoSuggestion(): void {
-        const input = this.inputEl.value.trim();
-        
-        // 如果是普通输入，保持原有的文件创建建议
-        if(!this.activeFilter || this.activeFilter === 'markdown' || this.activeFilter === 'md'){
-            if (input) {
-                this.suggester.setSuggestions([{
-                    item: {
-                        name: `${input}.md`,
-                        path: `${input}.md`,
-                        basename: input,
-                        isCreated: false,
-                        fileType: 'markdown',
-                        extension: 'md',
-                    },
-                    refIndex: 0,
-                    score: 0,
-                }]);
-                this.open();
-            }
-            else{
-                this.close();
-            }
-        }
-        else{
-            this.close();
-        }
+        // 无匹配时保持下拉框完全隐藏：
+        // 之前的「创建 xxx.md」建议会在 open() 后被基类立即 close() 造成闪现，
+        // 新建笔记改由搜索栏的新建按钮 / 回车弹窗承担
+        this.close();
     }
     
     getSuggestions(inputStr: string): Fuse.FuseResult<SearchFile>[] {

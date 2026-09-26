@@ -3,9 +3,10 @@
 	import type { RecentFileManager, recentFile } from "src/recentFiles";
 	import type { HomeTabSettings } from "src/settings";
 	import type HomeTabSearchBar from "src/homeTabSearchbar";
-	import { recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+	import { advanceSectionFocus, sectionFocusRequest, type SectionFocusRequest } from "src/store";
 	import { get } from "svelte/store";
 	import FileDisplayItem from "./svelteComponents/fileDisplayItem.svelte";
+	import { moveListSelectionVertically, moveListSelectionHorizontally, scrollListItemIntoView } from "src/utils/listNavigation";
 
     export let view: View
     export let recentFileList: recentFile[]
@@ -22,6 +23,13 @@
     let filterInputEl: HTMLInputElement
     let listWrapperEl: HTMLElement
     let selectedFileIndex = -1 // -1 = no keyboard selection
+
+    // Section collapse state (only when pluginSettings.sectionCollapsible is on)
+    let sectionCollapsed = false
+
+    function toggleSectionCollapsed(): void {
+        sectionCollapsed = !sectionCollapsed
+    }
 
     $: filteredFileList = filterQuery.trim()
         ? recentFileList.filter(rf => {
@@ -57,20 +65,42 @@
         selectedFileIndex = -1
     }
 
-    // Expand and focus the filter when requested from the search bar (Tab navigation).
-    // Baseline against the current store value so a freshly mounted component
-    // (new tab) doesn't replay stale requests and steal the focus from the search bar.
-    let lastSeenFocusRequest = get(recentFilterFocusRequest)
-    $: if ($recentFilterFocusRequest > lastSeenFocusRequest) {
-        lastSeenFocusRequest = $recentFilterFocusRequest
-        expandAndFocusFilter()
+    function focusSearchBar(): void {
+        HomeTabSearchBar?.focusSearchbar()
     }
 
-    // Focus the first list item when requested from the search bar (Shift+Tab reverse navigation)
-    let lastSeenListFocusRequest = get(recentListFocusRequest)
-    $: if ($recentListFocusRequest > lastSeenListFocusRequest) {
-        lastSeenListFocusRequest = $recentListFocusRequest
-        focusFirstListItem()
+    // Focus chain: accept the request when this section can take focus, otherwise forward it.
+    // Baseline against the current store value so a freshly mounted component
+    // (new tab) doesn't replay stale requests and steal the focus.
+    let lastSeenSectionFocusRequest = get(sectionFocusRequest).seq
+    $: if ($sectionFocusRequest.seq > lastSeenSectionFocusRequest) {
+        lastSeenSectionFocusRequest = $sectionFocusRequest.seq
+        handleSectionFocusRequest($sectionFocusRequest)
+    }
+
+    function canAcceptFilterFocus(): boolean {
+        return pluginSettings.showRecentFilesFilter && !sectionCollapsed
+    }
+
+    function canAcceptListFocus(): boolean {
+        return !sectionCollapsed && filteredFileList.length > 0
+    }
+
+    function handleSectionFocusRequest(request: SectionFocusRequest): void {
+        if (request.target === 'recent-filter') {
+            if (canAcceptFilterFocus()) {
+                expandAndFocusFilter()
+            } else {
+                advanceSectionFocus('recent-filter', request.backward, focusSearchBar)
+            }
+        }
+        else if (request.target === 'recent-list') {
+            if (canAcceptListFocus()) {
+                focusFirstListItem()
+            } else {
+                advanceSectionFocus('recent-list', request.backward, focusSearchBar)
+            }
+        }
     }
 
     function focusFirstListItem(): void {
@@ -89,73 +119,22 @@
         items?.[selectedFileIndex]?.scrollIntoView({ block: 'nearest' })
     }
 
-    /**
-     * Grid-aware vertical navigation: the list is a flex-wrap layout, so rows
-     * wrap depending on the container width. Moving up/down keeps the current
-     * column by jumping to the item whose horizontal center is the closest one
-     * in the target row (no wrap-around at the first/last row).
-     */
     function moveSelectionVertically(delta: 1 | -1): void {
-        const items = Array.from(listWrapperEl?.querySelectorAll<HTMLElement>('.home-tab-file-item') ?? [])
-        const rects = items.map(el => el.getBoundingClientRect())
-        const current = rects[selectedFileIndex]
-        if (!current) return
-
-        // Group the items into visual rows by their vertical center
-        const rowCenters: number[] = []
-        const rows: number[][] = []
-        rects.forEach((rect, i) => {
-            const cy = rect.top + rect.height / 2
-            const rowIndex = rowCenters.findIndex(center => Math.abs(center - cy) < rect.height / 2)
-            if (rowIndex === -1) {
-                rowCenters.push(cy)
-                rows.push([i])
-            } else {
-                rows[rowIndex].push(i)
-            }
-        })
-
-        const currentCy = current.top + current.height / 2
-        const currentRowIndex = rowCenters.findIndex(center => Math.abs(center - currentCy) < current.height / 2)
-        const targetRowIndex = currentRowIndex + delta
-        if (currentRowIndex === -1 || targetRowIndex < 0 || targetRowIndex >= rows.length) return
-
-        // In the target row, pick the item closest to the current column
-        const currentCx = current.left + current.width / 2
-        let best = rows[targetRowIndex][0]
-        let bestDistance = Infinity
-        for (const i of rows[targetRowIndex]) {
-            const cx = rects[i].left + rects[i].width / 2
-            const distance = Math.abs(cx - currentCx)
-            if (distance < bestDistance) {
-                bestDistance = distance
-                best = i
-            }
-        }
-        selectedFileIndex = best
-        scrollSelectedItemIntoView()
+        selectedFileIndex = moveListSelectionVertically(listWrapperEl, selectedFileIndex, delta)
+        scrollListItemIntoView(listWrapperEl, selectedFileIndex)
     }
 
     function moveSelectionHorizontally(delta: 1 | -1): void {
-        selectedFileIndex = (selectedFileIndex + delta + filteredFileList.length) % filteredFileList.length
-        scrollSelectedItemIntoView()
+        selectedFileIndex = moveListSelectionHorizontally(selectedFileIndex, filteredFileList.length, delta)
+        scrollListItemIntoView(listWrapperEl, selectedFileIndex)
     }
 
     function handleFilterKeydown(e: KeyboardEvent) {
         if (e.key === 'Tab') {
             e.preventDefault()
-            // Shift+Tab (reverse loop): back to the search bar
-            if (e.shiftKey) {
-                HomeTabSearchBar?.focusSearchbar()
-                return
-            }
-            // Tab (forward loop): enter the list navigation on the first item;
-            // fall back to the search bar when there is nothing to select
-            if (filteredFileList.length === 0) {
-                HomeTabSearchBar?.focusSearchbar()
-                return
-            }
-            focusFirstListItem()
+            // Forward loop: enter the list navigation (the chain skips it when empty);
+            // Shift+Tab (reverse loop): back towards the search bar
+            advanceSectionFocus('recent-filter', e.shiftKey, focusSearchBar)
             return
         }
         if (e.key === 'Escape') {
@@ -212,13 +191,7 @@
         else if (e.key === 'Tab') {
             e.preventDefault()
             selectedFileIndex = -1
-            if (e.shiftKey) {
-                // Shift+Tab (reverse loop): back to the filter
-                expandAndFocusFilter()
-            } else {
-                // Tab (forward loop): back to the search bar
-                HomeTabSearchBar?.focusSearchbar()
-            }
+            advanceSectionFocus('recent-list', e.shiftKey, focusSearchBar)
         }
     }
 
@@ -249,7 +222,26 @@
 
 <div class="home-tab-recent-files-container">
     <div class="home-tab-recent-files-title">
-        <span class="home-tab-recent-files-title-text">Recent files</span>
+        {#if pluginSettings.sectionCollapsible}
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <span
+                class="home-tab-section-toggle"
+                role="button"
+                tabindex="0"
+                aria-expanded={!sectionCollapsed}
+                aria-label={sectionCollapsed ? 'Expand recent files' : 'Collapse recent files'}
+                on:click={toggleSectionCollapsed}
+                on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSectionCollapsed() } }}
+            >
+                <span class="home-tab-section-collapse-icon">
+                    {@html getIcon(sectionCollapsed ? 'chevron-right' : 'chevron-down')?.outerHTML ?? ''}
+                </span>
+                <span class="home-tab-recent-files-title-text">Recent files</span>
+            </span>
+        {:else}
+            <span class="home-tab-recent-files-title-text">Recent files</span>
+        {/if}
+        {#if pluginSettings.showRecentFilesFilter && !sectionCollapsed}
         <div class="home-tab-recent-files-filter" class:expanded={filterExpanded}>
             <input
                 class="home-tab-recent-files-filter-input"
@@ -269,19 +261,22 @@
                 {@html getIcon('search')?.outerHTML ?? ''}
             </button>
         </div>
+        {/if}
     </div>
-    <div class="home-tab-recent-files-wrapper"
-        bind:this={listWrapperEl}
-        tabindex="-1"
-        on:keydown={handleListKeydown}
-        on:blur={handleListBlur}
-    >
-        {#each filteredFileList as recentFile (recentFile.file.path)}
-            <FileDisplayItem file={recentFile.file} {app} {pluginSettings} {contextualMenu}
-            selected={filteredFileList.indexOf(recentFile) === selectedFileIndex}
-            on:itemMenu={(e) => selectedFile = e.detail.file}/>
-        {/each}
-    </div>
+    {#if !sectionCollapsed}
+        <div class="home-tab-recent-files-wrapper"
+            bind:this={listWrapperEl}
+            tabindex="-1"
+            on:keydown={handleListKeydown}
+            on:blur={handleListBlur}
+        >
+            {#each filteredFileList as recentFile (recentFile.file.path)}
+                <FileDisplayItem file={recentFile.file} {app} {pluginSettings} {contextualMenu}
+                selected={filteredFileList.indexOf(recentFile) === selectedFileIndex}
+                on:itemMenu={(e) => selectedFile = e.detail.file}/>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -304,6 +299,30 @@
     }
     .home-tab-recent-files-title-text{
         white-space: nowrap;
+    }
+    .home-tab-section-toggle{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        user-select: none;
+        padding: 2px 8px;
+        margin: -2px -8px;
+        border-radius: var(--radius-s);
+    }
+    .home-tab-section-toggle:hover{
+        background-color: var(--background-modifier-hover);
+    }
+    .home-tab-section-collapse-icon{
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
+    .home-tab-section-collapse-icon :global(svg){
+        width: 16px;
+        height: 16px;
     }
     .home-tab-recent-files-filter{
         display: flex;

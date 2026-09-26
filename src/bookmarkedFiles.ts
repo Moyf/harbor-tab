@@ -123,4 +123,54 @@ export class bookmarkedFilesManager extends Component{
             new Notice("Bookmarks plugin is not enabled")
         }
     }
+
+    /**
+     * Group paths (bookmark group titles joined with "/") for every bookmarked
+     * file path. A file bookmarked in several groups maps to several paths.
+     * The bookmarks plugin stores a tree: "group" items have a title and child
+     * items; nested group paths are the ancestor titles joined with "/".
+     */
+    public getFileGroupPaths(): Map<string, string[]>{
+        const result = new Map<string, string[]>()
+        const bookmarksPlugin = this.app.internalPlugins.getPluginById('bookmarks')
+        if(!bookmarksPlugin) return result
+
+        const visit = (items: BookmarkItem[], prefix: string): void => {
+            items.forEach((item) => {
+                if(item.type === 'group' && item.items){
+                    const title = item.title ?? ''
+                    visit(item.items, prefix ? `${prefix}/${title}` : title)
+                }
+                else if(item.type === 'file'){
+                    const paths = result.get(item.path) ?? []
+                    paths.push(prefix)
+                    result.set(item.path, paths)
+                }
+            })
+        }
+        visit(bookmarksPlugin.instance.items ?? [], '')
+        return result
+    }
+
+    /** Selected bookmark group paths from the settings (trim + drop empties) */
+    private getSelectedGroups(): string[]{
+        return (this.plugin.settings.bookmarkedGroups ?? '')
+            .split(',')
+            .map((group) => group.trim())
+            .filter((group) => group !== '')
+    }
+
+    /**
+     * Keeps only the bookmarked files inside the groups selected in the
+     * settings; when no group is selected every bookmark is kept. Selecting a
+     * group also keeps its nested subgroups.
+     */
+    public filterBySelectedGroups(files: bookmarkedFile[]): bookmarkedFile[]{
+        const selectedGroups = this.getSelectedGroups()
+        if(selectedGroups.length === 0) return files
+
+        const groupPaths = this.getFileGroupPaths()
+        return files.filter((entry) => (groupPaths.get(entry.file.path) ?? [])
+            .some((groupPath) => selectedGroups.some((selected) => groupPath === selected || groupPath.startsWith(`${selected}/`))))
+    }
 }

@@ -114,6 +114,8 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     protected suggestionParentContainer: HTMLElement
     protected suggestionContainer: HTMLElement
     protected suggesterView: suggesterView | undefined
+    // 建议视图根元素（由 suggesterView 通过 store 绑定），销毁时可同步移除 DOM
+    private viewRootEl: Writable<HTMLElement | undefined> = writable()
 
     protected scope: Scope
     protected viewOptions: suggesterViewOptions
@@ -130,6 +132,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     protected closingAnimationRunning: boolean
 
     private inputListener: (this: HTMLInputElement, ev: Event) => void
+    private compositionEndListener: () => void
     private lastValue: string
     // Keep a single bound reference so removeEventListener in destroy() can
     // actually detach the blur listener (close.bind(this) creates a new
@@ -147,6 +150,9 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         const delay = searchDelay || 200;
         this.inputListener = debounce(
             async (e: Event) => {
+                // IME 组合输入（拼音等）过程中的 input 事件不触发搜索，
+                // 中间态内容会导致下拉框反复开关闪烁，由 compositionend 统一触发
+                if((e as InputEvent).isComposing) return
                 const target = e.target as HTMLInputElement;
                 if (target.value !== this.lastValue) {
                     this.lastValue = target.value;
@@ -158,6 +164,13 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         );
         
         this.inputEl.addEventListener('input', this.inputListener);
+        // IME 候选词上屏后立即搜索一次
+        this.compositionEndListener = () => {
+            if(this.inputEl.value === this.lastValue) return
+            this.lastValue = this.inputEl.value
+            void this.onInput()
+        };
+        this.inputEl.addEventListener('compositionend', this.compositionEndListener);
         // 移除 focus 事件监听，避免重复触发
         this.boundClose = this.close.bind(this);
         this.inputEl.addEventListener('blur', this.boundClose);
@@ -176,7 +189,12 @@ export abstract class TextInputSuggester<T> implements ISuggester{
 
     async onInput(): Promise<void>{
         const input = this.inputEl.value
+        this.lastValue = input
         const suggestions = await this.getSuggestions(input)
+        
+        // 搜索期间输入已经变化：本次结果已过期，直接丢弃，
+        // 避免快速输入时新旧结果交替造成闪烁
+        if(this.inputEl.value !== input) return
         
         // 清除之前的建议
         this.suggester.setSuggestions([])
@@ -229,6 +247,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
             props:{
                 textInputSuggester: this,
                 options: this.viewOptions,
+                viewRoot: this.viewRootEl,
             },
             intro: true,
         })
@@ -246,28 +265,41 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         // Allow svelte to run the animation, then remove the component(s)
         if(this.suggesterView){
             this.closingAnimationRunning = true
+            window.clearTimeout(this.closingAnimationTimeout)
             this.closingAnimationTimeout = window.setTimeout(() => {
-                this.suggesterView?.$destroy()
-                this.suggesterView = undefined
-                this.closingAnimationRunning = false
+                this.teardownView()
             }, 200)
         }
 
         this.additionalCleaning()
         this.onClose()
     }
-    abortClosingAnimation(): void{
+
+    // 立即销毁建议视图（普通 close 保留 200ms 滑出动画，销毁/重开时跳过动画）
+    private teardownView(): void{
         window.clearTimeout(this.closingAnimationTimeout)
         this.suggesterView?.$destroy()
         this.suggesterView = undefined
+        // 同步移除残留 DOM：$destroy 不会立刻脱离文档（outro 进行中或 hideOnBlur
+        // 提前返回时），否则连续切换过滤器会叠加多个下拉
+        get(this.viewRootEl)?.remove()
+        this.viewRootEl.set(undefined)
         this.closingAnimationRunning = false
+    }
+
+    abortClosingAnimation(): void{
+        this.teardownView()
     }
     
 
 
     destroy(): void{
         this.close()
+        // close() 可能保留视图（hideOnBlur=false 提前返回）或延迟移除（关闭动画），
+        // 销毁时必须立即清除，否则切换建议器后旧下拉会残留并不断叠加
+        this.teardownView()
         this.inputEl.removeEventListener('input', this.inputListener)
+        this.inputEl.removeEventListener('compositionend', this.compositionEndListener)
         this.inputEl.removeEventListener('blur', this.boundClose)
         
         // 最后确保作用域被清理

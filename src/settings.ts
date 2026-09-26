@@ -1,20 +1,30 @@
 import { App, Setting, PluginSettingTab, normalizePath, Platform, getIconIds } from 'obsidian'
-import type { IconName, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian'
+import type { IconName, SettingDefinition, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian'
 import type HomeTab from './main'
 import iconSuggester from './suggester/iconSuggester'
 import ImageFileSuggester from './suggester/imageSuggester'
+import CommandSuggester from './suggester/commandSuggester'
+import NewNoteFolderSuggester from './suggester/newNoteFolderSuggester'
 import cssUnitValidator from './utils/cssUnitValidator'
 import isLink from './utils/isLink'
 import fontSuggester from './suggester/fontSuggester'
 import type { recentFileStore } from './recentFiles'
 import type { bookmarkedFileStore } from './bookmarkedFiles'
+import type { PeriodicNoteCustomEntry, PeriodicNoteLabelMode } from './periodicNotes'
+import { formatPeriodicLabel, getAutoPeriodConfigs, hasAutoPeriodSource, PERIOD_TYPES } from './periodicNotes'
 import { checkFont } from './utils/fontValidator'
 import { t as getLocale } from './i18n'
+import type { SettingEntry } from './i18n/types'
 
 type ColorChoices = 'default' | 'accentColor' | 'custom'
 type LogoChoices = 'default' | 'imagePath' | 'imageLink' | 'lucideIcon' | 'oldLogo' | 'none'
 type LogoPosition = 'top' | 'bottom' | 'left' | 'right'
 type FontChoices = 'interfaceFont' | 'textFont' | 'monospaceFont' | 'custom'
+
+// 新增：库数据（vault stats）可显示的统计项
+export type VaultStatItemKey = 'files' | 'notes' | 'attachments' | 'folders' | 'tags'
+
+export const VAULT_STAT_KEYS: readonly VaultStatItemKey[] = ['files', 'notes', 'attachments', 'folders', 'tags']
 
 interface ObjectKeys {
     [key: string]: unknown
@@ -57,6 +67,7 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectMotionFrequency: number
     particleEffectGlow: number
     particleEffectScale: number
+    particleEffectScaleMobile: number
     particleEffectSpacing: number
     particleEffectDotSize: number
     particleEffectDisturbRadius: number
@@ -64,9 +75,30 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectRecoverySpeed: number
     maxResults: number
     showbookmarkedFiles: boolean
+    showBookmarkedFilesFilter: boolean // 新增：书签区筛选按钮（放大镜）开关
+    bookmarkedGroups: string // 新增：仅显示这些书签分组内的书签（英文逗号分隔，留空显示全部）
     showRecentFiles: boolean
+    showRecentFilesFilter: boolean // 新增：最近文件筛选按钮（放大镜）开关
     maxRecentFiles: number
     storeRecentFile: boolean
+    showPeriodicNotes: boolean // 新增：是否在主页显示周期笔记
+    periodicNotesMode: 'auto' | 'custom' // 新增：周期笔记来源，自动读取插件配置或自定义规则
+    periodicNotesShowDaily: boolean // 新增：显示日记
+    periodicNotesShowWeekly: boolean // 新增：显示周记
+    periodicNotesShowMonthly: boolean // 新增：显示月记
+    periodicNotesShowQuarterly: boolean // 新增：显示季记
+    periodicNotesShowYearly: boolean // 新增：显示年记
+    periodicNotesLabelModeDaily: PeriodicNoteLabelMode // 新增：日记的显示名称模式（文件名/周期文字/自定义）
+    periodicNotesLabelModeWeekly: PeriodicNoteLabelMode // 新增：周记的显示名称模式
+    periodicNotesLabelModeMonthly: PeriodicNoteLabelMode // 新增：月记的显示名称模式
+    periodicNotesLabelModeQuarterly: PeriodicNoteLabelMode // 新增：季记的显示名称模式
+    periodicNotesLabelModeYearly: PeriodicNoteLabelMode // 新增：年记的显示名称模式
+    periodicNotesLabelCustomDaily: string // 新增：日记的自定义显示名称（支持 {{MM}} 等日期占位符）
+    periodicNotesLabelCustomWeekly: string // 新增：周记的自定义显示名称
+    periodicNotesLabelCustomMonthly: string // 新增：月记的自定义显示名称
+    periodicNotesLabelCustomQuarterly: string // 新增：季记的自定义显示名称
+    periodicNotesLabelCustomYearly: string // 新增：年记的自定义显示名称
+    periodicNotesCustom: PeriodicNoteCustomEntry[] // 新增：自定义周期笔记规则（名称 + 路径规则）
     showPath: boolean
     selectionHighlight: ColorChoices
     showShortcuts: boolean
@@ -79,6 +111,7 @@ export interface HomeTabSettings extends ObjectKeys{
     headingJumpStrategy?: 'never' | 'always' | 'smart' // 新增：标题跳转策略
     recentFilesStore: recentFileStore[]
     bookmarkedFileStore: bookmarkedFileStore[]
+    sectionCollapsible: boolean // 新增：是否显示折叠按钮，允许折叠最近文件/书签区域
     searchDelay: number
     replaceNewTabs: boolean
     newTabOnStart: boolean
@@ -88,6 +121,14 @@ export interface HomeTabSettings extends ObjectKeys{
     webUrlSuggestions: boolean // 新增：网址功能开关，检测搜索栏输入的网址并建议用网页浏览器打开
     debugMode?: boolean // 新增：调试模式，显示搜索和匹配的详细信息
     hideOnBlur?: boolean // 新增：失去焦点时是否隐藏搜索结果
+    showNewNoteButton: boolean // 新增：显示「新建笔记」按钮
+    newNoteUseCommand: boolean // 新增：点击按钮时执行指定命令而不是新建笔记
+    newNoteCommandId: string // 新增：命令覆盖时执行的命令 ID
+    newNoteDefaultFolder: string // 新增：新建笔记弹窗默认填写的文件夹
+    vaultStats: boolean // 新增：在主页偏下方显示库数据（总开关）
+    vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
+    vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
+    newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -121,6 +162,8 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectMotionFrequency: 1,
     particleEffectGlow: 0,
     particleEffectScale: 1.9,
+    // Mobile renders at 1× so the zoomed canvas never overflows the narrow layout.
+    particleEffectScaleMobile: 1,
     particleEffectSpacing: 2,
     particleEffectDotSize: 0.5,
     particleEffectDisturbRadius: 124,
@@ -132,9 +175,30 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
     showbookmarkedFiles: true,
+    showBookmarkedFilesFilter: true, // 新增：默认显示书签筛选按钮
+    bookmarkedGroups: '', // 新增：默认显示全部书签
     showRecentFiles: true,
+    showRecentFilesFilter: true, // 新增：默认显示最近文件筛选按钮
     maxRecentFiles: 12,
     storeRecentFile: true,
+    showPeriodicNotes: false, // 新增：默认关闭周期笔记
+    periodicNotesMode: 'auto', // 新增：默认跟随插件配置
+    periodicNotesShowDaily: true, // 新增：默认只显示日记（单个就日记）
+    periodicNotesShowWeekly: false, // 新增：周记默认关闭，可按需开启
+    periodicNotesShowMonthly: false, // 新增：月记默认关闭，可按需开启
+    periodicNotesShowQuarterly: false, // 新增：季记默认关闭，可按需开启
+    periodicNotesShowYearly: false, // 新增：年记默认关闭，可按需开启
+    periodicNotesLabelModeDaily: 'filename', // 新增：默认显示笔记文件名（不含路径）
+    periodicNotesLabelModeWeekly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeMonthly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeQuarterly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeYearly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelCustomDaily: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomWeekly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomMonthly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomQuarterly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomYearly: '', // 新增：自定义显示名称默认为空
+    periodicNotesCustom: [], // 新增：默认没有自定义周期笔记
     showPath: true,
     selectionHighlight: 'default',
     showShortcuts: true,
@@ -147,6 +211,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     headingJumpStrategy: 'smart', // 新增：默认使用智能跳转策略
     recentFilesStore: [],
     bookmarkedFileStore: [],
+    sectionCollapsible: false, // 新增：默认不显示折叠按钮
     searchDelay: 0,
     replaceNewTabs: true,
     newTabOnStart: false,
@@ -156,6 +221,39 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     webUrlSuggestions: true, // 新增：默认开启网址功能（仅当网页浏览器核心插件可用时生效）
     debugMode: false, // 新增：默认关闭调试模式
     hideOnBlur: true, // 新增：默认情况下失去焦点时隐藏搜索结果
+    showNewNoteButton: true, // 新增：默认显示「新建笔记」按钮
+    newNoteUseCommand: false, // 新增：默认不使用命令覆盖
+    newNoteCommandId: '', // 新增：命令 ID 默认为空
+    newNoteDefaultFolder: '', // 新增：默认文件夹默认留空（仓库根目录）
+    vaultStats: false, // 新增：默认关闭库数据显示
+    vaultStatsItems: [...VAULT_STAT_KEYS], // 新增：默认全部启用，按默认顺序显示
+    vaultStatsOrder: [...VAULT_STAT_KEYS], // 新增：默认顺序
+    newNoteOnUnmatchedName: true, // 新增：默认开启「无匹配时快速新建」
+}
+
+/**
+ * 修复旧版本 data.json 中缺失或含未知项的库数据设置：
+ * vaultStatsOrder 必须包含全部统计项，vaultStatsItems 只能包含其中的有效项。
+ */
+export function normalizeVaultStatsSettings(settings: HomeTabSettings): void {
+    const order = (settings.vaultStatsOrder ?? []).filter((key): key is VaultStatItemKey =>
+        VAULT_STAT_KEYS.includes(key as VaultStatItemKey))
+    VAULT_STAT_KEYS.forEach((key) => {
+        if(!order.includes(key)){order.push(key)}
+    })
+    settings.vaultStatsOrder = order
+    settings.vaultStatsItems = (settings.vaultStatsItems ?? []).filter((key): key is VaultStatItemKey =>
+        order.includes(key))
+}
+
+/**
+ * The canvas scale follows the platform: desktop and mobile keep independent
+ * settings (so the zoomed canvas can stay 1× on small screens), and each one
+ * only applies while the plugin runs on its own platform.
+ */
+export function effectiveParticleEffectScale(settings: HomeTabSettings): number {
+    if (Platform.isMobile) return settings.particleEffectScaleMobile ?? DEFAULT_SETTINGS.particleEffectScaleMobile
+    return settings.particleEffectScale ?? DEFAULT_SETTINGS.particleEffectScale
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -176,8 +274,30 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'searchDelay',
         'hideOnBlur',
         'showbookmarkedFiles',
+        'showBookmarkedFilesFilter',
+        'bookmarkedGroups',
         'showRecentFiles',
+        'showPeriodicNotes',
+        'periodicNotesMode',
+        'periodicNotesShowDaily',
+        'periodicNotesShowWeekly',
+        'periodicNotesShowMonthly',
+        'periodicNotesShowQuarterly',
+        'periodicNotesShowYearly',
+        'showRecentFilesFilter',
+        'sectionCollapsible',
+        'periodicNotesLabelModeDaily',
+        'periodicNotesLabelModeWeekly',
+        'periodicNotesLabelModeMonthly',
+        'periodicNotesLabelModeQuarterly',
+        'periodicNotesLabelModeYearly',
+        'periodicNotesLabelCustomDaily',
+        'periodicNotesLabelCustomWeekly',
+        'periodicNotesLabelCustomMonthly',
+        'periodicNotesLabelCustomQuarterly',
+        'periodicNotesLabelCustomYearly',
         'selectionHighlight',
+        'showNewNoteButton',
     ])
     // NOTE: particle-effect settings are intentionally NOT in this set — the
     // ParticleWordmark component rebuilds itself in place from prop/store
@@ -327,16 +447,52 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                         desc: t.setting.hideOnBlur.desc,
                                         control: { type: 'toggle', key: 'hideOnBlur', defaultValue: true },
                                     },
-                                    {
-                                        name: t.setting.showOmnisearchExcerpt.name,
-                                        desc: t.setting.showOmnisearchExcerpt.desc,
-                                        visible: () => !!this.app.plugins.getPlugin('omnisearch'),
-                                        control: { type: 'toggle', key: 'showOmnisearchExcerpt' },
-                                    },
-                                ],
+                            {
+                                name: t.setting.showOmnisearchExcerpt.name,
+                                desc: t.setting.showOmnisearchExcerpt.desc,
+                                visible: () => !!this.app.plugins.getPlugin('omnisearch'),
+                                control: { type: 'toggle', key: 'showOmnisearchExcerpt' },
                             },
                         ],
                     },
+                    {
+                        type: 'page',
+                        name: t.page.newNote.name,
+                        desc: t.page.newNote.desc,
+                        items: [
+                            {
+                                name: t.setting.showNewNoteButton.name,
+                                desc: t.setting.showNewNoteButton.desc,
+                                control: { type: 'toggle', key: 'showNewNoteButton', defaultValue: true },
+                            },
+                            {
+                                name: t.setting.newNoteUseCommand.name,
+                                desc: t.setting.newNoteUseCommand.desc,
+                                visible: () => s.showNewNoteButton,
+                                control: { type: 'toggle', key: 'newNoteUseCommand', defaultValue: false },
+                            },
+                            {
+                                name: t.setting.newNoteCommandId.name,
+                                desc: t.setting.newNoteCommandId.desc,
+                                visible: () => s.showNewNoteButton && s.newNoteUseCommand,
+                                render: (setting) => this.renderNewNoteCommand(setting, t),
+                            },
+                            {
+                                name: t.setting.newNoteDefaultFolder.name,
+                                desc: t.setting.newNoteDefaultFolder.desc,
+                                visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                                render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
+                            },
+                    {
+                        name: t.setting.newNoteOnUnmatchedName.name,
+                        desc: t.setting.newNoteOnUnmatchedName.desc,
+                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                        control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
+                    },
+                ],
+            },
+                ],
+            },
                 ],
             },
 
@@ -346,37 +502,152 @@ export class HomeTabSettingTab extends PluginSettingTab {
                 heading: t.group.files,
                 items: [
                     {
-                        name: t.setting.showBookmarkedFiles.name,
-                        desc: t.setting.showBookmarkedFiles.desc,
+                        type: 'page',
+                        name: t.page.bookmarkedFiles.name,
+                        desc: t.page.bookmarkedFiles.desc,
                         visible: () => !!this.app.internalPlugins.getPluginById('bookmarks'),
-                        control: { type: 'toggle', key: 'showbookmarkedFiles' },
+                        items: [
+                            {
+                                name: t.setting.showBookmarkedFiles.name,
+                                desc: t.setting.showBookmarkedFiles.desc,
+                                control: { type: 'toggle', key: 'showbookmarkedFiles' },
+                            },
+                            {
+                                name: t.setting.showBookmarkedFilesFilter.name,
+                                desc: t.setting.showBookmarkedFilesFilter.desc,
+                                visible: () => s.showbookmarkedFiles,
+                                control: { type: 'toggle', key: 'showBookmarkedFilesFilter' },
+                            },
+                            {
+                                name: t.setting.bookmarkedGroups.name,
+                                desc: t.setting.bookmarkedGroups.desc,
+                                visible: () => s.showbookmarkedFiles,
+                                control: { type: 'text', key: 'bookmarkedGroups' },
+                            },
+                        ],
                     },
                     {
-                        name: t.setting.showRecentFiles.name,
-                        desc: t.setting.showRecentFiles.desc,
-                        control: { type: 'toggle', key: 'showRecentFiles' },
+                        type: 'page',
+                        name: t.page.recentFiles.name,
+                        desc: t.page.recentFiles.desc,
+                        items: [
+                            {
+                                name: t.setting.showRecentFiles.name,
+                                desc: t.setting.showRecentFiles.desc,
+                                control: { type: 'toggle', key: 'showRecentFiles' },
+                            },
+                            {
+                                name: t.setting.showRecentFilesFilter.name,
+                                desc: t.setting.showRecentFilesFilter.desc,
+                                visible: () => s.showRecentFiles,
+                                control: { type: 'toggle', key: 'showRecentFilesFilter' },
+                            },
+                            {
+                                name: t.setting.storeRecentFile.name,
+                                desc: t.setting.storeRecentFile.desc,
+                                visible: () => s.showRecentFiles,
+                                control: { type: 'toggle', key: 'storeRecentFile' },
+                            },
+                            {
+                                ...this.sliderWithReset('maxRecentFiles', t.setting.maxRecentFiles.name, t.setting.maxRecentFiles.desc, 1, 25, 1),
+                                visible: () => s.showRecentFiles,
+                                render: (setting) => {
+                                    setting
+                                        .addSlider((slider) => slider
+                                            .setValue(s.maxRecentFiles)
+                                            .setLimits(1, 25, 1)
+                                            .onChange((value) => {
+                                                this.plugin.recentFileManager.onNewMaxListLenght(value)
+                                                s.maxRecentFiles = value
+                                                void this.plugin.saveSettings()
+                                            }))
+                                    this.addResetButton(setting, 'maxRecentFiles')
+                                },
+                            },
+                        ],
                     },
                     {
-                        name: t.setting.storeRecentFile.name,
-                        desc: t.setting.storeRecentFile.desc,
-                        visible: () => s.showRecentFiles,
-                        control: { type: 'toggle', key: 'storeRecentFile' },
+                        type: 'page',
+                        name: t.page.periodicNotes.name,
+                        desc: t.page.periodicNotes.desc,
+                        items: [
+                            {
+                                name: t.setting.showPeriodicNotes.name,
+                                desc: t.setting.showPeriodicNotes.desc,
+                                control: { type: 'toggle', key: 'showPeriodicNotes' },
+                            },
+                            this.dropdownWithReset('periodicNotesMode', t.setting.periodicNotesMode.name, t.setting.periodicNotesMode.desc, t.setting.periodicNotesMode.options, {
+                                visible: () => s.showPeriodicNotes,
+                                refreshDomAfterChange: true, // toggle the auto/custom sections in place
+                            }),
+                            {
+                                // Info-only row shown when no source plugin provides periodic notes
+                                name: t.setting.periodicNotesUnavailable.name,
+                                desc: t.setting.periodicNotesUnavailable.desc,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !hasAutoPeriodSource(this.app),
+                            },
+                            ...PERIOD_TYPES.flatMap((type) => this.periodTypeSettings(type, t)),
+                            ...s.periodicNotesCustom.map((entry, index) => ({
+                                name: index === 0 ? t.setting.periodicNotesCustomEntries.name : `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom',
+                                render: (setting: Setting) => this.renderCustomPeriodicEntry(setting, index, t, entry),
+                            })),
+                            {
+                                name: t.setting.periodicNotesCustomEntries.name,
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom' && s.periodicNotesCustom.length === 0,
+                                render: (setting: Setting) => {
+                                    setting.setName(t.setting.periodicNotesCustomEntries.emptyName)
+                                    setting.setDesc(t.setting.periodicNotesCustomEntries.desc ?? '')
+                                    setting.addButton((button) => button
+                                        .setButtonText(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .setTooltip(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .onClick(() => this.addCustomPeriodicEntry(t)))
+                                },
+                            },
+                            {
+                                name: '',
+                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom' && s.periodicNotesCustom.length > 0,
+                                render: (setting: Setting) => {
+                                    setting.addButton((button) => button
+                                        .setButtonText(t.setting.periodicNotesCustomEntries.addLabel)
+                                        .onClick(() => this.addCustomPeriodicEntry(t)))
+                                },
+                            },
+                        ],
+                    },
+                    // 新增：库数据 SubPage —— 总开关、各统计项开关与拖拽排序
+                    {
+                        type: 'page',
+                        name: t.page.vaultStats.name,
+                        desc: t.page.vaultStats.desc,
+                        items: [
+                            {
+                                name: t.setting.vaultStats.name,
+                                desc: t.setting.vaultStats.desc,
+                                control: { type: 'toggle', key: 'vaultStats', defaultValue: false },
+                            },
+                            {
+                                // 官方 SettingDefinitionList：设置 onReorder 后每行自带拖拽手柄
+                                type: 'list',
+                                heading: t.group.vaultStatsItems,
+                                visible: () => s.vaultStats,
+                                onReorder: (oldIndex, newIndex) => {
+                                    const order = [...s.vaultStatsOrder]
+                                    const [moved] = order.splice(oldIndex, 1)
+                                    order.splice(newIndex, 0, moved)
+                                    s.vaultStatsOrder = order
+                                    void this.plugin.saveSettings()
+                                    this.update()
+                                },
+                                items: s.vaultStatsOrder.map((key) => this.vaultStatsItemSetting(key, t)),
+                            },
+                        ],
                     },
                     {
-                        ...this.sliderWithReset('maxRecentFiles', t.setting.maxRecentFiles.name, t.setting.maxRecentFiles.desc, 1, 25, 1),
-                        visible: () => s.showRecentFiles,
-                        render: (setting) => {
-                            setting
-                                .addSlider((slider) => slider
-                                    .setValue(s.maxRecentFiles)
-                                    .setLimits(1, 25, 1)
-                                    .onChange((value) => {
-                                        this.plugin.recentFileManager.onNewMaxListLenght(value)
-                                        s.maxRecentFiles = value
-                                        void this.plugin.saveSettings()
-                                    }))
-                            this.addResetButton(setting, 'maxRecentFiles')
-                        },
+                        name: t.setting.sectionCollapsible.name,
+                        desc: t.setting.sectionCollapsible.desc,
+                        visible: () => s.showRecentFiles || s.showbookmarkedFiles,
+                        control: { type: 'toggle', key: 'sectionCollapsible' },
                     },
                 ],
             },
@@ -601,6 +872,10 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                         visible: () => s.particleEffect,
                                     },
                                     {
+                                        ...this.sliderWithReset('particleEffectScaleMobile', t.setting.particleEffectScaleMobile.name, t.setting.particleEffectScaleMobile.desc, 1, 3, 0.1),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
                                         ...this.sliderWithReset('particleEffectSpacing', t.setting.particleEffectSpacing.name, t.setting.particleEffectSpacing.desc, 1, 8, 0.5),
                                         visible: () => s.particleEffect,
                                     },
@@ -746,6 +1021,163 @@ export class HomeTabSettingTab extends PluginSettingTab {
         })
     }
 
+    /** Command ID input for the new-note button override, with command suggester + validity marker */
+    private renderNewNoteCommand(setting: Setting, t: ReturnType<typeof getLocale>): void {
+        const s = this.plugin.settings
+        let invalidCommandIcon: HTMLElement
+        setting
+            .addExtraButton((button) => {button
+                .setIcon('alert-circle')
+                .setTooltip(t.setting.newNoteCommandId.invalid)
+                invalidCommandIcon = button.extraSettingsEl
+                invalidCommandIcon.toggleVisibility(false)
+                invalidCommandIcon.addClass('mod-warning')})
+
+        setting
+            .addText((text) => {
+                new CommandSuggester(this.app, text.inputEl, s.maxResults)
+                text
+                    .setPlaceholder(t.setting.newNoteCommandId.placeholder)
+                    .setValue(s.newNoteCommandId)
+                    .onChange((value) => {
+                        // Empty clears the override; otherwise the command must exist
+                        const isValid = value === '' || !!this.app.commands?.commands?.[value]
+                        invalidCommandIcon.toggleVisibility(!isValid)
+                        if(isValid){
+                            s.newNoteCommandId = value
+                            void this.plugin.saveSettings()
+                        }
+                    })
+                    .inputEl.parentElement?.addClass('wide-input-container')
+            })
+        this.addResetButton(setting, 'newNoteCommandId')
+    }
+
+    /** Default folder input for the new-note modal, with folder suggester */
+    private renderNewNoteDefaultFolder(setting: Setting, t: ReturnType<typeof getLocale>): void {
+        const s = this.plugin.settings
+        setting
+            .addText((text) => {
+                new NewNoteFolderSuggester(this.app, text.inputEl, s.maxResults)
+                text
+                    .setPlaceholder(t.setting.newNoteDefaultFolder.placeholder)
+                    .setValue(s.newNoteDefaultFolder)
+                    .onChange((value) => {
+                        s.newNoteDefaultFolder = normalizePath(value)
+                        void this.plugin.saveSettings()
+                    })
+                    .inputEl.parentElement?.addClass('wide-input-container')
+            })
+        this.addResetButton(setting, 'newNoteDefaultFolder')
+    }
+
+    /** Per-type settings: show toggle, display-name mode, and custom display name with live preview */
+    private periodTypeSettings(type: (typeof PERIOD_TYPES)[number], t: ReturnType<typeof getLocale>): SettingDefinitionItem[] {
+        const s = this.plugin.settings
+        const cap = type[0].toUpperCase() + type.slice(1)
+        const showKey = `periodicNotesShow${cap}`
+        const modeKey = `periodicNotesLabelMode${cap}`
+        const customKey = `periodicNotesLabelCustom${cap}`
+        const showName = (t.setting as unknown as Record<string, SettingEntry | undefined>)[`periodicNotesShow${cap}`]?.name ?? showKey
+        // The type row is only offered when the source plugin actually provides this period
+        const typeAvailable = () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app)[type]
+
+        return [
+            {
+                name: showName,
+                visible: typeAvailable,
+                control: { type: 'toggle', key: showKey },
+            },
+            this.dropdownWithReset(modeKey, t.setting.periodicNotesLabelMode.name, t.setting.periodicNotesLabelMode.desc, t.setting.periodicNotesLabelMode.options, {
+                visible: () => typeAvailable() && s[showKey] === true,
+                refreshDomAfterChange: true, // show/hide the custom display name input in place
+            }),
+            {
+                name: t.setting.periodicNotesLabelCustom.name,
+                visible: () => typeAvailable() && s[showKey] === true && s[modeKey] === 'custom',
+                render: (setting: Setting) => {
+                    // Live preview: render the {{token}} placeholders as they type
+                    const updatePreview = (): void => {
+                        const value = (s[customKey] as string ?? '').trim()
+                        setting.setDesc(value ? `${t.setting.periodicNotesLabelPreview}: ${formatPeriodicLabel(value)}` : t.setting.periodicNotesLabelCustom.desc ?? '')
+                    }
+                    updatePreview()
+                    setting.addText((text) => text
+                        .setPlaceholder(t.setting.periodicNotesLabelCustom.placeholder)
+                        .setValue(s[customKey] as string ?? '')
+                        .onChange((value) => {
+                            s[customKey] = value
+                            void this.plugin.saveSettings()
+                            updatePreview()
+                        }))
+                },
+            },
+        ]
+    }
+
+    /** One editor row (label / folder / format + delete) for a custom periodic note rule */
+    private renderCustomPeriodicEntry(
+        setting: Setting,
+        index: number,
+        t: ReturnType<typeof getLocale>,
+        entry: PeriodicNoteCustomEntry,
+    ): void {
+        setting.settingEl.addClass('harbor-periodic-custom-entry')
+        setting.setName(entry.label.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+        // Live preview of the {{token}} placeholders in the display label
+        const updateLabelPreview = (): void => {
+            const value = entry.label.trim()
+            setting.setDesc(value ? `${t.setting.periodicNotesLabelPreview}: ${formatPeriodicLabel(value)}` : t.setting.periodicNotesCustomEntries.desc ?? '')
+        }
+        updateLabelPreview()
+        setting
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.labelPlaceholder)
+                .setValue(entry.label)
+                .onChange((value) => {
+                    entry.label = value
+                    setting.setName(value.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+                    updateLabelPreview()
+                    void this.plugin.saveSettings()
+                }))
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.folderPlaceholder)
+                .setValue(entry.folder)
+                .onChange((value) => {
+                    entry.folder = value
+                    void this.plugin.saveSettings()
+                }))
+            .addText((text) => text
+                .setPlaceholder(t.setting.periodicNotesCustomEntries.formatPlaceholder)
+                .setValue(entry.format)
+                .onChange((value) => {
+                    entry.format = value
+                    void this.plugin.saveSettings()
+                }))
+            .addExtraButton((button) => button
+                .setIcon('trash-2')
+                .setTooltip(t.common.delete)
+                .onClick(async () => {
+                    this.plugin.settings.periodicNotesCustom.splice(index, 1)
+                    await this.plugin.saveSettings()
+                    this.update()
+                    this.plugin.refreshOpenViews()
+                }))
+    }
+
+    /** Appends a new custom periodic note rule and rebuilds the settings page */
+    private addCustomPeriodicEntry(t: ReturnType<typeof getLocale>): void {
+        this.plugin.settings.periodicNotesCustom.push({
+            label: t.setting.periodicNotesCustomEntries.defaultName,
+            folder: '',
+            format: 'YYYY-MM-DD',
+        })
+        void this.plugin.saveSettings().then(() => {
+            this.update()
+            this.plugin.refreshOpenViews()
+        })
+    }
+
     private sliderWithReset(
         key: string,
         name: string,
@@ -811,5 +1243,34 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings()
                         this.update()
                     }))
+    }
+
+    // 新增：单个库数据项的设置行 —— 启用开关（排序由外层 list 的拖拽手柄完成）
+    private vaultStatsItemSetting(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): SettingDefinition {
+        const s = this.plugin.settings
+        return {
+            name: this.vaultStatsItemName(key, t),
+            render: (setting) => {
+                setting
+                    .addToggle((toggle) => toggle
+                        .setValue(s.vaultStatsItems.includes(key))
+                        .onChange(async (value) => {
+                            s.vaultStatsItems = value
+                                ? [...s.vaultStatsItems, key]
+                                : s.vaultStatsItems.filter((item) => item !== key)
+                            await this.plugin.saveSettings()
+                        }))
+            },
+        }
+    }
+
+    private vaultStatsItemName(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): string {
+        switch (key) {
+            case 'files': return t.setting.vaultStatsFiles.name
+            case 'notes': return t.setting.vaultStatsNotes.name
+            case 'attachments': return t.setting.vaultStatsAttachments.name
+            case 'folders': return t.setting.vaultStatsFolders.name
+            case 'tags': return t.setting.vaultStatsTags.name
+        }
     }
 }
