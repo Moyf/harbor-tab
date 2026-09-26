@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { App, Menu, type PaneType, type TFile, View, onDestroy } from "obsidian";
+	import { App, Menu, type PaneType, type TFile, View } from "obsidian";
+	import { onDestroy } from "svelte";
 	import type { HomeTabSettings } from "src/settings";
 	import { buildPeriodicNoteEntries, openOrCreatePeriodicNote, type PeriodicNoteEntry } from "src/periodicNotes";
 	import FileDisplayItem from "./svelteComponents/fileDisplayItem.svelte";
