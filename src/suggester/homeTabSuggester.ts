@@ -187,32 +187,10 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
     }
 
     onNoSuggestion(): void {
-        const input = this.inputEl.value.trim();
-        
-        // 如果是普通输入，保持原有的文件创建建议
-        if(!this.activeFilter || this.activeFilter === 'markdown' || this.activeFilter === 'md'){
-            if (input) {
-                this.suggester.setSuggestions([{
-                    item: {
-                        name: `${input}.md`,
-                        path: `${input}.md`,
-                        basename: input,
-                        isCreated: false,
-                        fileType: 'markdown',
-                        extension: 'md',
-                    },
-                    refIndex: 0,
-                    score: 0,
-                }]);
-                this.open();
-            }
-            else{
-                this.close();
-            }
-        }
-        else{
-            this.close();
-        }
+        // 无匹配时保持下拉框完全隐藏：
+        // 之前的「创建 xxx.md」建议会在 open() 后被基类立即 close() 造成闪现，
+        // 新建笔记改由搜索栏的新建按钮 / 回车弹窗承担
+        this.close();
     }
     
     getSuggestions(inputStr: string): Fuse.FuseResult<SearchFile>[] {
