@@ -114,6 +114,8 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     protected suggestionParentContainer: HTMLElement
     protected suggestionContainer: HTMLElement
     protected suggesterView: suggesterView | undefined
+    // 建议视图根元素（由 suggesterView 通过 store 绑定），销毁时可同步移除 DOM
+    private viewRootEl: Writable<HTMLElement | undefined> = writable()
 
     protected scope: Scope
     protected viewOptions: suggesterViewOptions
@@ -245,6 +247,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
             props:{
                 textInputSuggester: this,
                 options: this.viewOptions,
+                viewRoot: this.viewRootEl,
             },
             intro: true,
         })
@@ -262,27 +265,39 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         // Allow svelte to run the animation, then remove the component(s)
         if(this.suggesterView){
             this.closingAnimationRunning = true
+            window.clearTimeout(this.closingAnimationTimeout)
             this.closingAnimationTimeout = window.setTimeout(() => {
-                this.suggesterView?.$destroy()
-                this.suggesterView = undefined
-                this.closingAnimationRunning = false
+                this.teardownView()
             }, 200)
         }
 
         this.additionalCleaning()
         this.onClose()
     }
-    abortClosingAnimation(): void{
+
+    // 立即销毁建议视图（普通 close 保留 200ms 滑出动画，销毁/重开时跳过动画）
+    private teardownView(): void{
         window.clearTimeout(this.closingAnimationTimeout)
         this.suggesterView?.$destroy()
         this.suggesterView = undefined
+        // 同步移除残留 DOM：$destroy 不会立刻脱离文档（outro 进行中或 hideOnBlur
+        // 提前返回时），否则连续切换过滤器会叠加多个下拉
+        get(this.viewRootEl)?.remove()
+        this.viewRootEl.set(undefined)
         this.closingAnimationRunning = false
+    }
+
+    abortClosingAnimation(): void{
+        this.teardownView()
     }
     
 
 
     destroy(): void{
         this.close()
+        // close() 可能保留视图（hideOnBlur=false 提前返回）或延迟移除（关闭动画），
+        // 销毁时必须立即清除，否则切换建议器后旧下拉会残留并不断叠加
+        this.teardownView()
         this.inputEl.removeEventListener('input', this.inputListener)
         this.inputEl.removeEventListener('compositionend', this.compositionEndListener)
         this.inputEl.removeEventListener('blur', this.boundClose)
