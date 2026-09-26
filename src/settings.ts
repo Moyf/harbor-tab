@@ -97,6 +97,7 @@ export interface HomeTabSettings extends ObjectKeys{
     headingJumpStrategy?: 'never' | 'always' | 'smart' // 新增：标题跳转策略
     recentFilesStore: recentFileStore[]
     bookmarkedFileStore: bookmarkedFileStore[]
+    sectionCollapsible: boolean // 新增：是否显示折叠按钮，允许折叠最近文件/书签区域
     searchDelay: number
     replaceNewTabs: boolean
     newTabOnStart: boolean
@@ -182,6 +183,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     headingJumpStrategy: 'smart', // 新增：默认使用智能跳转策略
     recentFilesStore: [],
     bookmarkedFileStore: [],
+    sectionCollapsible: false, // 新增：默认不显示折叠按钮
     searchDelay: 0,
     replaceNewTabs: true,
     newTabOnStart: false,
@@ -251,6 +253,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'periodicNotesShowMonthly',
         'periodicNotesShowQuarterly',
         'periodicNotesShowYearly',
+        'sectionCollapsible',
         'selectionHighlight',
         'showNewNoteButton',
     ])
@@ -453,6 +456,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         name: t.setting.showRecentFiles.name,
                         desc: t.setting.showRecentFiles.desc,
                         control: { type: 'toggle', key: 'showRecentFiles' },
+                    },
+                    {
+                        name: t.setting.sectionCollapsible.name,
+                        desc: t.setting.sectionCollapsible.desc,
+                        visible: () => s.showRecentFiles || s.showbookmarkedFiles,
+                        control: { type: 'toggle', key: 'sectionCollapsible' },
                     },
                     {
                         name: t.setting.storeRecentFile.name,

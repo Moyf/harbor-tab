@@ -23,6 +23,13 @@
     let listWrapperEl: HTMLElement
     let selectedFileIndex = -1 // -1 = no keyboard selection
 
+    // Section collapse state (only when pluginSettings.sectionCollapsible is on)
+    let sectionCollapsed = false
+
+    function toggleSectionCollapsed(): void {
+        sectionCollapsed = !sectionCollapsed
+    }
+
     $: filteredFileList = filterQuery.trim()
         ? recentFileList.filter(rf => {
             const query = filterQuery.trim().toLowerCase()
@@ -249,6 +256,16 @@
 
 <div class="home-tab-recent-files-container">
     <div class="home-tab-recent-files-title">
+        {#if pluginSettings.sectionCollapsible}
+            <button
+                class="home-tab-section-collapse-btn clickable-icon"
+                on:click={toggleSectionCollapsed}
+                aria-label={sectionCollapsed ? 'Expand recent files' : 'Collapse recent files'}
+                aria-expanded={!sectionCollapsed}
+            >
+                {@html getIcon(sectionCollapsed ? 'chevron-right' : 'chevron-down')?.outerHTML ?? ''}
+            </button>
+        {/if}
         <span class="home-tab-recent-files-title-text">Recent files</span>
         <div class="home-tab-recent-files-filter" class:expanded={filterExpanded}>
             <input
@@ -270,18 +287,20 @@
             </button>
         </div>
     </div>
-    <div class="home-tab-recent-files-wrapper"
-        bind:this={listWrapperEl}
-        tabindex="-1"
-        on:keydown={handleListKeydown}
-        on:blur={handleListBlur}
-    >
-        {#each filteredFileList as recentFile (recentFile.file.path)}
-            <FileDisplayItem file={recentFile.file} {app} {pluginSettings} {contextualMenu}
-            selected={filteredFileList.indexOf(recentFile) === selectedFileIndex}
-            on:itemMenu={(e) => selectedFile = e.detail.file}/>
-        {/each}
-    </div>
+    {#if !sectionCollapsed}
+        <div class="home-tab-recent-files-wrapper"
+            bind:this={listWrapperEl}
+            tabindex="-1"
+            on:keydown={handleListKeydown}
+            on:blur={handleListBlur}
+        >
+            {#each filteredFileList as recentFile (recentFile.file.path)}
+                <FileDisplayItem file={recentFile.file} {app} {pluginSettings} {contextualMenu}
+                selected={filteredFileList.indexOf(recentFile) === selectedFileIndex}
+                on:itemMenu={(e) => selectedFile = e.detail.file}/>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -304,6 +323,28 @@
     }
     .home-tab-recent-files-title-text{
         white-space: nowrap;
+    }
+    .home-tab-section-collapse-btn{
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: var(--radius-s);
+    }
+    .home-tab-section-collapse-btn:hover{
+        color: var(--text-normal);
+        background-color: var(--background-modifier-hover);
+    }
+    .home-tab-section-collapse-btn :global(svg){
+        width: 16px;
+        height: 16px;
     }
     .home-tab-recent-files-filter{
         display: flex;
