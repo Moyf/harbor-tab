@@ -340,16 +340,52 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                         desc: t.setting.hideOnBlur.desc,
                                         control: { type: 'toggle', key: 'hideOnBlur', defaultValue: true },
                                     },
-                                    {
-                                        name: t.setting.showOmnisearchExcerpt.name,
-                                        desc: t.setting.showOmnisearchExcerpt.desc,
-                                        visible: () => !!this.app.plugins.getPlugin('omnisearch'),
-                                        control: { type: 'toggle', key: 'showOmnisearchExcerpt' },
-                                    },
-                                ],
+                            {
+                                name: t.setting.showOmnisearchExcerpt.name,
+                                desc: t.setting.showOmnisearchExcerpt.desc,
+                                visible: () => !!this.app.plugins.getPlugin('omnisearch'),
+                                control: { type: 'toggle', key: 'showOmnisearchExcerpt' },
                             },
                         ],
                     },
+                    {
+                        type: 'page',
+                        name: t.page.newNote.name,
+                        desc: t.page.newNote.desc,
+                        items: [
+                            {
+                                name: t.setting.showNewNoteButton.name,
+                                desc: t.setting.showNewNoteButton.desc,
+                                control: { type: 'toggle', key: 'showNewNoteButton', defaultValue: true },
+                            },
+                            {
+                                name: t.setting.newNoteUseCommand.name,
+                                desc: t.setting.newNoteUseCommand.desc,
+                                visible: () => s.showNewNoteButton,
+                                control: { type: 'toggle', key: 'newNoteUseCommand', defaultValue: false },
+                            },
+                            {
+                                name: t.setting.newNoteCommandId.name,
+                                desc: t.setting.newNoteCommandId.desc,
+                                visible: () => s.showNewNoteButton && s.newNoteUseCommand,
+                                render: (setting) => this.renderNewNoteCommand(setting, t),
+                            },
+                            {
+                                name: t.setting.newNoteDefaultFolder.name,
+                                desc: t.setting.newNoteDefaultFolder.desc,
+                                visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                                render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
+                            },
+                            {
+                                name: t.setting.newNoteOnUnmatchedName.name,
+                                desc: t.setting.newNoteOnUnmatchedName.desc,
+                                visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                                control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
+                            },
+                        ],
+                    },
+                ],
+            },
                 ],
             },
 
@@ -358,35 +394,6 @@ export class HomeTabSettingTab extends PluginSettingTab {
                 type: 'group',
                 heading: t.group.files,
                 items: [
-                    {
-                        name: t.setting.showNewNoteButton.name,
-                        desc: t.setting.showNewNoteButton.desc,
-                        control: { type: 'toggle', key: 'showNewNoteButton', defaultValue: true },
-                    },
-                    {
-                        name: t.setting.newNoteUseCommand.name,
-                        desc: t.setting.newNoteUseCommand.desc,
-                        visible: () => s.showNewNoteButton,
-                        control: { type: 'toggle', key: 'newNoteUseCommand', defaultValue: false },
-                    },
-                    {
-                        name: t.setting.newNoteCommandId.name,
-                        desc: t.setting.newNoteCommandId.desc,
-                        visible: () => s.showNewNoteButton && s.newNoteUseCommand,
-                        render: (setting) => this.renderNewNoteCommand(setting, t),
-                    },
-                    {
-                        name: t.setting.newNoteDefaultFolder.name,
-                        desc: t.setting.newNoteDefaultFolder.desc,
-                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
-                        render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
-                    },
-                    {
-                        name: t.setting.newNoteOnUnmatchedName.name,
-                        desc: t.setting.newNoteOnUnmatchedName.desc,
-                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
-                        control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
-                    },
                     {
                         name: t.setting.showBookmarkedFiles.name,
                         desc: t.setting.showBookmarkedFiles.desc,
