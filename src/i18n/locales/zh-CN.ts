@@ -36,6 +36,7 @@ const zhCN: BaseMessage = {
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
+		bookmarkedFiles: { name: '书签', desc: '书签的显示、筛选与分组过滤' },
 		recentFiles: { name: '最近文件', desc: '最近文件列表的显示、记录与数量' },
 		logo: { name: 'Logo', desc: 'Logo 图标、来源、颜色与尺寸' },
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
@@ -131,6 +132,18 @@ const zhCN: BaseMessage = {
 		sectionCollapsible: {
 			name: '分区可折叠',
 			desc: '在最近文件和书签标题左侧显示折叠按钮，点击可折叠或展开对应分区。',
+		},
+		showBookmarkedFilesFilter: {
+			name: '书签筛选器',
+			desc: '在书签标题旁显示筛选按钮（放大镜），可快速过滤列表；关闭后 Tab 导航会跳过它。',
+		},
+		bookmarkedGroups: {
+			name: '按分组过滤书签',
+			desc: '填写书签分组路径（英文逗号分隔，嵌套分组用 / 连接，如 Work/Sub），仅显示这些分组内的书签；留空显示全部书签。',
+		},
+		showRecentFilesFilter: {
+			name: '最近文件筛选器',
+			desc: '在最近文件标题旁显示筛选按钮（放大镜），可快速过滤列表；关闭后 Tab 导航会跳过它。',
 		},
 		storeRecentFile: {
 			name: '记住上次的最近文件',

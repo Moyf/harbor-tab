@@ -74,7 +74,10 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectRecoverySpeed: number
     maxResults: number
     showbookmarkedFiles: boolean
+    showBookmarkedFilesFilter: boolean // 新增：书签区筛选按钮（放大镜）开关
+    bookmarkedGroups: string // 新增：仅显示这些书签分组内的书签（英文逗号分隔，留空显示全部）
     showRecentFiles: boolean
+    showRecentFilesFilter: boolean // 新增：最近文件筛选按钮（放大镜）开关
     maxRecentFiles: number
     storeRecentFile: boolean
     showPeriodicNotes: boolean // 新增：是否在主页显示周期笔记
@@ -160,7 +163,10 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
     showbookmarkedFiles: true,
+    showBookmarkedFilesFilter: true, // 新增：默认显示书签筛选按钮
+    bookmarkedGroups: '', // 新增：默认显示全部书签
     showRecentFiles: true,
+    showRecentFilesFilter: true, // 新增：默认显示最近文件筛选按钮
     maxRecentFiles: 12,
     storeRecentFile: true,
     showPeriodicNotes: false, // 新增：默认关闭周期笔记
@@ -245,6 +251,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'searchDelay',
         'hideOnBlur',
         'showbookmarkedFiles',
+        'showBookmarkedFilesFilter',
+        'bookmarkedGroups',
         'showRecentFiles',
         'showPeriodicNotes',
         'periodicNotesMode',
@@ -253,6 +261,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'periodicNotesShowMonthly',
         'periodicNotesShowQuarterly',
         'periodicNotesShowYearly',
+        'showRecentFilesFilter',
         'sectionCollapsible',
         'selectionHighlight',
         'showNewNoteButton',
@@ -447,16 +456,29 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
                     },
                     {
-                        name: t.setting.showBookmarkedFiles.name,
-                        desc: t.setting.showBookmarkedFiles.desc,
+                        type: 'page',
+                        name: t.page.bookmarkedFiles.name,
+                        desc: t.page.bookmarkedFiles.desc,
                         visible: () => !!this.app.internalPlugins.getPluginById('bookmarks'),
-                        control: { type: 'toggle', key: 'showbookmarkedFiles' },
-                    },
-                    {
-                        name: t.setting.sectionCollapsible.name,
-                        desc: t.setting.sectionCollapsible.desc,
-                        visible: () => s.showRecentFiles || s.showbookmarkedFiles,
-                        control: { type: 'toggle', key: 'sectionCollapsible' },
+                        items: [
+                            {
+                                name: t.setting.showBookmarkedFiles.name,
+                                desc: t.setting.showBookmarkedFiles.desc,
+                                control: { type: 'toggle', key: 'showbookmarkedFiles' },
+                            },
+                            {
+                                name: t.setting.showBookmarkedFilesFilter.name,
+                                desc: t.setting.showBookmarkedFilesFilter.desc,
+                                visible: () => s.showbookmarkedFiles,
+                                control: { type: 'toggle', key: 'showBookmarkedFilesFilter' },
+                            },
+                            {
+                                name: t.setting.bookmarkedGroups.name,
+                                desc: t.setting.bookmarkedGroups.desc,
+                                visible: () => s.showbookmarkedFiles,
+                                control: { type: 'text', key: 'bookmarkedGroups' },
+                            },
+                        ],
                     },
                     {
                         type: 'page',
@@ -467,6 +489,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 name: t.setting.showRecentFiles.name,
                                 desc: t.setting.showRecentFiles.desc,
                                 control: { type: 'toggle', key: 'showRecentFiles' },
+                            },
+                            {
+                                name: t.setting.showRecentFilesFilter.name,
+                                desc: t.setting.showRecentFilesFilter.desc,
+                                visible: () => s.showRecentFiles,
+                                control: { type: 'toggle', key: 'showRecentFilesFilter' },
                             },
                             {
                                 name: t.setting.storeRecentFile.name,
@@ -592,6 +620,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 items: s.vaultStatsOrder.map((key) => this.vaultStatsItemSetting(key, t)),
                             },
                         ],
+                    },
+                    {
+                        name: t.setting.sectionCollapsible.name,
+                        desc: t.setting.sectionCollapsible.desc,
+                        visible: () => s.showRecentFiles || s.showbookmarkedFiles,
+                        control: { type: 'toggle', key: 'sectionCollapsible' },
                     },
                 ],
             },
