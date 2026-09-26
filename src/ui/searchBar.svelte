@@ -12,6 +12,7 @@
     const searchBarEl = HomeTabSearchBar.searchBarEl
     const activeExtEl = HomeTabSearchBar.activeExtEl
     const container = HomeTabSearchBar.suggestionContainerEl
+    const unmatchedNameActive = HomeTabSearchBar.unmatchedNameActive
     // @ts-ignore
     const isPhone = Platform.isPhone
 
@@ -25,6 +26,12 @@
     });
 
     function handleKeydown(e: KeyboardEvent): void{
+        // The typed name matches no note: open the create dialog pre-filled
+        if(e.key === 'Enter' && !e.isComposing && HomeTabSearchBar.openNewNoteFromInput(inputValue)){
+            e.preventDefault()
+            return
+        }
+
         // If the input field is empty and a filter is active remove it
         if(e.key === 'Backspace'){
             if(inputValue != '') return
@@ -64,7 +71,8 @@
         <input type="search" spellcheck="false" placeholder="Type to start search..." bind:value={inputValue} bind:this={inputEl}
         on:keydown={(e) => handleKeydown(e)}>
         {#if $pluginSettingsStore?.showNewNoteButton}
-            <button type="button" class="home-tab-new-note-button" aria-label={t().newNoteModal.title}
+            <button type="button" class="home-tab-new-note-button" class:active={$unmatchedNameActive}
+                aria-label={t().newNoteModal.title}
                 on:click={() => HomeTabSearchBar.openNewNote()}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{@html getIcon('plus')?.innerHTML}</svg>
             </button>
@@ -131,6 +139,11 @@
     .home-tab-new-note-button:hover{
         background-color: var(--background-modifier-hover);
         color: var(--text-normal);
+    }
+    .home-tab-new-note-button.active,
+    .home-tab-new-note-button.active:hover{
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
     }
     .home-tab-new-note-button svg{
         display: block;

@@ -102,6 +102,7 @@ export interface BaseMessage {
 			folderPlaceholder: string
 			formatPlaceholder: string
 		}
+		newNoteOnUnmatchedName: SettingEntry
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string

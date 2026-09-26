@@ -9,12 +9,14 @@ const FOLDER_INVALID_CHARS = /[\\:*?"<>|#^[\]]/
 
 export class NewNoteModal extends Modal {
     private plugin: HomeTab
+    private initialFileName: string
     private fileNameInputEl: HTMLInputElement
     private folderInputEl: HTMLInputElement
 
-    constructor(app: App, plugin: HomeTab){
+    constructor(app: App, plugin: HomeTab, initialFileName?: string){
         super(app)
         this.plugin = plugin
+        this.initialFileName = initialFileName ?? ''
     }
 
     onOpen(): void {
@@ -28,6 +30,9 @@ export class NewNoteModal extends Modal {
             .addText((text) => {
                 this.fileNameInputEl = text.inputEl
                 text.setPlaceholder(locale.newNoteModal.fileNamePlaceholder)
+                if(this.initialFileName){
+                    text.setValue(this.initialFileName)
+                }
                 this.registerInputKeydown(this.fileNameInputEl)
             })
 
@@ -51,7 +56,14 @@ export class NewNoteModal extends Modal {
                 .setCta()
                 .onClick(() => void this.submit()))
 
-        this.fileNameInputEl.focus()
+        // When the name was pre-filled from the search input, editing focus
+        // goes straight to the folder field
+        if(this.initialFileName){
+            this.folderInputEl.focus()
+        }
+        else{
+            this.fileNameInputEl.focus()
+        }
     }
 
     private registerInputKeydown(inputEl: HTMLInputElement): void {

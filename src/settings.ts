@@ -117,6 +117,7 @@ export interface HomeTabSettings extends ObjectKeys{
     vaultStats: boolean // 新增：在主页偏下方显示库数据（总开关）
     vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
     vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
+    newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -206,6 +207,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     vaultStats: false, // 新增：默认关闭库数据显示
     vaultStatsItems: [...VAULT_STAT_KEYS], // 新增：默认全部启用，按默认顺序显示
     vaultStatsOrder: [...VAULT_STAT_KEYS], // 新增：默认顺序
+    newNoteOnUnmatchedName: true, // 新增：默认开启「无匹配时快速新建」
 }
 
 /**
@@ -454,6 +456,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         desc: t.setting.newNoteDefaultFolder.desc,
                         visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
                         render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
+                    },
+                    {
+                        name: t.setting.newNoteOnUnmatchedName.name,
+                        desc: t.setting.newNoteOnUnmatchedName.desc,
+                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                        control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
                     },
                     {
                         type: 'page',
