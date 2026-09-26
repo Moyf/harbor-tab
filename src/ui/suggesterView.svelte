@@ -1,10 +1,13 @@
 <script lang="ts">
     import { quintOut } from 'svelte/easing'
     import { slide } from 'svelte/transition'
+    import type { Writable } from 'svelte/store'
 	import type { Suggester, TextInputSuggester, suggesterViewOptions } from '../suggester/suggester';
 
     export let options: suggesterViewOptions
     export let textInputSuggester: TextInputSuggester<any>
+    // 根元素通过 store 暴露给建议器，销毁时可同步移除 DOM（防止连续切换时下拉叠加）
+    export let viewRoot: Writable<HTMLElement | undefined>
 
     let suggester: Suggester<any> = textInputSuggester.getSuggester()
 
@@ -28,6 +31,7 @@
 
 {#if suggestions?.length > 0}
     <div class="{options.containerClass ?? 'suggestion-container popover suggestion-popover'}" 
+        bind:this={$viewRoot}
         on:mousedown="{(e) => e.preventDefault()}"
         transition:slide={{duration:200, easing: quintOut}}>
         <div class="{options.suggestionClass ?? 'suggestion'} {options.additionalClasses ?? ''}" class:scrollable="{options.isScrollable}"
