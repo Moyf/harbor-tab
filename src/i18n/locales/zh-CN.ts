@@ -109,6 +109,10 @@ const zhCN: BaseMessage = {
 			name: '显示最近文件',
 			desc: '在搜索栏下方显示最近打开的文件。',
 		},
+		sectionCollapsible: {
+			name: '分区可折叠',
+			desc: '在最近文件和书签标题左侧显示折叠按钮，点击可折叠或展开对应分区。',
+		},
 		storeRecentFile: {
 			name: '记住上次的最近文件',
 			desc: '记住上一次会话的最近文件列表。',

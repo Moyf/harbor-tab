@@ -109,6 +109,10 @@ const en: BaseMessage = {
 			name: 'Show recent files',
 			desc: 'Displays recent files under the search bar.',
 		},
+		sectionCollapsible: {
+			name: 'Collapsible sections',
+			desc: 'Shows a collapse button next to the Recent files and Bookmarks titles; click it to collapse or expand the section.',
+		},
 		storeRecentFile: {
 			name: 'Store last recent files',
 			desc: 'Remembers the recent files of the previous session.',

@@ -56,6 +56,7 @@ export interface BaseMessage {
 		showOmnisearchExcerpt: SettingEntry
 		showBookmarkedFiles: SettingEntry
 		showRecentFiles: SettingEntry
+		sectionCollapsible: SettingEntry
 		storeRecentFile: SettingEntry
 		maxRecentFiles: SettingEntry
 		logo: SettingEntry & {
