@@ -28,6 +28,11 @@ const en: BaseMessage = {
 		quarterly: 'This quarter',
 		yearly: 'This year',
 	},
+	periodicNotesMenu: {
+		createNote: 'Create note',
+		openInNewTab: 'Open in new tab',
+		openInNewWindow: 'Open in new window',
+	},
 	group: {
 		search: 'Search box',
 		files: 'Displayed content',

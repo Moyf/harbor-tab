@@ -28,6 +28,11 @@ const zhCN: BaseMessage = {
 		quarterly: '本季',
 		yearly: '今年',
 	},
+	periodicNotesMenu: {
+		createNote: '创建笔记',
+		openInNewTab: '在新标签页打开',
+		openInNewWindow: '在新窗口打开',
+	},
 	group: {
 		search: '搜索框',
 		files: '显示内容',

@@ -6,6 +6,7 @@
 	import type HomeTabSearchBar from "src/homeTabSearchbar";
 	import { buildPeriodicNoteEntries, openOrCreatePeriodicNote, type PeriodicNoteEntry } from "src/periodicNotes";
 	import { periodicFocusRequest, periodicFocusBackRequest, advanceSectionFocus } from "src/store";
+	import { t } from "../i18n";
 	import FileDisplayItem from "./svelteComponents/fileDisplayItem.svelte";
 
     export let view: View
@@ -138,20 +139,21 @@
     }
 
     function showEntryMenu(event: MouseEvent, entry: PeriodicNoteEntry): void {
+        const menuText = t().periodicNotesMenu
         const menu = new Menu()
         if (!entry.exists) {
             menu.addItem((item) => item
-                .setTitle('Create note')
+                .setTitle(menuText.createNote)
                 .setIcon('plus')
                 .onClick(() => openEntry(entry)))
         }
         menu
             .addItem((item) => item
-                .setTitle('Open in new tab')
+                .setTitle(menuText.openInNewTab)
                 .setIcon('tab')
                 .onClick(() => openAndShowEntry(entry, 'tab')))
             .addItem((item) => item
-                .setTitle('Open in new window')
+                .setTitle(menuText.openInNewWindow)
                 .setIcon('app-window')
                 .onClick(() => openAndShowEntry(entry, 'window')))
             .showAtMouseEvent(event)

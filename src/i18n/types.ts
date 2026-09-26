@@ -40,6 +40,12 @@ export interface BaseMessage {
 		quarterly: string
 		yearly: string
 	}
+	/** Context menu of the periodic notes section */
+	periodicNotesMenu: {
+		createNote: string
+		openInNewTab: string
+		openInNewWindow: string
+	}
 	group: {
 		search: string
 		files: string
