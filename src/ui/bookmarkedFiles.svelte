@@ -216,47 +216,51 @@
 </script>
 
 <div class="home-tab-bookmarked-files-container">
-    {#if pluginSettings.sectionCollapsible}
+    {#if pluginSettings.sectionCollapsible || pluginSettings.showBookmarkedFilesFilter}
         <div class="home-tab-bookmarked-files-title">
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <span
-                class="home-tab-section-toggle"
-                role="button"
-                tabindex="0"
-                aria-expanded={!sectionCollapsed}
-                aria-label={sectionCollapsed ? 'Expand bookmarks' : 'Collapse bookmarks'}
-                on:click={toggleSectionCollapsed}
-                on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSectionCollapsed() } }}
-            >
-                <span class="home-tab-section-collapse-icon">
-                    {@html getIcon(sectionCollapsed ? 'chevron-right' : 'chevron-down')?.outerHTML ?? ''}
+            {#if pluginSettings.sectionCollapsible}
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <span
+                    class="home-tab-section-toggle"
+                    role="button"
+                    tabindex="0"
+                    aria-expanded={!sectionCollapsed}
+                    aria-label={sectionCollapsed ? 'Expand bookmarks' : 'Collapse bookmarks'}
+                    on:click={toggleSectionCollapsed}
+                    on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSectionCollapsed() } }}
+                >
+                    <span class="home-tab-section-collapse-icon">
+                        {@html getIcon(sectionCollapsed ? 'chevron-right' : 'chevron-down')?.outerHTML ?? ''}
+                    </span>
+                    <span class="home-tab-bookmarked-files-title-text">Bookmarks</span>
                 </span>
+            {:else}
                 <span class="home-tab-bookmarked-files-title-text">Bookmarks</span>
-            </span>
+            {/if}
+            {#if pluginSettings.showBookmarkedFilesFilter}
+                <div class="home-tab-bookmarked-files-filter" class:expanded={filterExpanded}>
+                    <input
+                        class="home-tab-bookmarked-files-filter-input"
+                        type="text"
+                        placeholder="Filter..."
+                        bind:value={filterQuery}
+                        bind:this={filterInputEl}
+                        on:keydown={handleFilterKeydown}
+                        on:blur={handleFilterBlur}
+                        tabindex={filterExpanded ? 0 : -1}
+                    />
+                    <button
+                        class="home-tab-bookmarked-files-filter-btn clickable-icon"
+                        on:click={toggleFilter}
+                        aria-label="Filter bookmarks"
+                    >
+                        {@html getIcon('search')?.outerHTML ?? ''}
+                    </button>
+                </div>
+            {/if}
         </div>
     {/if}
     {#if !sectionCollapsed}
-        {#if pluginSettings.showBookmarkedFilesFilter}
-            <div class="home-tab-bookmarked-files-filter" class:expanded={filterExpanded}>
-                <input
-                    class="home-tab-bookmarked-files-filter-input"
-                    type="text"
-                    placeholder="Filter..."
-                    bind:value={filterQuery}
-                    bind:this={filterInputEl}
-                    on:keydown={handleFilterKeydown}
-                    on:blur={handleFilterBlur}
-                    tabindex={filterExpanded ? 0 : -1}
-                />
-                <button
-                    class="home-tab-bookmarked-files-filter-btn clickable-icon"
-                    on:click={toggleFilter}
-                    aria-label="Filter bookmarks"
-                >
-                    {@html getIcon('search')?.outerHTML ?? ''}
-                </button>
-            </div>
-        {/if}
         <div class="home-tab-bookmarked-files-list"
             bind:this={listWrapperEl}
             tabindex="-1"
@@ -332,9 +336,7 @@
     .home-tab-bookmarked-files-filter{
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 4px;
-        padding-bottom: 5px;
     }
     .home-tab-bookmarked-files-filter-btn{
         flex-shrink: 0;
