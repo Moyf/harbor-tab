@@ -35,6 +35,7 @@ const zhCN: BaseMessage = {
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
+		newNote: { name: '新建笔记', desc: '新建笔记按钮、创建弹窗默认值与命令覆盖' },
 		logo: { name: 'Logo', desc: 'Logo 图标、来源、颜色与尺寸' },
   titleStyle: { name: '标题', desc: '标题文本、字体、字号、字重与颜色' },
 		particleEffect: { name: '粒子特效', desc: 'Logo 与标题的交互式粒子渲染' },

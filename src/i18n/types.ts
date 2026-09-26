@@ -46,6 +46,7 @@ export interface BaseMessage {
 	}
 	page: {
 		search: SettingEntry
+		newNote: SettingEntry
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry
