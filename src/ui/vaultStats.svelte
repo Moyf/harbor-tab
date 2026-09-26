@@ -1,12 +1,15 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { getAllTags, getIcon, TFolder, type View } from 'obsidian';
+    import { getAllTags, getIcon, Notice, TFolder, type View } from 'obsidian';
     import type { HomeTabSettings, VaultStatItemKey } from 'src/settings';
+    import type HomeTabSearchBar from 'src/homeTabSearchbar';
+    import { FolderSearchModal, revealFolderInExplorer } from 'src/folderSearchModal';
     import { t } from '../i18n';
     import { debounce } from '../utils/debounce';
 
     export let view: View
     export let pluginSettings: HomeTabSettings
+    export let HomeTabSearchBar: HomeTabSearchBar
     const app = view.leaf.app
 
     const statNames: Record<VaultStatItemKey, string> = {
@@ -61,11 +64,52 @@
     // 顺序只由 vaultStatsOrder 决定（与设置页拖拽排序一致），vaultStatsItems 仅表示启用与否
     $: enabledItems = (pluginSettings?.vaultStatsOrder ?? [])
         .filter((key) => key in statNames && pluginSettings?.vaultStatsItems?.includes(key))
+
+    // 聚焦搜索框并激活对应的扩展名/类型过滤器（md / media）
+    function activateSearchFilter(filterKey: 'md' | 'media'): void {
+        try {
+            HomeTabSearchBar?.updateActiveSuggester(filterKey)
+            HomeTabSearchBar?.focusSearchbar()
+        }
+        catch (error) {
+            console.error(error)
+        }
+    }
+
+    // 打开（或聚焦）标签面板
+    function openTagPane(): void {
+        try {
+            const tagLeaves = app.workspace.getLeavesOfType('tag')
+            if(tagLeaves.length > 0){
+                app.workspace.revealLeaf(tagLeaves[0])
+            }
+            else{
+                const leaf = app.workspace.getLeaf('tab')
+                void leaf.setViewState({ type: 'tag' })
+            }
+        }
+        catch (error) {
+            console.error(error)
+            new Notice(t().ui.tagPaneFailed)
+        }
+    }
+
+    // 各统计项的点击行为
+    const statClickActions: Record<VaultStatItemKey, () => void> = {
+        files: () => revealFolderInExplorer(app, undefined, t().ui.folderRevealFailed),
+        notes: () => activateSearchFilter('md'),
+        attachments: () => activateSearchFilter('media'),
+        folders: () => new FolderSearchModal(app, t().ui.folderSearchPlaceholder, t().ui.folderRevealFailed).open(),
+        tags: openTagPane,
+    }
 </script>
 
 <div class="home-tab-vault-stats">
     {#each enabledItems as key (key)}
-        <div class="home-tab-vault-stat">
+        <div class="home-tab-vault-stat clickable" role="button" tabindex="0"
+            title="{statNames[key]} · {t().common.clickToFilter}"
+            on:click={() => statClickActions[key]()}
+            on:keydown={(e) => { if(e.key === 'Enter'){ statClickActions[key]() } }}>
             <span class="home-tab-vault-stat-icon">{@html getIcon(statIcons[key])?.outerHTML ?? ''}</span>
             <span class="home-tab-vault-stat-value">{stats[key]}</span>
             <span class="home-tab-vault-stat-name">{statNames[key]}</span>
@@ -74,7 +118,7 @@
 </div>
 
 <style>
-    /* 钉在主页偏下方的位置；不拦截鼠标事件 */
+    /* 钉在主页偏下方的位置 */
     .home-tab-vault-stats{
         position: absolute;
         bottom: 24px;
@@ -84,15 +128,23 @@
         align-items: center;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 8px 28px;
+        gap: 4px 12px;
         color: var(--text-muted);
         font-size: var(--font-ui-small);
-        pointer-events: none;
     }
     .home-tab-vault-stat{
         display: flex;
         align-items: center;
         gap: 6px;
+        padding: 3px 8px;
+        border-radius: var(--radius-s);
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.1s ease;
+    }
+    .home-tab-vault-stat:hover{
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
     }
     .home-tab-vault-stat-icon{
         display: flex;

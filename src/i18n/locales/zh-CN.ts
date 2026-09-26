@@ -322,6 +322,12 @@ const zhCN: BaseMessage = {
 		accentColor: '强调色',
 		custom: '自定义',
 		resetToDefault: '重置为默认值',
+		clickToFilter: '点击筛选',
+	},
+	ui: {
+		folderSearchPlaceholder: '搜索文件夹...',
+		folderRevealFailed: '无法在文件浏览器中定位该文件夹。',
+		tagPaneFailed: '无法打开标签面板。',
 	},
 }
 

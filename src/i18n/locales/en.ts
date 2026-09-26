@@ -322,6 +322,12 @@ const en: BaseMessage = {
 		accentColor: 'Accent color',
 		custom: 'Custom',
 		resetToDefault: 'Reset to default',
+		clickToFilter: 'Click to filter',
+	},
+	ui: {
+		folderSearchPlaceholder: 'Search folders...',
+		folderRevealFailed: 'Could not reveal the folder in the file explorer.',
+		tagPaneFailed: 'Could not open the tags pane.',
 	},
 }
 

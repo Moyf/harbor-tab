@@ -184,7 +184,7 @@
     {/if}
 
     {#if pluginSettings.vaultStats && !embeddedView}
-        <VaultStats {view} {pluginSettings}/>
+        <VaultStats {view} {pluginSettings} {HomeTabSearchBar}/>
     {/if}
 </main>
   

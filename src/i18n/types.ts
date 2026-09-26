@@ -114,5 +114,11 @@ export interface BaseMessage {
 		accentColor: string
 		custom: string
 		resetToDefault: string
+		clickToFilter: string
+	}
+	ui: {
+		folderSearchPlaceholder: string
+		folderRevealFailed: string
+		tagPaneFailed: string
 	}
 }
