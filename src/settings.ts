@@ -95,6 +95,7 @@ export interface HomeTabSettings extends ObjectKeys{
     newNoteCommandId: string // 新增：命令覆盖时执行的命令 ID
     newNoteDefaultFolder: string // 新增：新建笔记弹窗默认填写的文件夹
     newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
+    maxSuggestions: number // 新增：文件夹/命令建议框显示的建议条数
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -168,6 +169,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     newNoteCommandId: '', // 新增：命令 ID 默认为空
     newNoteDefaultFolder: '', // 新增：默认文件夹默认留空（仓库根目录）
     newNoteOnUnmatchedName: true, // 新增：默认开启「无匹配时快速新建」
+    maxSuggestions: 6, // 新增：建议框默认显示 6 条
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -376,14 +378,15 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
                                 render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
                             },
-                            {
-                                name: t.setting.newNoteOnUnmatchedName.name,
-                                desc: t.setting.newNoteOnUnmatchedName.desc,
-                                visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
-                                control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
-                            },
-                        ],
+                    {
+                        name: t.setting.newNoteOnUnmatchedName.name,
+                        desc: t.setting.newNoteOnUnmatchedName.desc,
+                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                        control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
                     },
+                    this.sliderWithReset('maxSuggestions', t.setting.maxSuggestions.name, t.setting.maxSuggestions.desc, 1, 25, 1),
+                ],
+            },
                 ],
             },
                 ],
@@ -809,7 +812,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
 
         setting
             .addText((text) => {
-                new CommandSuggester(this.app, text.inputEl)
+                new CommandSuggester(this.app, text.inputEl, s.maxSuggestions)
                 text
                     .setPlaceholder(t.setting.newNoteCommandId.placeholder)
                     .setValue(s.newNoteCommandId)
@@ -832,7 +835,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         const s = this.plugin.settings
         setting
             .addText((text) => {
-                new FolderSuggester(this.app, text.inputEl)
+                new FolderSuggester(this.app, text.inputEl, s.maxSuggestions)
                 text
                     .setPlaceholder(t.setting.newNoteDefaultFolder.placeholder)
                     .setValue(s.newNoteDefaultFolder)
