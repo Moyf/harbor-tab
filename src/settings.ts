@@ -355,37 +355,44 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         control: { type: 'toggle', key: 'showbookmarkedFiles' },
                     },
                     {
-                        name: t.setting.showRecentFiles.name,
-                        desc: t.setting.showRecentFiles.desc,
-                        control: { type: 'toggle', key: 'showRecentFiles' },
-                    },
-                    {
                         name: t.setting.sectionCollapsible.name,
                         desc: t.setting.sectionCollapsible.desc,
                         visible: () => s.showRecentFiles || s.showbookmarkedFiles,
                         control: { type: 'toggle', key: 'sectionCollapsible' },
                     },
                     {
-                        name: t.setting.storeRecentFile.name,
-                        desc: t.setting.storeRecentFile.desc,
-                        visible: () => s.showRecentFiles,
-                        control: { type: 'toggle', key: 'storeRecentFile' },
-                    },
-                    {
-                        ...this.sliderWithReset('maxRecentFiles', t.setting.maxRecentFiles.name, t.setting.maxRecentFiles.desc, 1, 25, 1),
-                        visible: () => s.showRecentFiles,
-                        render: (setting) => {
-                            setting
-                                .addSlider((slider) => slider
-                                    .setValue(s.maxRecentFiles)
-                                    .setLimits(1, 25, 1)
-                                    .onChange((value) => {
-                                        this.plugin.recentFileManager.onNewMaxListLenght(value)
-                                        s.maxRecentFiles = value
-                                        void this.plugin.saveSettings()
-                                    }))
-                            this.addResetButton(setting, 'maxRecentFiles')
-                        },
+                        type: 'page',
+                        name: t.page.recentFiles.name,
+                        desc: t.page.recentFiles.desc,
+                        items: [
+                            {
+                                name: t.setting.showRecentFiles.name,
+                                desc: t.setting.showRecentFiles.desc,
+                                control: { type: 'toggle', key: 'showRecentFiles' },
+                            },
+                            {
+                                name: t.setting.storeRecentFile.name,
+                                desc: t.setting.storeRecentFile.desc,
+                                visible: () => s.showRecentFiles,
+                                control: { type: 'toggle', key: 'storeRecentFile' },
+                            },
+                            {
+                                ...this.sliderWithReset('maxRecentFiles', t.setting.maxRecentFiles.name, t.setting.maxRecentFiles.desc, 1, 25, 1),
+                                visible: () => s.showRecentFiles,
+                                render: (setting) => {
+                                    setting
+                                        .addSlider((slider) => slider
+                                            .setValue(s.maxRecentFiles)
+                                            .setLimits(1, 25, 1)
+                                            .onChange((value) => {
+                                                this.plugin.recentFileManager.onNewMaxListLenght(value)
+                                                s.maxRecentFiles = value
+                                                void this.plugin.saveSettings()
+                                            }))
+                                    this.addResetButton(setting, 'maxRecentFiles')
+                                },
+                            },
+                        ],
                     },
                 ],
             },

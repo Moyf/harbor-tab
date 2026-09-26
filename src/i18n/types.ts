@@ -31,6 +31,7 @@ export interface BaseMessage {
 	}
 	page: {
 		search: SettingEntry
+		recentFiles: SettingEntry
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry
