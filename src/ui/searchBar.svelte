@@ -65,7 +65,7 @@
         {#if $pluginSettingsStore?.showNewNoteButton}
             <button type="button" class="home-tab-new-note-button" aria-label={t().newNoteModal.title}
                 on:click={() => HomeTabSearchBar.openNewNote()}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">{@html getIcon('plus')?.innerHTML}</svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{@html getIcon('plus')?.innerHTML}</svg>
             </button>
         {/if}
     </div>
