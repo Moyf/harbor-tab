@@ -3,7 +3,7 @@
 	import type { RecentFileManager, recentFile } from "src/recentFiles";
 	import type { HomeTabSettings } from "src/settings";
 	import type HomeTabSearchBar from "src/homeTabSearchbar";
-	import { recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+	import { recentFilterFocusRequest, recentListFocusRequest, periodicFocusBackRequest } from "src/store";
 	import { get } from "svelte/store";
 	import FileDisplayItem from "./svelteComponents/fileDisplayItem.svelte";
 
@@ -12,6 +12,8 @@
     export let pluginSettings: HomeTabSettings
     export let recentFileManager: RecentFileManager
     export let HomeTabSearchBar: HomeTabSearchBar
+    // Whether the periodic notes section is rendered above (Shift+Tab returns into it)
+    export let periodicEnabled: boolean = false
     const app = view.leaf.app
 
     let selectedFile: TFile
@@ -144,9 +146,13 @@
     function handleFilterKeydown(e: KeyboardEvent) {
         if (e.key === 'Tab') {
             e.preventDefault()
-            // Shift+Tab (reverse loop): back to the search bar
+            // Shift+Tab (reverse loop): back to the periodic notes, or the search bar
             if (e.shiftKey) {
-                HomeTabSearchBar?.focusSearchbar()
+                if (periodicEnabled) {
+                    periodicFocusBackRequest.update(n => n + 1)
+                } else {
+                    HomeTabSearchBar?.focusSearchbar()
+                }
                 return
             }
             // Tab (forward loop): enter the list navigation on the first item;

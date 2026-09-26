@@ -2,11 +2,13 @@
     import { Platform } from "obsidian";
     import { filterKeys, type FilterKey, type SearchBarFilterType } from "src/homeTabSearchbar";
     import type HomeTabSearchBar from "src/homeTabSearchbar";
-    import { recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+    import { recentFilterFocusRequest, recentListFocusRequest, periodicFocusRequest } from "src/store";
     import { onMount } from 'svelte';
-    
+
     export let HomeTabSearchBar: HomeTabSearchBar
     export let embedded: boolean = false
+    // Whether the periodic notes section is rendered below (Tab forwards into it first)
+    export let periodicEnabled: boolean = false
     const searchBarEl = HomeTabSearchBar.searchBarEl
     const activeExtEl = HomeTabSearchBar.activeExtEl
     const container = HomeTabSearchBar.suggestionContainerEl
@@ -45,7 +47,10 @@
             else if(e.shiftKey){
                 recentListFocusRequest.update(n => n + 1)
             }
-            // Tab (forward loop): move focus to the recent files filter
+            // Tab (forward loop): move focus to the periodic notes (if shown), then the recent files filter
+            else if(periodicEnabled){
+                periodicFocusRequest.update(n => n + 1)
+            }
             else{
                 recentFilterFocusRequest.update(n => n + 1)
             }

@@ -6,6 +6,13 @@ const en: BaseMessage = {
 		replaceCurrentTab: 'Replace current tab',
 	},
 	viewName: 'Harbor Tab',
+	periodicNoteText: {
+		daily: 'Today',
+		weekly: 'This week',
+		monthly: 'This month',
+		quarterly: 'This quarter',
+		yearly: 'This year',
+	},
 	group: {
 		search: 'Search',
 		files: 'Files',
@@ -149,6 +156,21 @@ const en: BaseMessage = {
 		periodicNotesShowYearly: {
 			name: 'Show yearly note',
 		},
+		periodicNotesLabelMode: {
+			name: 'Display name',
+			desc: 'What is shown under the icon: the note file name (without its folder), a fixed period text, or a custom name with date placeholders.',
+			options: {
+				filename: 'File name',
+				text: 'Period text',
+				custom: 'Custom',
+			},
+		},
+		periodicNotesLabelCustom: {
+			name: 'Custom display name',
+			desc: 'Supports date placeholders like {{YYYY}}, {{MM}}, {{DD}}, {{gggg}}, {{ww}}; they are replaced with the current date.',
+			placeholder: 'e.g. {{MM}}/{{DD}}',
+		},
+		periodicNotesLabelPreview: 'Preview',
 		periodicNotesCustomEntries: {
 			name: 'Custom periodic notes',
 			desc: 'Each rule resolves to <folder>/<format>.md and supports moment.js tokens like YYYY, MM, DD, gggg and ww. The label is shown on the home tab.',

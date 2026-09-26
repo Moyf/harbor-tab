@@ -175,10 +175,10 @@
         </ParticleWordmark>
     {/if}
     
-    <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false}/>
+    <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false} periodicEnabled={renderPeriodicNotes}/>
 
     {#if renderPeriodicNotes}
-        <PeriodicNotes {view} {pluginSettings}/>
+        <PeriodicNotes {view} {pluginSettings} {HomeTabSearchBar} recentEnabled={renderRecentFiles}/>
     {/if}
 
     {#if isbookmarkedPluginEnabled && bookmarkedFileList && renderbookmarkedFiles}
@@ -186,7 +186,7 @@
     {/if}
 
     {#if plugin.recentFileManager && recentFileList.length > 0  && renderRecentFiles}
-        <RecentFiles {recentFileList} {view} {pluginSettings} recentFileManager={plugin.recentFileManager} {HomeTabSearchBar}/>
+        <RecentFiles {recentFileList} {view} {pluginSettings} recentFileManager={plugin.recentFileManager} {HomeTabSearchBar} periodicEnabled={renderPeriodicNotes}/>
     {/if}
 </main>
   

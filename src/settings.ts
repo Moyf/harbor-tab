@@ -8,10 +8,11 @@ import isLink from './utils/isLink'
 import fontSuggester from './suggester/fontSuggester'
 import type { recentFileStore } from './recentFiles'
 import type { bookmarkedFileStore } from './bookmarkedFiles'
-import type { PeriodicNoteCustomEntry } from './periodicNotes'
-import { getAutoPeriodConfigs, hasAutoPeriodSource } from './periodicNotes'
+import type { PeriodicNoteCustomEntry, PeriodicNoteLabelMode } from './periodicNotes'
+import { formatPeriodicLabel, getAutoPeriodConfigs, hasAutoPeriodSource, PERIOD_TYPES } from './periodicNotes'
 import { checkFont } from './utils/fontValidator'
 import { t as getLocale } from './i18n'
+import type { SettingEntry } from './i18n/types'
 
 type ColorChoices = 'default' | 'accentColor' | 'custom'
 type LogoChoices = 'default' | 'imagePath' | 'imageLink' | 'lucideIcon' | 'oldLogo' | 'none'
@@ -76,6 +77,16 @@ export interface HomeTabSettings extends ObjectKeys{
     periodicNotesShowMonthly: boolean // 新增：显示月记
     periodicNotesShowQuarterly: boolean // 新增：显示季记
     periodicNotesShowYearly: boolean // 新增：显示年记
+    periodicNotesLabelModeDaily: PeriodicNoteLabelMode // 新增：日记的显示名称模式（文件名/周期文字/自定义）
+    periodicNotesLabelModeWeekly: PeriodicNoteLabelMode // 新增：周记的显示名称模式
+    periodicNotesLabelModeMonthly: PeriodicNoteLabelMode // 新增：月记的显示名称模式
+    periodicNotesLabelModeQuarterly: PeriodicNoteLabelMode // 新增：季记的显示名称模式
+    periodicNotesLabelModeYearly: PeriodicNoteLabelMode // 新增：年记的显示名称模式
+    periodicNotesLabelCustomDaily: string // 新增：日记的自定义显示名称（支持 {{MM}} 等日期占位符）
+    periodicNotesLabelCustomWeekly: string // 新增：周记的自定义显示名称
+    periodicNotesLabelCustomMonthly: string // 新增：月记的自定义显示名称
+    periodicNotesLabelCustomQuarterly: string // 新增：季记的自定义显示名称
+    periodicNotesLabelCustomYearly: string // 新增：年记的自定义显示名称
     periodicNotesCustom: PeriodicNoteCustomEntry[] // 新增：自定义周期笔记规则（名称 + 路径规则）
     showPath: boolean
     selectionHighlight: ColorChoices
@@ -152,6 +163,16 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     periodicNotesShowMonthly: false, // 新增：月记默认关闭，可按需开启
     periodicNotesShowQuarterly: false, // 新增：季记默认关闭，可按需开启
     periodicNotesShowYearly: false, // 新增：年记默认关闭，可按需开启
+    periodicNotesLabelModeDaily: 'filename', // 新增：默认显示笔记文件名（不含路径）
+    periodicNotesLabelModeWeekly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeMonthly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeQuarterly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelModeYearly: 'filename', // 新增：默认显示笔记文件名
+    periodicNotesLabelCustomDaily: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomWeekly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomMonthly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomQuarterly: '', // 新增：自定义显示名称默认为空
+    periodicNotesLabelCustomYearly: '', // 新增：自定义显示名称默认为空
     periodicNotesCustom: [], // 新增：默认没有自定义周期笔记
     showPath: true,
     selectionHighlight: 'default',
@@ -202,6 +223,16 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'periodicNotesShowMonthly',
         'periodicNotesShowQuarterly',
         'periodicNotesShowYearly',
+        'periodicNotesLabelModeDaily',
+        'periodicNotesLabelModeWeekly',
+        'periodicNotesLabelModeMonthly',
+        'periodicNotesLabelModeQuarterly',
+        'periodicNotesLabelModeYearly',
+        'periodicNotesLabelCustomDaily',
+        'periodicNotesLabelCustomWeekly',
+        'periodicNotesLabelCustomMonthly',
+        'periodicNotesLabelCustomQuarterly',
+        'periodicNotesLabelCustomYearly',
         'selectionHighlight',
     ])
     // NOTE: particle-effect settings are intentionally NOT in this set — the
@@ -423,31 +454,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 desc: t.setting.periodicNotesUnavailable.desc,
                                 visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !hasAutoPeriodSource(this.app),
                             },
-                            {
-                                name: t.setting.periodicNotesShowDaily.name,
-                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).daily,
-                                control: { type: 'toggle', key: 'periodicNotesShowDaily' },
-                            },
-                            {
-                                name: t.setting.periodicNotesShowWeekly.name,
-                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).weekly,
-                                control: { type: 'toggle', key: 'periodicNotesShowWeekly' },
-                            },
-                            {
-                                name: t.setting.periodicNotesShowMonthly.name,
-                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).monthly,
-                                control: { type: 'toggle', key: 'periodicNotesShowMonthly' },
-                            },
-                            {
-                                name: t.setting.periodicNotesShowQuarterly.name,
-                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).quarterly,
-                                control: { type: 'toggle', key: 'periodicNotesShowQuarterly' },
-                            },
-                            {
-                                name: t.setting.periodicNotesShowYearly.name,
-                                visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app).yearly,
-                                control: { type: 'toggle', key: 'periodicNotesShowYearly' },
-                            },
+                            ...PERIOD_TYPES.flatMap((type) => this.periodTypeSettings(type, t)),
                             ...s.periodicNotesCustom.map((entry, index) => ({
                                 name: index === 0 ? t.setting.periodicNotesCustomEntries.name : `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`,
                                 visible: () => s.showPeriodicNotes && s.periodicNotesMode === 'custom',
@@ -844,6 +851,50 @@ export class HomeTabSettingTab extends PluginSettingTab {
         })
     }
 
+    /** Per-type settings: show toggle, display-name mode, and custom display name with live preview */
+    private periodTypeSettings(type: (typeof PERIOD_TYPES)[number], t: ReturnType<typeof getLocale>): SettingDefinitionItem[] {
+        const s = this.plugin.settings
+        const cap = type[0].toUpperCase() + type.slice(1)
+        const showKey = `periodicNotesShow${cap}`
+        const modeKey = `periodicNotesLabelMode${cap}`
+        const customKey = `periodicNotesLabelCustom${cap}`
+        const showName = (t.setting as unknown as Record<string, SettingEntry | undefined>)[`periodicNotesShow${cap}`]?.name ?? showKey
+        // The type row is only offered when the source plugin actually provides this period
+        const typeAvailable = () => s.showPeriodicNotes && s.periodicNotesMode === 'auto' && !!getAutoPeriodConfigs(this.app)[type]
+
+        return [
+            {
+                name: showName,
+                visible: typeAvailable,
+                control: { type: 'toggle', key: showKey },
+            },
+            this.dropdownWithReset(modeKey, t.setting.periodicNotesLabelMode.name, t.setting.periodicNotesLabelMode.desc, t.setting.periodicNotesLabelMode.options, {
+                visible: () => typeAvailable() && s[showKey] === true,
+                refreshDomAfterChange: true, // show/hide the custom display name input in place
+            }),
+            {
+                name: t.setting.periodicNotesLabelCustom.name,
+                visible: () => typeAvailable() && s[showKey] === true && s[modeKey] === 'custom',
+                render: (setting: Setting) => {
+                    // Live preview: render the {{token}} placeholders as they type
+                    const updatePreview = (): void => {
+                        const value = (s[customKey] as string ?? '').trim()
+                        setting.setDesc(value ? `${t.setting.periodicNotesLabelPreview}: ${formatPeriodicLabel(value)}` : t.setting.periodicNotesLabelCustom.desc ?? '')
+                    }
+                    updatePreview()
+                    setting.addText((text) => text
+                        .setPlaceholder(t.setting.periodicNotesLabelCustom.placeholder)
+                        .setValue(s[customKey] as string ?? '')
+                        .onChange((value) => {
+                            s[customKey] = value
+                            void this.plugin.saveSettings()
+                            updatePreview()
+                        }))
+                },
+            },
+        ]
+    }
+
     /** One editor row (label / folder / format + delete) for a custom periodic note rule */
     private renderCustomPeriodicEntry(
         setting: Setting,
@@ -853,6 +904,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
     ): void {
         setting.settingEl.addClass('harbor-periodic-custom-entry')
         setting.setName(entry.label.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+        // Live preview of the {{token}} placeholders in the display label
+        const updateLabelPreview = (): void => {
+            const value = entry.label.trim()
+            setting.setDesc(value ? `${t.setting.periodicNotesLabelPreview}: ${formatPeriodicLabel(value)}` : t.setting.periodicNotesCustomEntries.desc ?? '')
+        }
+        updateLabelPreview()
         setting
             .addText((text) => text
                 .setPlaceholder(t.setting.periodicNotesCustomEntries.labelPlaceholder)
@@ -860,6 +917,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                 .onChange((value) => {
                     entry.label = value
                     setting.setName(value.trim() || `${t.setting.periodicNotesCustomEntries.defaultName} ${index + 1}`)
+                    updateLabelPreview()
                     void this.plugin.saveSettings()
                 }))
             .addText((text) => text
