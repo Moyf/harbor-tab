@@ -124,3 +124,14 @@
     border: none;
     border-radius: calc(var(--radius-s) - 1px);
 }
+
+/* Custom periodic-note rules editor (settings): label + folder + format inputs
+   share one row, so they get fixed widths and wrap on narrow screens */
+.setting-item.harbor-periodic-custom-entry .setting-item-control{
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--size-2-2);
+}
+.setting-item.harbor-periodic-custom-entry .setting-item-control input[type='text']{
+    width: 10em;
+}
