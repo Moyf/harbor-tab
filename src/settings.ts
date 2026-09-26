@@ -4,7 +4,7 @@ import type HomeTab from './main'
 import iconSuggester from './suggester/iconSuggester'
 import ImageFileSuggester from './suggester/imageSuggester'
 import CommandSuggester from './suggester/commandSuggester'
-import FolderSuggester from './suggester/folderSuggester'
+import NewNoteFolderSuggester from './suggester/newNoteFolderSuggester'
 import cssUnitValidator from './utils/cssUnitValidator'
 import isLink from './utils/isLink'
 import fontSuggester from './suggester/fontSuggester'
@@ -1044,7 +1044,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         const s = this.plugin.settings
         setting
             .addText((text) => {
-                new FolderSuggester(this.app, text.inputEl)
+                new NewNoteFolderSuggester(this.app, text.inputEl)
                 text
                     .setPlaceholder(t.setting.newNoteDefaultFolder.placeholder)
                     .setValue(s.newNoteDefaultFolder)

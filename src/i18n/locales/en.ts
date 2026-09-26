@@ -428,7 +428,6 @@ const en: BaseMessage = {
 		clickToFilter: 'Click to filter',
 	},
 	ui: {
-		folderSearchPlaceholder: 'Search folders...',
 		folderRevealFailed: 'Could not reveal the folder in the file explorer.',
 		tagPaneFailed: 'Could not open the tags pane.',
 	},

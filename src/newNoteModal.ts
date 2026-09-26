@@ -1,6 +1,6 @@
 import { Modal, Notice, Setting, TFolder, normalizePath, type App } from 'obsidian'
 import type HomeTab from './main'
-import FolderSuggester from './suggester/folderSuggester'
+import NewNoteFolderSuggester from './suggester/newNoteFolderSuggester'
 import { t } from './i18n'
 
 const FILE_NAME_INVALID_CHARS = /[\\/:*?"<>|#^[\]]/
@@ -41,7 +41,7 @@ export class NewNoteModal extends Modal {
             .setDesc(locale.newNoteModal.folderDesc)
             .addText((text) => {
                 this.folderInputEl = text.inputEl
-                new FolderSuggester(this.app, text.inputEl)
+                new NewNoteFolderSuggester(this.app, text.inputEl)
                 text.setPlaceholder(locale.newNoteModal.folderPlaceholder)
                 text.setValue(normalizePath(this.plugin.settings.newNoteDefaultFolder ?? ''))
                 this.registerInputKeydown(this.folderInputEl)

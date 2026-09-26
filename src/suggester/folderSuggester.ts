@@ -1,43 +1,65 @@
-import { AbstractInputSuggest, prepareFuzzySearch, TFolder, type App } from 'obsidian'
+import { Platform, TFolder, type App, type View } from 'obsidian'
+import { get } from 'svelte/store'
+import type HomeTab from '../main'
+import type HomeTabSearchBar from 'src/homeTabSearchbar'
+import { TextInputSuggester } from './suggester'
+import { generateHotkeySuggestion } from 'src/utils/htmlUtils'
+import { revealFolderInExplorer } from 'src/utils/folderRevealUtils'
+import { t } from '../i18n'
+import FolderSuggestion from 'src/ui/svelteComponents/folderSuggestion.svelte'
 
 /**
- * Vault folder suggester built on the official AbstractInputSuggest, which
- * handles popover positioning (including popout windows) out of the box.
- * Used by the new-note modal and the default-folder setting.
+ * 文件夹过滤建议器：输入即过滤全库文件夹，回车后在文件浏览器中定位选中文件夹。
  */
-export default class FolderSuggester extends AbstractInputSuggest<TFolder>{
-    private inputEl: HTMLInputElement
+export default class FolderSuggester extends TextInputSuggester<TFolder>{
+    private view: View
+    private plugin: HomeTab
+    private searchBar: HomeTabSearchBar
 
-    constructor(app: App, inputEl: HTMLInputElement){
-        super(app, inputEl)
-        this.inputEl = inputEl
+    constructor(app: App, plugin: HomeTab, view: View, searchBar: HomeTabSearchBar) {
+        super(app, get(searchBar.searchBarEl), get(searchBar.suggestionContainerEl), {
+            containerClass: `home-tab-suggestion-container ${Platform.isPhone ? 'is-phone' : ''}`,
+            additionalClasses: `${plugin.settings.selectionHighlight === 'accentColor' ? 'use-accent-color' : ''}`,
+            additionalModalInfo: plugin.settings.showShortcuts ? generateHotkeySuggestion([
+                {hotkey: '↑↓', action: 'to navigate'},
+                {hotkey: '↵', action: 'to reveal in file explorer'},
+                {hotkey: 'esc', action: 'to dismiss'},
+            ], 'home-tab-hotkey-suggestions') : undefined
+        }, plugin.settings.searchDelay)
+        this.plugin = plugin
+        this.view = view
+        this.searchBar = searchBar
     }
 
-    getSuggestions(query: string): TFolder[] {
-        // The root folder renders as an empty input value, keep it out of the list
-        const folders = this.app.vault.getAllLoadedFiles()
-            .filter((file): file is TFolder => file instanceof TFolder && file.path !== '/')
-        const trimmedQuery = query.trim()
-        if(trimmedQuery === ''){
-            return folders.slice(0, 50)
+    getSuggestions(input: string): TFolder[] {
+        const query = input.trim().toLowerCase()
+        const folders = this.app.vault.getAllFolders().filter((folder) => folder.path !== '/')
+        const matched = query
+            ? folders.filter((folder) => folder.path.toLowerCase().includes(query))
+            : folders
+        // 按路径深度排序（浅层靠前，同级按字母序），与库数据-文件夹的行为保持一致
+        return matched
+            .sort((a, b) => {
+                const depthDiff = a.path.split('/').length - b.path.split('/').length
+                return depthDiff !== 0 ? depthDiff : a.path.localeCompare(b.path)
+            })
+            .slice(0, 100)
+    }
+
+    useSelectedItem(folder: TFolder): void {
+        revealFolderInExplorer(this.app, folder, t().ui.folderRevealFailed)
+        // 选择完成后清空过滤、回到默认文件建议器，体验与文件搜索一致
+        this.searchBar.updateActiveSuggester('default')
+        this.searchBar.focusSearchbar()
+    }
+
+    getDisplayElementComponentType(): typeof FolderSuggestion {
+        return FolderSuggestion
+    }
+
+    getDisplayElementProps(suggestion: TFolder): Record<string, unknown> {
+        return {
+            folderPath: suggestion.path,
         }
-        const search = prepareFuzzySearch(trimmedQuery)
-        return folders
-            .map(folder => ({folder, result: search(folder.path)}))
-            .filter(item => item.result !== null)
-            .sort((a, b) => (b.result!.score ?? 0) - (a.result!.score ?? 0))
-            .slice(0, 50)
-            .map(item => item.folder)
-    }
-
-    renderSuggestion(folder: TFolder, el: HTMLElement): void {
-        el.addClass('suggestion-item')
-        el.setText(folder.path)
-    }
-
-    selectSuggestion(folder: TFolder): void {
-        this.inputEl.value = folder.path
-        this.inputEl.trigger('input')
-        this.close()
     }
 }

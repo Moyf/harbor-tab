@@ -5,18 +5,21 @@ import HomeTabFileSuggester from "src/suggester/homeTabSuggester";
 import OmnisearchSuggester from "./suggester/omnisearchSuggester";
 import SurfingSuggester from "./suggester/surfingSuggester";
 import WebViewerSuggester from "./suggester/webViewerSuggester";
+import FolderSuggester from "./suggester/folderSuggester";
 import { fileTypes, type FileExtension, type FileType, fileExtensions } from "./utils/getFileTypeUtils";
 import { isValidUrl } from "./utils/urlUtils";
 import { NewNoteModal } from "./newNoteModal";
 import { t } from "./i18n";
 
-export type SearchBarFilterType = 'fileExtension' | 'fileType' | 'webSearch' | 'omnisearch' | 'default'
+export type SearchBarFilterType = 'fileExtension' | 'fileType' | 'folder' | 'webSearch' | 'omnisearch' | 'default'
 
 const omnisearchKeys = ['omnisearch', 'omni'] as const
 const webSearchKeys = ['surfing', 'web', 'internet'] as const
+const folderKeys = ['folder'] as const
 
 export type OmnisearchFilterKey = typeof omnisearchKeys[number]
 export type WebsearchFilterKey = typeof webSearchKeys[number]
+export type FolderFilterKey = typeof folderKeys[number]
 export type ExtensionsearchFilterKey = FileExtension
 export type FileTypesearchFilterKey = FileType
 
@@ -25,12 +28,13 @@ const filterKeysLookupTable: FilterKeyLookupTable = {
     default: [],
     omnisearch: [...omnisearchKeys],
     webSearch: [...webSearchKeys],
+    folder: [...folderKeys],
     fileType: [...fileTypes],
     fileExtension: [...fileExtensions],
 }
 
-export const filterKeys = [...filterKeysLookupTable.omnisearch, ...filterKeysLookupTable.webSearch, 
-                    ...filterKeysLookupTable.fileType, ...filterKeysLookupTable.fileExtension]
+export const filterKeys = [...filterKeysLookupTable.omnisearch, ...filterKeysLookupTable.webSearch,
+                    ...filterKeysLookupTable.folder, ...filterKeysLookupTable.fileType, ...filterKeysLookupTable.fileExtension]
 
 export type FilterKey = typeof filterKeys[number]
 
@@ -41,8 +45,8 @@ export default class HomeTabSearchBar{
 
     protected view: View
     protected plugin: HomeTab
-
-    public fileSuggester: HomeTabFileSuggester | OmnisearchSuggester | SurfingSuggester | WebViewerSuggester
+    
+    public fileSuggester: HomeTabFileSuggester | OmnisearchSuggester | SurfingSuggester | WebViewerSuggester | FolderSuggester
     public activeExtEl: Writable<HTMLElement>
     public searchBarEl: Writable<HTMLInputElement>
     public suggestionContainerEl: Writable<HTMLElement>
@@ -270,6 +274,12 @@ export default class HomeTabSearchBar{
                 fileSuggester.setFileFilter(filterKey as FileType | FileExtension)
                 filterEl.toggleClass('hide', false)
                 filterEl.setText(filterKey)
+                void this.fileSuggester.onInput();
+                break;
+            case 'folder':
+                filterEl.toggleClass('hide', false)
+                filterEl.setText(filterKey)
+                this.fileSuggester = new FolderSuggester(this.plugin.app, this.plugin, this.view, this)
                 void this.fileSuggester.onInput();
                 break;
             default:
