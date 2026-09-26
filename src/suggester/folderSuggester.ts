@@ -1,5 +1,8 @@
 import { AbstractInputSuggest, prepareFuzzySearch, TFolder, type App } from 'obsidian'
 
+/** Max suggestions rendered in the popover */
+const MAX_SUGGESTIONS = 30
+
 /**
  * Vault folder suggester built on the official AbstractInputSuggest, which
  * handles popover positioning (including popout windows) out of the box.
@@ -19,14 +22,14 @@ export default class FolderSuggester extends AbstractInputSuggest<TFolder>{
             .filter((file): file is TFolder => file instanceof TFolder && file.path !== '/')
         const trimmedQuery = query.trim()
         if(trimmedQuery === ''){
-            return folders.slice(0, 50)
+            return folders.slice(0, MAX_SUGGESTIONS)
         }
         const search = prepareFuzzySearch(trimmedQuery)
         return folders
             .map(folder => ({folder, result: search(folder.path)}))
             .filter(item => item.result !== null)
             .sort((a, b) => (b.result!.score ?? 0) - (a.result!.score ?? 0))
-            .slice(0, 50)
+            .slice(0, MAX_SUGGESTIONS)
             .map(item => item.folder)
     }
 
