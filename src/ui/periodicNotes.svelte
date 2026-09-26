@@ -90,7 +90,7 @@
             e.preventDefault()
             const entry = entries[selectedIndex]
             if (entry) {
-                openEntry(entry)
+                void openAndShowEntry(entry)
                 selectedIndex = -1
             }
         }
@@ -125,6 +125,18 @@
         return file
     }
 
+    /**
+     * Direct open paths (list Enter, context menu) that bypass the
+     * FileDisplayItem click handler: create/resolve the note, then show it in
+     * the given pane ('tab' / 'window' / default = the active leaf).
+     */
+    async function openAndShowEntry(entry: PeriodicNoteEntry, pane?: PaneType): Promise<void> {
+        const file = await openEntry(entry)
+        if (file) {
+            await app.workspace.getLeaf(pane).openFile(file)
+        }
+    }
+
     function showEntryMenu(event: MouseEvent, entry: PeriodicNoteEntry): void {
         const menu = new Menu()
         if (!entry.exists) {
@@ -137,11 +149,11 @@
             .addItem((item) => item
                 .setTitle('Open in new tab')
                 .setIcon('tab')
-                .onClick(() => openEntry(entry, 'tab')))
+                .onClick(() => openAndShowEntry(entry, 'tab')))
             .addItem((item) => item
                 .setTitle('Open in new window')
                 .setIcon('app-window')
-                .onClick(() => openEntry(entry, 'window')))
+                .onClick(() => openAndShowEntry(entry, 'window')))
             .showAtMouseEvent(event)
     }
 </script>
