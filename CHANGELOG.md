@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.7.1] - 2026-09-27
+
+### Improvements
+
+- **New-note settings page**: the "New note" sub-page now sits at the settings root as a sibling of "Search" instead of being nested inside it.
+- **New-note button pre-fill**: clicking the button with text in the search bar pre-fills the note name (and focuses the folder field), same as the Enter shortcut.
+
+### Bug Fixes
+
+- Fix the logo not showing on mobile: the logo SVGs were sized through `calc()` in their `width`/`height` attributes, which WebKit ignores — the auto-sized SVG could collapse to zero. Sizes now use inline CSS, which every engine supports.
+- Fix the particle glow having no effect on mobile: the bloom used the canvas `filter: blur()`, which WebKit does not support. The glow is now a downsample/upsample bloom that works on every engine.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+### 改进
+
+- **新建笔记设置页**：「新建笔记」子页面从「搜索」中移出，与「搜索」平级显示在设置根层。
+- **新建按钮预填**：搜索框有文字时点击「新建笔记」按钮，文字会预填到弹窗的笔记名称中（并聚焦文件夹输入框），与回车快捷方式行为一致。
+
+### 修复
+
+- 修复移动端 logo 不显示：logo SVG 的尺寸写在 `width`/`height` 属性的 `calc()` 里，WebKit 不解析，自动尺寸可能塌缩为 0；现改为所有引擎都支持的内联 CSS 尺寸。
+- 修复移动端粒子辉光无效：泛光使用的 canvas `filter: blur()` 在 WebKit 上不受支持；现改为降采样/放大泛光，所有引擎均可用。
+
+</details>
+
 ## [1.7.0] - 2026-09-26
 
 ### Features
