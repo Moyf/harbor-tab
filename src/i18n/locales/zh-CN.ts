@@ -115,7 +115,7 @@ const zhCN: BaseMessage = {
 		},
 		maxResults: {
 			name: '搜索结果数量',
-			desc: '设置显示的搜索结果数量。',
+			desc: '设置搜索结果以及文件夹/命令选择框显示的条数。',
 		},
 		searchDelay: {
 			name: '搜索延迟',
@@ -239,10 +239,6 @@ const zhCN: BaseMessage = {
 		newNoteOnUnmatchedName: {
 			name: '输入不存在的笔记名时快速新建',
 			desc: '搜索内容没有匹配到任何笔记时，高亮新建笔记按钮；此时按回车直接打开新建弹窗，自动填入输入的名称并聚焦文件夹输入框。',
-		},
-		maxSuggestions: {
-			name: '建议数量',
-			desc: '文件夹与命令输入框显示的建议条数。',
 		},
 		logo: {
 			name: 'Logo',

@@ -115,7 +115,6 @@ export interface BaseMessage {
 			formatPlaceholder: string
 		}
 		newNoteOnUnmatchedName: SettingEntry
-		maxSuggestions: SettingEntry
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string

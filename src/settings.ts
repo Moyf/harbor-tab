@@ -129,7 +129,6 @@ export interface HomeTabSettings extends ObjectKeys{
     vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
     vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
     newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
-    maxSuggestions: number // 新增：文件夹/命令建议框显示的建议条数
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -230,7 +229,6 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     vaultStatsItems: [...VAULT_STAT_KEYS], // 新增：默认全部启用，按默认顺序显示
     vaultStatsOrder: [...VAULT_STAT_KEYS], // 新增：默认顺序
     newNoteOnUnmatchedName: true, // 新增：默认开启「无匹配时快速新建」
-    maxSuggestions: 6, // 新增：建议框默认显示 6 条
 }
 
 /**
@@ -491,7 +489,6 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
                         control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
                     },
-                    this.sliderWithReset('maxSuggestions', t.setting.maxSuggestions.name, t.setting.maxSuggestions.desc, 1, 25, 1),
                 ],
             },
                 ],
@@ -1038,7 +1035,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
 
         setting
             .addText((text) => {
-                new CommandSuggester(this.app, text.inputEl, s.maxSuggestions)
+                new CommandSuggester(this.app, text.inputEl, s.maxResults)
                 text
                     .setPlaceholder(t.setting.newNoteCommandId.placeholder)
                     .setValue(s.newNoteCommandId)
@@ -1061,7 +1058,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         const s = this.plugin.settings
         setting
             .addText((text) => {
-                new NewNoteFolderSuggester(this.app, text.inputEl, s.maxSuggestions)
+                new NewNoteFolderSuggester(this.app, text.inputEl, s.maxResults)
                 text
                     .setPlaceholder(t.setting.newNoteDefaultFolder.placeholder)
                     .setValue(s.newNoteDefaultFolder)

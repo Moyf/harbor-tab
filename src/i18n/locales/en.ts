@@ -115,7 +115,7 @@ const en: BaseMessage = {
 		},
 		maxResults: {
 			name: 'Search results',
-			desc: 'Set how many results display.',
+			desc: 'How many items the search results and the folder/command pickers display.',
 		},
 		searchDelay: {
 			name: 'Search delay',
@@ -239,10 +239,6 @@ const en: BaseMessage = {
 		newNoteOnUnmatchedName: {
 			name: 'Quick create for unmatched names',
 			desc: 'When the search input matches no existing note, highlight the new-note button; pressing Enter then opens the create dialog with the typed name pre-filled.',
-		},
-		maxSuggestions: {
-			name: 'Suggestion count',
-			desc: 'How many suggestions the folder and command inputs display.',
 		},
 		logo: {
 			name: 'Logo',
