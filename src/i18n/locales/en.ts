@@ -240,6 +240,10 @@ const en: BaseMessage = {
 			name: 'Quick create for unmatched names',
 			desc: 'When the search input matches no existing note, highlight the new-note button; pressing Enter then opens the create dialog with the typed name pre-filled.',
 		},
+		maxSuggestions: {
+			name: 'Suggestion count',
+			desc: 'How many suggestions the folder and command inputs display.',
+		},
 		logo: {
 			name: 'Logo',
 			desc: 'Remove or set a custom logo. Accepts local files, links to images or lucide icon ids.',

@@ -41,7 +41,7 @@ export class NewNoteModal extends Modal {
             .setDesc(locale.newNoteModal.folderDesc)
             .addText((text) => {
                 this.folderInputEl = text.inputEl
-                new NewNoteFolderSuggester(this.app, text.inputEl)
+                new NewNoteFolderSuggester(this.app, text.inputEl, this.plugin.settings.maxSuggestions)
                 text.setPlaceholder(locale.newNoteModal.folderPlaceholder)
                 text.setValue(normalizePath(this.plugin.settings.newNoteDefaultFolder ?? ''))
                 this.registerInputKeydown(this.folderInputEl)

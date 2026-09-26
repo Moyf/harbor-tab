@@ -43,7 +43,7 @@ export default class FolderSuggester extends TextInputSuggester<TFolder>{
                 const depthDiff = a.path.split('/').length - b.path.split('/').length
                 return depthDiff !== 0 ? depthDiff : a.path.localeCompare(b.path)
             })
-            .slice(0, 100)
+            .slice(0, this.plugin.settings.maxSuggestions)
     }
 
     useSelectedItem(folder: TFolder): void {

@@ -58,6 +58,8 @@
     }
 
     function expandAndFocusFilter() {
+        // A chain request into a collapsed section expands it first
+        sectionCollapsed = false
         filterExpanded = true
         // Focus the input after DOM update
         setTimeout(() => filterInputEl?.focus(), 50)
@@ -92,11 +94,11 @@
     }
 
     function canAcceptFilterFocus(): boolean {
-        return pluginSettings.showBookmarkedFilesFilter && !sectionCollapsed
+        return pluginSettings.showBookmarkedFilesFilter
     }
 
     function canAcceptListFocus(): boolean {
-        return !sectionCollapsed && filteredFileList.length > 0
+        return filteredFileList.length > 0
     }
 
     function handleSectionFocusRequest(request: SectionFocusRequest): void {
@@ -109,6 +111,9 @@
         }
         else if (request.target === 'bookmarks-list') {
             if (canAcceptListFocus()) {
+
+                sectionCollapsed = false
+
                 focusFirstListItem()
             } else {
                 advanceSectionFocus('bookmarks-list', request.backward, focusSearchBar)
