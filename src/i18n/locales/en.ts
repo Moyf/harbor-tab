@@ -32,6 +32,7 @@ const en: BaseMessage = {
 		particleStyle: 'Style',
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
+		vaultStatsItems: 'Items',
 	},
 	page: {
 		search: { name: 'Search', desc: 'Search behavior, result display, and heading navigation.' },
@@ -396,12 +397,6 @@ const en: BaseMessage = {
 		vaultStatsTags: {
 			name: 'Tags',
 		},
-		vaultStatsMoveUp: {
-			name: 'Move up',
-		},
-		vaultStatsMoveDown: {
-			name: 'Move down',
-		},
 		debugMode: {
 			name: 'Debug mode',
 			desc: 'Enable debug logging for search results and match analysis. Check the developer console for detailed information.',
@@ -413,6 +408,12 @@ const en: BaseMessage = {
 		custom: 'Custom',
 		resetToDefault: 'Reset to default',
 		delete: 'Delete',
+		clickToFilter: 'Click to filter',
+	},
+	ui: {
+		folderSearchPlaceholder: 'Search folders...',
+		folderRevealFailed: 'Could not reveal the folder in the file explorer.',
+		tagPaneFailed: 'Could not open the tags pane.',
 	},
 }
 

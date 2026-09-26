@@ -6,7 +6,7 @@ import type HomeTabSearchBar from "src/homeTabSearchbar"
 import { generateSearchFile,  getParentFolderFromPath,  getSearchFiles, getUnresolvedMarkdownFiles } from 'src/utils/getFilesUtils'
 import { TextInputSuggester } from './suggester'
 import { generateHotkeySuggestion } from 'src/utils/htmlUtils'
-import { isValidExtension, type FileExtension, type FileType } from 'src/utils/getFileTypeUtils'
+import { isValidExtension, MEDIA_FILE_TYPES, type FileExtension, type FileType } from 'src/utils/getFileTypeUtils'
 import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
@@ -142,6 +142,10 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
     }
 
     filterSearchFileArray(filterKey: FileType | FileExtension, fileArray: SearchFile[]): SearchFile[]{
+        // media 是聚合类型：文件存储的 fileType 为具体的 image/video/audio，需单独匹配
+        if(filterKey === 'media'){
+            return fileArray.filter(file => (MEDIA_FILE_TYPES as readonly string[]).includes(file.fileType ?? ''))
+        }
         const arrayToFilter = fileArray
         return arrayToFilter.filter(file => isValidExtension(filterKey) ? file.extension === filterKey : file.fileType === filterKey)
     }

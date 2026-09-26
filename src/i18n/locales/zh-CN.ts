@@ -32,6 +32,7 @@ const zhCN: BaseMessage = {
 		particleStyle: '样式',
 		particleCanvas: '画布',
 		particleInteraction: '交互',
+		vaultStatsItems: '统计项',
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
@@ -396,12 +397,6 @@ const zhCN: BaseMessage = {
 		vaultStatsTags: {
 			name: '标签数',
 		},
-		vaultStatsMoveUp: {
-			name: '上移',
-		},
-		vaultStatsMoveDown: {
-			name: '下移',
-		},
 		debugMode: {
 			name: '调试模式',
 			desc: '启用搜索结果与匹配分析的调试日志。详情请查看开发者控制台。',
@@ -413,6 +408,12 @@ const zhCN: BaseMessage = {
 		custom: '自定义',
 		resetToDefault: '重置为默认值',
 		delete: '删除',
+		clickToFilter: '点击筛选',
+	},
+	ui: {
+		folderSearchPlaceholder: '搜索文件夹...',
+		folderRevealFailed: '无法在文件浏览器中定位该文件夹。',
+		tagPaneFailed: '无法打开标签面板。',
 	},
 }
 

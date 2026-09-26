@@ -3,9 +3,12 @@ import { App } from 'obsidian'
 import { getUnresolvedLinkBasename, getUnresolvedLinkPath } from "./getFilesUtils"
 
 const fileTypeLookupTable: FileTypeLookupTable = {
-    image : ['jpg', 'jpeg', 'png', 'svg', 'gif', 'bmp'],
+    image : ['jpg', 'jpeg', 'png', 'svg', 'gif', 'bmp', 'webp', 'avif'],
     video : ['mp4', 'webm', 'ogv', 'mov', 'mkv'],
     audio : ['mp3', 'wav', 'm4a', 'ogg', '3gp', 'flac'],
+    // 聚合类型：图片 + 视频 + 音频（fileType 存储时仍为具体类型，过滤时单独处理）
+    media : ['jpg', 'jpeg', 'png', 'svg', 'gif', 'bmp', 'webp', 'avif', 'mp4', 'webm', 'ogv', 'mov', 'mkv',
+             'mp3', 'wav', 'm4a', 'ogg', '3gp', 'flac'],
     markdown : ['md'],
     pdf : ['pdf'],
     canvas: ['canvas'],
@@ -15,10 +18,11 @@ const fileTypeLookupTable: FileTypeLookupTable = {
 }
 
 type FileTypeLookupTable = {[key in FileType]: string[]}
-export const fileTypes = ['markdown', 'image', 'video', 'audio', 'pdf', 'canvas', 'base', 'database', 'webviewer'] as const
+export const fileTypes = ['markdown', 'image', 'video', 'audio', 'media', 'pdf', 'canvas', 'base', 'database', 'webviewer'] as const
 export type FileType = typeof fileTypes[number]
-// export type FileType = 'image' | 'video' | 'audio' | 'markdown' | 'pdf'
-export const fileExtensions = ['jpg', 'jpeg', 'png', 'svg', 'gif', 'bmp', 'mp4', 'webm', 'ogv', 'mov', 'mkv', 
+// media 过滤器对应的聚合类型（SearchFile.fileType 存储的是具体类型）
+export const MEDIA_FILE_TYPES = ['image', 'video', 'audio'] as const
+export const fileExtensions = ['jpg', 'jpeg', 'png', 'svg', 'gif', 'bmp', 'webp', 'avif', 'mp4', 'webm', 'ogv', 'mov', 'mkv',
                         'mp3', 'wav', 'm4a', 'ogg', '3gp', 'flac', 'md', 'pdf', 'canvas', 'base', 'components', 'xdb'] as const
 export type FileExtension = typeof fileExtensions[number]
 // export type FileExtension = 'jpg' | 'jpeg' | 'png' | 'svg' | 'gif' | 'bmp' | 'mp4' | 'webm' | 'ogv' | 'mov' | 'mkv' | 
@@ -108,9 +112,8 @@ export function isMarkdown(file: TFile): boolean{
     return false
 }
 export function isValidExtension(extToCheck: string): boolean{
-    const extensions = ['jpg','jpeg','png','svg','gif','bmp','mp4','webm',
-    'ogv','mov','mkv','mp3','wav','m4a','ogg','3gp','flac','md','pdf']
-    return extensions.includes(extToCheck) || (fileExtensions as readonly string[]).includes(extToCheck)
+    // 直接以 fileExtensions 为准（原先的硬编码副本缺少 webp 等后缀，导致过滤失效）
+    return (fileExtensions as readonly string[]).includes(extToCheck)
 }
 
 export function isValidFileType(typeToCheck: string): boolean{
