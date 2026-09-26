@@ -1,39 +1,8 @@
-import { FuzzySuggestModal, Notice, TFile, TFolder, type App } from 'obsidian'
+import { Notice, TFile, TFolder, type App } from 'obsidian'
 
 /** 文件浏览器的非公开接口（revealInFolder 运行时存在但未包含在官方 typings 中） */
 interface FileExplorerViewLike {
     revealInFolder?: (file: TFolder | TFile) => void
-}
-
-/**
- * 文件夹搜索选择器：模糊搜索全库文件夹，选中后在文件浏览器中定位该文件夹。
- */
-export class FolderSearchModal extends FuzzySuggestModal<TFolder> {
-    private chooseHint: string
-
-    constructor(app: App, placeholder: string, chooseHint: string) {
-        super(app)
-        this.setPlaceholder(placeholder)
-        this.chooseHint = chooseHint
-    }
-
-    getItems(): TFolder[] {
-        // 排除根目录，按路径深度排序（浅层靠前，同级按字母序）
-        return this.app.vault.getAllFolders()
-            .filter((folder) => folder.path !== '/')
-            .sort((a, b) => {
-                const depthDiff = a.path.split('/').length - b.path.split('/').length
-                return depthDiff !== 0 ? depthDiff : a.path.localeCompare(b.path)
-            })
-    }
-
-    getItemText(folder: TFolder): string {
-        return folder.path
-    }
-
-    onChooseItem(folder: TFolder): void {
-        revealFolderInExplorer(this.app, folder, this.chooseHint)
-    }
 }
 
 /**

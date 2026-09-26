@@ -117,7 +117,6 @@ export interface BaseMessage {
 		clickToFilter: string
 	}
 	ui: {
-		folderSearchPlaceholder: string
 		folderRevealFailed: string
 		tagPaneFailed: string
 	}

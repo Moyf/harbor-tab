@@ -325,7 +325,6 @@ const zhCN: BaseMessage = {
 		clickToFilter: '点击筛选',
 	},
 	ui: {
-		folderSearchPlaceholder: '搜索文件夹...',
 		folderRevealFailed: '无法在文件浏览器中定位该文件夹。',
 		tagPaneFailed: '无法打开标签面板。',
 	},

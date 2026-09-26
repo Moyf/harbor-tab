@@ -173,6 +173,10 @@
         </ParticleWordmark>
     {/if}
     
+    {#if pluginSettings.vaultStats && !embeddedView}
+        <VaultStats {view} {pluginSettings} {HomeTabSearchBar}/>
+    {/if}
+
     <SearchBar {HomeTabSearchBar} embedded={embeddedView ? true : false}/>
 
     {#if isbookmarkedPluginEnabled && bookmarkedFileList && renderbookmarkedFiles}
@@ -181,10 +185,6 @@
 
     {#if plugin.recentFileManager && recentFileList.length > 0  && renderRecentFiles}
         <RecentFiles {recentFileList} {view} {pluginSettings} recentFileManager={plugin.recentFileManager} {HomeTabSearchBar}/>
-    {/if}
-
-    {#if pluginSettings.vaultStats && !embeddedView}
-        <VaultStats {view} {pluginSettings} {HomeTabSearchBar}/>
     {/if}
 </main>
   
@@ -195,9 +195,6 @@
        not become a scroll container and vertical scrolling stays on .view-content. */
     .home-tab{
         overflow-x: clip;
-        /* 全高定位容器：库数据 (VaultStats) 以绝对定位钉在主页偏下方 */
-        position: relative;
-        min-height: 100%;
     }
     .home-tab-logo svg{
         height: unset;

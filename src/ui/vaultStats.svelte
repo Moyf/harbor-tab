@@ -3,7 +3,7 @@
     import { getAllTags, getIcon, Notice, TFolder, type View } from 'obsidian';
     import type { HomeTabSettings, VaultStatItemKey } from 'src/settings';
     import type HomeTabSearchBar from 'src/homeTabSearchbar';
-    import { FolderSearchModal, revealFolderInExplorer } from 'src/folderSearchModal';
+    import { revealFolderInExplorer } from 'src/utils/folderRevealUtils';
     import { t } from '../i18n';
     import { debounce } from '../utils/debounce';
 
@@ -65,8 +65,8 @@
     $: enabledItems = (pluginSettings?.vaultStatsOrder ?? [])
         .filter((key) => key in statNames && pluginSettings?.vaultStatsItems?.includes(key))
 
-    // 聚焦搜索框并激活对应的扩展名/类型过滤器（md / media）
-    function activateSearchFilter(filterKey: 'md' | 'media'): void {
+    // 聚焦搜索框并激活对应的过滤器（md / media / folder）
+    function activateSearchFilter(filterKey: 'md' | 'media' | 'folder'): void {
         try {
             HomeTabSearchBar?.updateActiveSuggester(filterKey)
             HomeTabSearchBar?.focusSearchbar()
@@ -99,7 +99,7 @@
         files: () => revealFolderInExplorer(app, undefined, t().ui.folderRevealFailed),
         notes: () => activateSearchFilter('md'),
         attachments: () => activateSearchFilter('media'),
-        folders: () => new FolderSearchModal(app, t().ui.folderSearchPlaceholder, t().ui.folderRevealFailed).open(),
+        folders: () => activateSearchFilter('folder'),
         tags: openTagPane,
     }
 </script>
@@ -118,17 +118,14 @@
 </div>
 
 <style>
-    /* 钉在主页偏下方的位置 */
+    /* 位于搜索栏上方，正常文档流内，不与下方列表重叠 */
     .home-tab-vault-stats{
-        position: absolute;
-        bottom: 24px;
-        left: 0;
-        right: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-wrap: wrap;
         gap: 4px 12px;
+        margin: 0 auto 12px;
         color: var(--text-muted);
         font-size: var(--font-ui-small);
     }
