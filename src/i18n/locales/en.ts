@@ -20,6 +20,7 @@ const en: BaseMessage = {
 	},
 	page: {
 		search: { name: 'Search', desc: 'Search behavior, result display, and heading navigation.' },
+		bookmarkedFiles: { name: 'Bookmarks', desc: 'Bookmarks display, filter, and group filtering.' },
 		recentFiles: { name: 'Recent files', desc: 'Display, tracking, and count of the recent files list.' },
 		logo: { name: 'Logo', desc: 'Logo type, source, color, and size.' },
   titleStyle: { name: 'Title', desc: 'Title text, font, size, weight, and color.' },
@@ -113,6 +114,18 @@ const en: BaseMessage = {
 		sectionCollapsible: {
 			name: 'Collapsible sections',
 			desc: 'Shows a collapse button next to the Recent files and Bookmarks titles; click it to collapse or expand the section.',
+		},
+		showBookmarkedFilesFilter: {
+			name: 'Bookmarks filter',
+			desc: 'Shows a filter (magnifying glass) next to the Bookmarks title to narrow the list; Tab navigation skips it when off.',
+		},
+		bookmarkedGroups: {
+			name: 'Bookmark groups filter',
+			desc: 'Comma-separated bookmark group paths (nest groups with /, e.g. "Work/Sub"). Only bookmarks inside these groups are shown; leave empty to show all bookmarks.',
+		},
+		showRecentFilesFilter: {
+			name: 'Recent files filter',
+			desc: 'Shows a filter (magnifying glass) next to the Recent files title to narrow the list; Tab navigation skips it when off.',
 		},
 		storeRecentFile: {
 			name: 'Store last recent files',

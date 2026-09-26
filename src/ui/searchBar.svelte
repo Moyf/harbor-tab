@@ -2,7 +2,7 @@
     import { Platform } from "obsidian";
     import { filterKeys, type FilterKey, type SearchBarFilterType } from "src/homeTabSearchbar";
     import type HomeTabSearchBar from "src/homeTabSearchbar";
-    import { recentFilterFocusRequest, recentListFocusRequest } from "src/store";
+    import { advanceSectionFocus } from "src/store";
     import { onMount } from 'svelte';
     
     export let HomeTabSearchBar: HomeTabSearchBar
@@ -41,13 +41,13 @@
                 // Activate search filter with tab
                 HomeTabSearchBar.updateActiveSuggester(key as FilterKey)
             }
-            // Shift+Tab (reverse loop): jump straight to the recent files list
+            // Shift+Tab (reverse loop): walk the sections chain backwards (recent list first)
             else if(e.shiftKey){
-                recentListFocusRequest.update(n => n + 1)
+                advanceSectionFocus('search', true, () => HomeTabSearchBar.focusSearchbar())
             }
-            // Tab (forward loop): move focus to the recent files filter
+            // Tab (forward loop): walk the sections chain forwards (bookmarks filter first)
             else{
-                recentFilterFocusRequest.update(n => n + 1)
+                advanceSectionFocus('search', false, () => HomeTabSearchBar.focusSearchbar())
             }
         }
     }

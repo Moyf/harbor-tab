@@ -41,7 +41,8 @@ declare module 'obsidian'{
 	interface BookmarkItem{
 		type: string,
 		title: string | undefined,
-		path: string
+		path: string,
+		items?: BookmarkItem[]
 	}
 	interface config{
 		nativeMenus: boolean

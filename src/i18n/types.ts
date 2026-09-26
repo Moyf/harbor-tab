@@ -31,6 +31,7 @@ export interface BaseMessage {
 	}
 	page: {
 		search: SettingEntry
+		bookmarkedFiles: SettingEntry
 		recentFiles: SettingEntry
 		logo: SettingEntry
 		titleStyle: SettingEntry
@@ -56,7 +57,10 @@ export interface BaseMessage {
 		hideOnBlur: SettingEntry
 		showOmnisearchExcerpt: SettingEntry
 		showBookmarkedFiles: SettingEntry
+		showBookmarkedFilesFilter: SettingEntry
+		bookmarkedGroups: SettingEntry
 		showRecentFiles: SettingEntry
+		showRecentFilesFilter: SettingEntry
 		sectionCollapsible: SettingEntry
 		storeRecentFile: SettingEntry
 		maxRecentFiles: SettingEntry
