@@ -57,6 +57,7 @@ export interface BaseMessage {
 		search: SettingEntry
 		bookmarkedFiles: SettingEntry
 		recentFiles: SettingEntry
+		newNote: SettingEntry
 		logo: SettingEntry
 		titleStyle: SettingEntry
 		particleEffect: SettingEntry

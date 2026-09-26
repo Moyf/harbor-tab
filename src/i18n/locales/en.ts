@@ -45,6 +45,7 @@ const en: BaseMessage = {
 		search: { name: 'Search', desc: 'Search behavior, result display, and heading navigation.' },
 		bookmarkedFiles: { name: 'Bookmarks', desc: 'Bookmarks display, filter, and group filtering.' },
 		recentFiles: { name: 'Recent files', desc: 'Display, tracking, and count of the recent files list.' },
+		newNote: { name: 'New note', desc: 'New-note button, create dialog defaults, and command override.' },
 		logo: { name: 'Logo', desc: 'Logo type, source, color, and size.' },
   titleStyle: { name: 'Title', desc: 'Title text, font, size, weight, and color.' },
 		particleEffect: { name: 'Particle effect', desc: 'Interactive particle rendering for the logo and title.' },
