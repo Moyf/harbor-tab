@@ -28,6 +28,7 @@ export interface BaseMessage {
 		particleStyle: string
 		particleCanvas: string
 		particleInteraction: string
+		vaultStatsItems: string
 	}
 	page: {
 		search: SettingEntry
@@ -106,8 +107,6 @@ export interface BaseMessage {
 		vaultStatsAttachments: SettingEntry
 		vaultStatsFolders: SettingEntry
 		vaultStatsTags: SettingEntry
-		vaultStatsMoveUp: SettingEntry
-		vaultStatsMoveDown: SettingEntry
 		debugMode: SettingEntry
 	}
 	common: {

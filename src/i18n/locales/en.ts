@@ -17,6 +17,7 @@ const en: BaseMessage = {
 		particleStyle: 'Style',
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
+		vaultStatsItems: 'Items',
 	},
 	page: {
 		search: { name: 'Search', desc: 'Search behavior, result display, and heading navigation.' },
@@ -310,12 +311,6 @@ const en: BaseMessage = {
 		},
 		vaultStatsTags: {
 			name: 'Tags',
-		},
-		vaultStatsMoveUp: {
-			name: 'Move up',
-		},
-		vaultStatsMoveDown: {
-			name: 'Move down',
 		},
 		debugMode: {
 			name: 'Debug mode',

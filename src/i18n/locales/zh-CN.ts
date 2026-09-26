@@ -17,6 +17,7 @@ const zhCN: BaseMessage = {
 		particleStyle: '样式',
 		particleCanvas: '画布',
 		particleInteraction: '交互',
+		vaultStatsItems: '统计项',
 	},
 	page: {
 		search: { name: '搜索', desc: '搜索行为、结果显示与标题跳转' },
@@ -310,12 +311,6 @@ const zhCN: BaseMessage = {
 		},
 		vaultStatsTags: {
 			name: '标签数',
-		},
-		vaultStatsMoveUp: {
-			name: '上移',
-		},
-		vaultStatsMoveDown: {
-			name: '下移',
 		},
 		debugMode: {
 			name: '调试模式',

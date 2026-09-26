@@ -1,5 +1,5 @@
 import { App, Setting, PluginSettingTab, normalizePath, Platform, getIconIds } from 'obsidian'
-import type { IconName, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian'
+import type { IconName, SettingDefinition, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian'
 import type HomeTab from './main'
 import iconSuggester from './suggester/iconSuggester'
 import ImageFileSuggester from './suggester/imageSuggester'
@@ -404,7 +404,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
                             this.addResetButton(setting, 'maxRecentFiles')
                         },
                     },
-                    // 新增：库数据 SubPage —— 总开关、各统计项开关与排序
+                    // 新增：库数据 SubPage —— 总开关、各统计项开关与拖拽排序
                     {
                         type: 'page',
                         name: t.page.vaultStats.name,
@@ -415,7 +415,21 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 desc: t.setting.vaultStats.desc,
                                 control: { type: 'toggle', key: 'vaultStats', defaultValue: false },
                             },
-                            ...s.vaultStatsOrder.map((key, index) => this.vaultStatsItemSetting(key, index, t)),
+                            {
+                                // 官方 SettingDefinitionList：设置 onReorder 后每行自带拖拽手柄
+                                type: 'list',
+                                heading: t.group.vaultStatsItems,
+                                visible: () => s.vaultStats,
+                                onReorder: (oldIndex, newIndex) => {
+                                    const order = [...s.vaultStatsOrder]
+                                    const [moved] = order.splice(oldIndex, 1)
+                                    order.splice(newIndex, 0, moved)
+                                    s.vaultStatsOrder = order
+                                    void this.plugin.saveSettings()
+                                    this.update()
+                                },
+                                items: s.vaultStatsOrder.map((key) => this.vaultStatsItemSetting(key, t)),
+                            },
                         ],
                     },
                 ],
@@ -853,12 +867,11 @@ export class HomeTabSettingTab extends PluginSettingTab {
                     }))
     }
 
-    // 新增：单个库数据项的设置行 —— 启用开关 + 上移/下移排序按钮
-    private vaultStatsItemSetting(key: VaultStatItemKey, index: number, t: ReturnType<typeof getLocale>): SettingDefinitionItem {
+    // 新增：单个库数据项的设置行 —— 启用开关（排序由外层 list 的拖拽手柄完成）
+    private vaultStatsItemSetting(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): SettingDefinition {
         const s = this.plugin.settings
         return {
             name: this.vaultStatsItemName(key, t),
-            visible: () => s.vaultStats,
             render: (setting) => {
                 setting
                     .addToggle((toggle) => toggle
@@ -869,32 +882,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 : s.vaultStatsItems.filter((item) => item !== key)
                             await this.plugin.saveSettings()
                         }))
-                    .addExtraButton((button) => button
-                        .setIcon('arrow-up')
-                        .setTooltip(t.setting.vaultStatsMoveUp.name)
-                        .setDisabled(index <= 0)
-                        .onClick(async () => this.moveVaultStatItem(key, -1)))
-                    .addExtraButton((button) => button
-                        .setIcon('arrow-down')
-                        .setTooltip(t.setting.vaultStatsMoveDown.name)
-                        .setDisabled(index >= s.vaultStatsOrder.length - 1)
-                        .onClick(async () => this.moveVaultStatItem(key, 1)))
             },
         }
-    }
-
-    // 新增：在 vaultStatsOrder 中把某个统计项与相邻项交换，并重建设置页以反映新顺序
-    private moveVaultStatItem(key: VaultStatItemKey, direction: -1 | 1): void {
-        const s = this.plugin.settings
-        const index = s.vaultStatsOrder.indexOf(key)
-        const target = index + direction
-        if(index === -1 || target < 0 || target >= s.vaultStatsOrder.length){return}
-        const order = [...s.vaultStatsOrder]
-        order[index] = order[target]
-        order[target] = key
-        s.vaultStatsOrder = order
-        void this.plugin.saveSettings()
-        this.update()
     }
 
     private vaultStatsItemName(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): string {

@@ -58,8 +58,9 @@
         view.registerEvent(app.metadataCache.on('changed', recalc))
     })
 
-    // 按设置中启用的顺序显示
-    $: enabledItems = (pluginSettings?.vaultStatsItems ?? []).filter((key) => key in statNames)
+    // 顺序只由 vaultStatsOrder 决定（与设置页拖拽排序一致），vaultStatsItems 仅表示启用与否
+    $: enabledItems = (pluginSettings?.vaultStatsOrder ?? [])
+        .filter((key) => key in statNames && pluginSettings?.vaultStatsItems?.includes(key))
 </script>
 
 <div class="home-tab-vault-stats">
