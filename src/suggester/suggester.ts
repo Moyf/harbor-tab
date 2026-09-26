@@ -130,6 +130,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     protected closingAnimationRunning: boolean
 
     private inputListener: (this: HTMLInputElement, ev: Event) => void
+    private compositionEndListener: () => void
     private lastValue: string
     // Keep a single bound reference so removeEventListener in destroy() can
     // actually detach the blur listener (close.bind(this) creates a new
@@ -147,6 +148,9 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         const delay = searchDelay || 200;
         this.inputListener = debounce(
             async (e: Event) => {
+                // IME 组合输入（拼音等）过程中的 input 事件不触发搜索，
+                // 中间态内容会导致下拉框反复开关闪烁，由 compositionend 统一触发
+                if((e as InputEvent).isComposing) return
                 const target = e.target as HTMLInputElement;
                 if (target.value !== this.lastValue) {
                     this.lastValue = target.value;
@@ -158,6 +162,13 @@ export abstract class TextInputSuggester<T> implements ISuggester{
         );
         
         this.inputEl.addEventListener('input', this.inputListener);
+        // IME 候选词上屏后立即搜索一次
+        this.compositionEndListener = () => {
+            if(this.inputEl.value === this.lastValue) return
+            this.lastValue = this.inputEl.value
+            void this.onInput()
+        };
+        this.inputEl.addEventListener('compositionend', this.compositionEndListener);
         // 移除 focus 事件监听，避免重复触发
         this.boundClose = this.close.bind(this);
         this.inputEl.addEventListener('blur', this.boundClose);
@@ -176,7 +187,12 @@ export abstract class TextInputSuggester<T> implements ISuggester{
 
     async onInput(): Promise<void>{
         const input = this.inputEl.value
+        this.lastValue = input
         const suggestions = await this.getSuggestions(input)
+        
+        // 搜索期间输入已经变化：本次结果已过期，直接丢弃，
+        // 避免快速输入时新旧结果交替造成闪烁
+        if(this.inputEl.value !== input) return
         
         // 清除之前的建议
         this.suggester.setSuggestions([])
@@ -268,6 +284,7 @@ export abstract class TextInputSuggester<T> implements ISuggester{
     destroy(): void{
         this.close()
         this.inputEl.removeEventListener('input', this.inputListener)
+        this.inputEl.removeEventListener('compositionend', this.compositionEndListener)
         this.inputEl.removeEventListener('blur', this.boundClose)
         
         // 最后确保作用域被清理
