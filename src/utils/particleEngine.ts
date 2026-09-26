@@ -212,6 +212,10 @@ export class ParticleWordmarkEngine {
     private canvas: HTMLCanvasElement | null = null
     private renderContext: CanvasRenderingContext2D | null = null
     private scale = 1
+    /** Cached downsample chain of the glow bloom, sized to the canvas. */
+    private glowChain: HTMLCanvasElement[] = []
+    private glowChainWidth = 0
+    private glowChainHeight = 0
     private contentWidth = 0
     private contentHeight = 0
     /** Container coords -> canvas-local coords offset (canvas is zoom× wide, centered). */
@@ -712,6 +716,9 @@ export class ParticleWordmarkEngine {
             this.canvas = null
             this.renderContext = null
         }
+        this.glowChain = []
+        this.glowChainWidth = 0
+        this.glowChainHeight = 0
         this.restoreCapturedElements()
         if (this.originalContainerPosition !== null) {
             this.container.setCssStyles({ position: this.originalContainerPosition })
@@ -844,29 +851,66 @@ export class ParticleWordmarkEngine {
 
     /**
      * Bloom glow: re-draws the finished frame onto itself through a blur
-     * filter with additive blending. One GPU-composited pass whose cost
-     * depends on the canvas size and blur radius only — never on the particle
-     * count — and it is skipped entirely at strength 0.
+     * with additive blending. The blur is a downsample chain (halving steps
+     * average the neighborhood, the smoothed upscale spreads it back), which
+     * every canvas engine renders — canvas `filter: blur()` is unsupported
+     * by WebKit and would silently skip the glow on iOS. One pass whose cost
+     * depends on the canvas size only — never on the particle count — and it
+     * is skipped entirely at strength 0.
      */
     private applyGlow(context: CanvasRenderingContext2D): void {
         if (this.glow <= 0) return
+        const source = this.canvas as HTMLCanvasElement
+        const chain = this.resolveGlowChain(source.width, source.height)
+        if (chain.length === 0) return
+        let previous = source
+        for (const canvas of chain) {
+            const stepContext = canvas.getContext('2d')
+            if (!stepContext) return
+            stepContext.clearRect(0, 0, canvas.width, canvas.height)
+            stepContext.imageSmoothingEnabled = true
+            stepContext.drawImage(previous, 0, 0, canvas.width, canvas.height)
+            previous = canvas
+        }
+        context.save()
+        context.setTransform(1, 0, 0, 1, 0, 0)
+        context.globalCompositeOperation = 'lighter'
+        context.imageSmoothingEnabled = true
         // Energy budget = 2× strength: at max the glow is applied twice, and
         // the second pass re-blurs the first pass's halo on top, compounding
         // into a wider and much brighter bloom than a single pass could give.
         let energy = this.glow * 2
-        context.save()
-        // Blur in device pixels so the radius looks the same on any display.
-        context.setTransform(1, 0, 0, 1, 0, 0)
-        context.globalCompositeOperation = 'lighter'
-        context.filter = `blur(${GLOW_BLUR_PX * this.scale}px)`
-        // Drawing a canvas onto itself snapshots the bitmap first, so this
-        // samples the just-finished frame instead of feeding back.
         while (energy > 0.01) {
             context.globalAlpha = Math.min(energy, 1)
-            context.drawImage(this.canvas as HTMLCanvasElement, 0, 0)
+            context.drawImage(previous, 0, 0, source.width, source.height)
             energy -= 1
         }
         context.restore()
+    }
+
+    /**
+     * Cached halving canvases ending at roughly GLOW_BLUR_PX CSS pixels wide;
+     * rebuilt when the main canvas is resized. The upscale from the last one
+     * is the bloom's blur radius.
+     */
+    private resolveGlowChain(deviceWidth: number, deviceHeight: number): HTMLCanvasElement[] {
+        if (this.glowChainWidth === deviceWidth && this.glowChainHeight === deviceHeight && this.glowChain.length > 0) return this.glowChain
+        const chain: HTMLCanvasElement[] = []
+        let width = deviceWidth
+        let height = deviceHeight
+        const targetWidth = Math.max(2, GLOW_BLUR_PX * this.scale)
+        while (width > targetWidth && chain.length < 6) {
+            width = Math.max(1, Math.floor(width / 2))
+            height = Math.max(1, Math.floor(height / 2))
+            const canvas = createEl('canvas')
+            canvas.width = width
+            canvas.height = height
+            chain.push(canvas)
+        }
+        this.glowChain = chain
+        this.glowChainWidth = deviceWidth
+        this.glowChainHeight = deviceHeight
+        return chain
     }
 
     /**

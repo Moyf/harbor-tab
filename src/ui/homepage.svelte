@@ -76,8 +76,11 @@
             {#if !(pluginSettings.logoType === 'none')}
                 <div class="home-tab-logo" style:margin-top="{logoMargins.top}px" style:margin-right="{logoMargins.right}px" style:margin-bottom="{logoMargins.bottom}px" style:margin-left="{logoMargins.left}px">
                     {#if pluginSettings.logoType === 'default'}
-                        <!-- New obsidian logo -->
-                        <svg width="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})" height="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- New obsidian logo. Size via inline CSS calc(): SVG
+                             width/height ATTRIBUTES with calc() are ignored by
+                             WebKit (mobile), which collapses the auto-sized svg
+                             to zero and makes the logo invisible. -->
+                        <svg style="width: calc({pluginSettings.fontSize} * {pluginSettings.logoScale}); height: calc({pluginSettings.fontSize} * {pluginSettings.logoScale});" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                               <!-- If gradient id is not unique the logo is not rendered correctly -->
                               <radialGradient id="{gradientUniqueId.toString()}-b" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-48 -185 123 -32 179 429.7)">
@@ -133,9 +136,9 @@
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M302.7 299.5c43.5 16.3 60.3 52 72.8 81.9-15.5-31.2-37-65.7-74.4-78.5-28.4-9.8-52.4-8.6-93.5.7l-.9-4c43.6-10 66.4-11.2 96 0Z" fill="url(#{gradientUniqueId.toString()}-i)"/>
                         </svg>
                     {:else if pluginSettings.logoType === 'oldLogo'}
-                        <!-- Old obsidian logo -->
+                        <!-- Old obsidian logo (sized via inline CSS, see above) -->
                         <svg viewBox="0 0 65 100"
-                        width="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})" height="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})">
+                        style="width: calc({pluginSettings.fontSize} * {pluginSettings.logoScale}); height: calc({pluginSettings.fontSize} * {pluginSettings.logoScale});">
                             <defs>
                                 <!-- If gradient id is not unique the logo is not rendered correctly -->
                                 <linearGradient id="{gradientUniqueId.toString()}" x1="82.85" y1="30.41" x2="51.26" y2="105.9"
@@ -154,9 +157,9 @@
                         </svg>
 
                     {:else if pluginSettings.logoType === 'lucideIcon' && !!pluginSettings.logo.lucideIcon}
-                            <svg xmlns="http://www.w3.org/2000/svg"  width="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})" height="calc({pluginSettings.fontSize}*{pluginSettings.logoScale})" 
-                            viewBox="0 0 24 24" fill="none" stroke="{pluginSettings.iconColorType === 'default' ? 'currentColor' : pluginSettings.iconColorType === 'accentColor' ?  'var(--interactive-accent)' : (pluginSettings.iconColor || 'currentColor')}" 
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width: calc({pluginSettings.fontSize} * {pluginSettings.logoScale}); height: calc({pluginSettings.fontSize} * {pluginSettings.logoScale});"
+                            viewBox="0 0 24 24" fill="none" stroke="{pluginSettings.iconColorType === 'default' ? 'currentColor' : pluginSettings.iconColorType === 'accentColor' ?  'var(--interactive-accent)' : (pluginSettings.iconColor || 'currentColor')}"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="svg-icon lucide-{pluginSettings.logo.lucideIcon}">
                                 {@html getIcon(pluginSettings.logo.lucideIcon)?.innerHTML}
                             </svg>

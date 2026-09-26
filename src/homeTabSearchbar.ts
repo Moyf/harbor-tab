@@ -169,7 +169,9 @@ export default class HomeTabSearchBar{
             // Command was removed/unloaded since it was configured: fall back to the modal
             new Notice(t().newNoteModal.commandNotFound);
         }
-        new NewNoteModal(this.app, this.plugin).open();
+        // Pre-fill the typed text as the note name; the modal then focuses
+        // the folder field instead of the (already filled) name field
+        new NewNoteModal(this.app, this.plugin, get(this.searchBarEl)?.value?.trim() || undefined).open();
     }
 
     public load(): void {
