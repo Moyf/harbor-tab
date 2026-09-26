@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.7.0] - 2026-09-26
+
+### Features
+
+- **New-note button**: the search bar gains a "new note" button. It can execute a command instead (with a command picker), pre-fill a default folder (with a folder picker), and quick-create on unmatched search names — the button lights up and Enter opens the create dialog with the typed name.
+- **Periodic notes**: daily/weekly/monthly/quarterly/yearly notes under the search bar. Configuration is read from the Periodic Notes / Daily notes plugins or defined as custom rules; missing notes show a "+" badge and are created on open, honoring folder and template placeholders. Display names support the file name, fixed period text, or custom text with live date placeholders (e.g. `{{MM}}月{{DD}}日`).
+- **Vault stats**: an optional files/notes/attachments/folders/tags summary near the bottom of the home tab, with drag-and-drop ordering in the settings and clickable stats that focus the matching search filter (or open the tag pane).
+- **Bookmarks sub-page**: bookmarks move their settings into a sub-page, gain a filter input and group filtering, and the sections' Tab focus chain now spans search → periodic notes → bookmarks → recent files.
+- **Collapsible sections**: the bookmarks and recent-files sections can be collapsed, individually remembered; collapsed sections are skipped by the Tab focus chain.
+- **Platform-aware particles**: the canvas scale setting is now per platform (desktop/mobile), and touch devices get a tap-burst particle interaction instead of the cursor ripple.
+
+### Bug Fixes
+
+- Fix the image filter missing `webp`/`avif` files, and unify the suggestion dropdown limit on the existing "search results" setting.
+- Fix suggestion dropdowns flickering during fast IME (Chinese input) composition and stacking when switching filters.
+- Fix periodic notes opened from the list Enter key and the context menu not being shown (they were only created/resolved); the menu titles are now localized.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+### 新增
+
+- **新建笔记按钮**：搜索栏新增「新建笔记」按钮，可配置为执行指定命令（带命令选择器）、默认创建文件夹（带文件夹选择器）；搜索无匹配时按钮高亮，回车直接用输入的名称打开新建弹窗。
+- **周期笔记**：搜索栏下方显示日/周/月/季/年记，配置自动读取 Periodic Notes / Daily notes 插件，也支持自定义规则；未创建的笔记带「+」角标，点击时按文件夹与模板占位符自动创建。显示名称支持文件名、周期文字或带日期占位符的自定义文本（如 `{{MM}}月{{DD}}日`，设置页实时预览）。
+- **库数据统计**：主页下方可选显示 文件/笔记/附件/文件夹/标签 统计，设置页支持拖拽排序，点击统计项可聚焦对应的搜索过滤器（标签则打开标签面板）。
+- **书签子页面**：书签区设置移入子页面，新增筛选输入框与分组过滤；各区块的 Tab 焦点链贯穿 搜索框 → 周期笔记 → 书签 → 最近文件。
+- **区块折叠**：书签与最近文件区块支持折叠并分别记忆；折叠的区块会被焦点链跳过。
+- **平台化粒子画布**：画布缩放设置按平台（桌面/移动）分别记忆；触屏设备改为点击触发粒子迸发，替代光标涟漪。
+
+### 修复
+
+- 修复图片过滤器漏掉 `webp`/`avif` 文件的问题；建议下拉数量统一跟随现有「搜索结果数量」设置。
+- 修复快速输入法（拼音）组合期间建议下拉反复闪烁、切换过滤器时下拉叠加的问题。
+- 修复周期笔记通过回车或右键菜单打开时不显示（此前只创建不打开）；菜单标题已支持本地化。
+
+</details>
+
 ## [1.6.0] - 2026-09-24
 
 ![Harbor Tab particle effect](docs/harbor-tab-particles.webm)
