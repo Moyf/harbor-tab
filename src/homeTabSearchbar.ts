@@ -38,14 +38,18 @@ export default class HomeTabSearchBar{
     private app: App
     private onLoad: (() => void) | undefined
     public activeFilter: SearchBarFilterType
-    
+
     protected view: View
     protected plugin: HomeTab
-    
+
     public fileSuggester: HomeTabFileSuggester | OmnisearchSuggester | SurfingSuggester | WebViewerSuggester
     public activeExtEl: Writable<HTMLElement>
     public searchBarEl: Writable<HTMLInputElement>
     public suggestionContainerEl: Writable<HTMLElement>
+    /** True while the typed name matches no note (drives the new-note button highlight) */
+    public unmatchedNameActive: Writable<boolean>
+
+    private suggestionStoreUnsubscribe: (() => void) | undefined
 
     constructor(plugin: HomeTab, view: View, onLoad?: () => void) {
         this.app = view.app;
@@ -54,6 +58,7 @@ export default class HomeTabSearchBar{
         this.searchBarEl = writable();
         this.activeExtEl = writable();
         this.suggestionContainerEl = writable();
+        this.unmatchedNameActive = writable(false);
         this.onLoad = onLoad;
         this.activeFilter = 'default';
     }
@@ -80,14 +85,14 @@ export default class HomeTabSearchBar{
         if (!this.fileSuggester) {
             this.createDefaultSuggester();
         }
-        
+
         // 如果是 URL 且不在移动端，切换到 WebViewerSuggester
         if (query && isValidUrl(query) && !Platform.isMobile && this.isWebUrlSuggestionEnabled()) {
             if (!(this.fileSuggester instanceof WebViewerSuggester)) {
                 // 确保先关闭旧的建议器
                 this.fileSuggester.close();
                 this.fileSuggester.destroy();
-                this.fileSuggester = new WebViewerSuggester(this.plugin.app, this.plugin, this.view, this);
+                this.setSuggester(new WebViewerSuggester(this.plugin.app, this.plugin, this.view, this));
             }
             // 更新建议
             void this.fileSuggester.onInput();
@@ -107,16 +112,30 @@ export default class HomeTabSearchBar{
         }
     }
 
+    /**
+     * Central suggester assignment: re-wires the suggestion-list listener that
+     * keeps unmatchedNameActive in sync (suggester instances are recreated on
+     * every filter/suggester switch, so the subscription must follow along).
+     */
+    private setSuggester(suggester: HomeTabFileSuggester | OmnisearchSuggester | SurfingSuggester | WebViewerSuggester): void {
+        this.suggestionStoreUnsubscribe?.();
+        this.suggestionStoreUnsubscribe = undefined;
+        this.fileSuggester = suggester;
+        this.suggestionStoreUnsubscribe = suggester.getSuggester().suggestionsStore.subscribe(() => {
+            this.unmatchedNameActive.set(this.isUnmatchedNoteName(get(this.searchBarEl)?.value ?? ''));
+        });
+    }
+
     private createDefaultSuggester(): void {
         // 销毁旧的 suggester 实例
         if (this.fileSuggester) {
             this.fileSuggester.destroy();
         }
-        
+
         if (this.plugin.settings.omnisearch && this.plugin.app.plugins.getPlugin('omnisearch')) {
-            this.fileSuggester = new OmnisearchSuggester(this.app, this.plugin, this.view, this);
+            this.setSuggester(new OmnisearchSuggester(this.app, this.plugin, this.view, this));
         } else {
-            this.fileSuggester = new HomeTabFileSuggester(this.app, this.plugin, this.view, this);
+            this.setSuggester(new HomeTabFileSuggester(this.app, this.plugin, this.view, this));
         }
     }
 
@@ -164,19 +183,19 @@ export default class HomeTabSearchBar{
         if (this.fileSuggester) {
             this.fileSuggester.destroy();
         }
-        
+
         // 如果是 URL 且不在移动端，使用 WebViewerSuggester
         if (query && isValidUrl(query) && !Platform.isMobile && this.isWebUrlSuggestionEnabled()) {
-            this.fileSuggester = new WebViewerSuggester(this.plugin.app, this.plugin, this.view, this);
+            this.setSuggester(new WebViewerSuggester(this.plugin.app, this.plugin, this.view, this));
             void this.fileSuggester.onInput();
             return;
         }
 
         // 否则使用其他建议器
         if (this.plugin.settings.omnisearch && this.plugin.app.plugins.getPlugin('omnisearch')) {
-            this.fileSuggester = new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this);
+            this.setSuggester(new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this));
         } else {
-            this.fileSuggester = new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this);
+            this.setSuggester(new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this));
         }
     }
 
@@ -209,17 +228,17 @@ export default class HomeTabSearchBar{
             case 'default':
                 filterEl.toggleClass('hide', true)
                 if (this.plugin.settings.omnisearch && this.plugin.app.plugins.getPlugin('omnisearch')) {
-                    this.fileSuggester = new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this);
+                    this.setSuggester(new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this));
                 }
                 else {
-                    this.fileSuggester = new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this);
+                    this.setSuggester(new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this));
                 }
                 void this.fileSuggester.onInput();
                 break;
             case 'omnisearch':
                 if(this.app.plugins.getPlugin('omnisearch')){
                     filterEl.toggleClass('hide', false)
-                    this.fileSuggester = new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this)
+                    this.setSuggester(new OmnisearchSuggester(this.plugin.app, this.plugin, this.view, this))
                     void this.fileSuggester.onInput();
                 }
                 else{
@@ -230,7 +249,7 @@ export default class HomeTabSearchBar{
             case 'webSearch':
                 if(this.app.plugins.getPlugin('surfing')){
                     filterEl.toggleClass('hide', false)
-                    this.fileSuggester = new SurfingSuggester(this.plugin.app, this.plugin, this.view, this)
+                    this.setSuggester(new SurfingSuggester(this.plugin.app, this.plugin, this.view, this))
                     void this.fileSuggester.onInput();
                 }
                 else{
@@ -240,8 +259,9 @@ export default class HomeTabSearchBar{
                 break;
             case 'fileExtension':
             case 'fileType':
-                this.fileSuggester = new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this)
-                this.fileSuggester.setFileFilter(filterKey as FileType | FileExtension)
+                const fileSuggester = new HomeTabFileSuggester(this.plugin.app, this.plugin, this.view, this)
+                this.setSuggester(fileSuggester)
+                fileSuggester.setFileFilter(filterKey as FileType | FileExtension)
                 filterEl.toggleClass('hide', false)
                 filterEl.setText(filterKey)
                 void this.fileSuggester.onInput();
@@ -249,5 +269,34 @@ export default class HomeTabSearchBar{
             default:
                 break;
         }     
+    }
+
+    /**
+     * True when the typed text matches no note in the default search (no
+     * filter active): the new-note button lights up and Enter opens the
+     * create dialog with the typed name pre-filled.
+     */
+    public isUnmatchedNoteName(input: string): boolean {
+        if(!this.plugin.settings.showNewNoteButton || !this.plugin.settings.newNoteOnUnmatchedName) return false
+        if(this.plugin.settings.newNoteUseCommand) return false
+        if(this.activeFilter !== 'default') return false
+        if(!(this.fileSuggester instanceof HomeTabFileSuggester)) return false
+        const query = input.trim()
+        if(!query) return false
+        const suggestions = this.fileSuggester.getSuggester().getSuggestions() ?? []
+        return suggestions.length === 0
+    }
+
+    /** Enter on an unmatched name: open the create dialog pre-filled with the typed name */
+    public openNewNoteFromInput(input: string): boolean {
+        if(!this.isUnmatchedNoteName(input)) return false
+        new NewNoteModal(this.app, this.plugin, input.trim()).open()
+        return true
+    }
+
+    /** Detaches listeners on view teardown (suggester instances are destroyed by the view) */
+    public dispose(): void {
+        this.suggestionStoreUnsubscribe?.();
+        this.suggestionStoreUnsubscribe = undefined;
     }
 }

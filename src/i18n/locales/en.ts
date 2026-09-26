@@ -151,6 +151,10 @@ const en: BaseMessage = {
 			desc: 'Folder pre-filled when creating a note. Leave empty to use the vault root.',
 			placeholder: 'Leave empty for the vault root',
 		},
+		newNoteOnUnmatchedName: {
+			name: 'Quick create for unmatched names',
+			desc: 'When the search input matches no existing note, highlight the new-note button; pressing Enter then opens the create dialog with the typed name pre-filled.',
+		},
 		logo: {
 			name: 'Logo',
 			desc: 'Remove or set a custom logo. Accepts local files, links to images or lucide icon ids.',

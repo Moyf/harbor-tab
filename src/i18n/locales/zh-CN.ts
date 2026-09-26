@@ -151,6 +151,10 @@ const zhCN: BaseMessage = {
 			desc: '新建笔记时默认填写的文件夹，留空则使用仓库根目录。',
 			placeholder: '留空则在仓库根目录创建',
 		},
+		newNoteOnUnmatchedName: {
+			name: '输入不存在的笔记名时快速新建',
+			desc: '搜索内容没有匹配到任何笔记时，高亮新建笔记按钮；此时按回车直接打开新建弹窗，自动填入输入的名称并聚焦文件夹输入框。',
+		},
 		logo: {
 			name: 'Logo',
 			desc: '移除或设置自定义 Logo。支持本地文件、图片链接或 Lucide 图标 ID。',

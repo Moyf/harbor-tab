@@ -77,6 +77,7 @@ export interface BaseMessage {
 		newNoteUseCommand: SettingEntry
 		newNoteCommandId: SettingEntry & { invalid: string; placeholder: string }
 		newNoteDefaultFolder: SettingEntry & { placeholder: string }
+		newNoteOnUnmatchedName: SettingEntry
 		logo: SettingEntry & {
 			placeholder: string
 			invalidTooltip: string

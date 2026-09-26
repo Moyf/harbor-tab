@@ -94,6 +94,7 @@ export interface HomeTabSettings extends ObjectKeys{
     newNoteUseCommand: boolean // 新增：点击按钮时执行指定命令而不是新建笔记
     newNoteCommandId: string // 新增：命令覆盖时执行的命令 ID
     newNoteDefaultFolder: string // 新增：新建笔记弹窗默认填写的文件夹
+    newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -166,6 +167,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     newNoteUseCommand: false, // 新增：默认不使用命令覆盖
     newNoteCommandId: '', // 新增：命令 ID 默认为空
     newNoteDefaultFolder: '', // 新增：默认文件夹默认留空（仓库根目录）
+    newNoteOnUnmatchedName: true, // 新增：默认开启「无匹配时快速新建」
 }
 
 export class HomeTabSettingTab extends PluginSettingTab {
@@ -378,6 +380,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         desc: t.setting.newNoteDefaultFolder.desc,
                         visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
                         render: (setting) => this.renderNewNoteDefaultFolder(setting, t),
+                    },
+                    {
+                        name: t.setting.newNoteOnUnmatchedName.name,
+                        desc: t.setting.newNoteOnUnmatchedName.desc,
+                        visible: () => s.showNewNoteButton && !s.newNoteUseCommand,
+                        control: { type: 'toggle', key: 'newNoteOnUnmatchedName', defaultValue: true },
                     },
                     {
                         name: t.setting.showBookmarkedFiles.name,
