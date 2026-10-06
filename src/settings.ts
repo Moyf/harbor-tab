@@ -87,6 +87,7 @@ export interface HomeTabSettings extends ObjectKeys{
     particleEffectSpacing: number
     particleEffectDotSize: number
     particleEffectAdaptiveSize: boolean
+    particleEffectShape: 'square' | 'circle'
     particleEffectCanvasPaddingTop: number
     particleEffectCanvasPaddingBottom: number
     particleEffectDisturbRadius: number
@@ -214,6 +215,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectSpacing: 1.3,
     particleEffectDotSize: 0.45,
     particleEffectAdaptiveSize: false,
+    particleEffectShape: 'square',
     particleEffectCanvasPaddingTop: 40,
     particleEffectCanvasPaddingBottom: 0,
     particleEffectDisturbRadius: 40,
@@ -1056,6 +1058,29 @@ export class HomeTabSettingTab extends PluginSettingTab {
                             },
                             {
                                 type: 'group',
+                                heading: t.group.particle,
+                                items: [
+                                    {
+                                        ...this.sliderWithReset('particleEffectSpacing', t.setting.particleEffectSpacing.name, t.setting.particleEffectSpacing.desc, 1, 3, 0.1),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectDotSize', t.setting.particleEffectDotSize.name, t.setting.particleEffectDotSize.desc, 0.2, 1, 0.05),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        name: t.setting.particleEffectAdaptiveSize.name,
+                                        desc: t.setting.particleEffectAdaptiveSize.desc,
+                                        control: { type: 'toggle', key: 'particleEffectAdaptiveSize', defaultValue: DEFAULT_SETTINGS.particleEffectAdaptiveSize },
+                                        visible: () => s.particleEffect,
+                                    },
+                                    this.dropdownWithReset('particleEffectShape', t.setting.particleEffectShape.name, t.setting.particleEffectShape.desc, t.setting.particleEffectShape.options, {
+                                        visible: () => s.particleEffect,
+                                    }),
+                                ],
+                            },
+                            {
+                                type: 'group',
                                 heading: t.group.particleEffects,
                                 items: [
                                     this.dropdownWithReset('particleEffectGradientAnimation', t.setting.particleEffectGradientAnimation.name, t.setting.particleEffectGradientAnimation.desc, t.setting.particleEffectGradientAnimation.options, {
@@ -1087,42 +1112,6 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     {
                                         ...this.sliderWithReset('particleEffectGlow', t.setting.particleEffectGlow.name, t.setting.particleEffectGlow.desc, 0, 100, 5),
                                         visible: () => s.particleEffect && s.particleEffectGlowEnabled,
-                                    },
-                                ],
-                            },
-                            {
-                                type: 'group',
-                                heading: t.group.particleCanvas,
-                                items: [
-                                    {
-                                        ...this.sliderWithReset('particleEffectCanvasPaddingTop', t.setting.particleEffectCanvasPaddingTop.name, t.setting.particleEffectCanvasPaddingTop.desc, 0, 150, 5),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        ...this.sliderWithReset('particleEffectCanvasPaddingBottom', t.setting.particleEffectCanvasPaddingBottom.name, t.setting.particleEffectCanvasPaddingBottom.desc, 0, 150, 5),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        ...this.sliderWithReset('particleEffectScale', t.setting.particleEffectScale.name, t.setting.particleEffectScale.desc, 1, 3, 0.1),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        ...this.sliderWithReset('particleEffectScaleMobile', t.setting.particleEffectScaleMobile.name, t.setting.particleEffectScaleMobile.desc, 1, 3, 0.1),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        ...this.sliderWithReset('particleEffectSpacing', t.setting.particleEffectSpacing.name, t.setting.particleEffectSpacing.desc, 1, 3, 0.1),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        ...this.sliderWithReset('particleEffectDotSize', t.setting.particleEffectDotSize.name, t.setting.particleEffectDotSize.desc, 0.2, 1, 0.05),
-                                        visible: () => s.particleEffect,
-                                    },
-                                    {
-                                        name: t.setting.particleEffectAdaptiveSize.name,
-                                        desc: t.setting.particleEffectAdaptiveSize.desc,
-                                        control: { type: 'toggle', key: 'particleEffectAdaptiveSize', defaultValue: DEFAULT_SETTINGS.particleEffectAdaptiveSize },
-                                        visible: () => s.particleEffect,
                                     },
                                 ],
                             },
@@ -1167,6 +1156,28 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                     },
                                     {
                                         ...this.sliderWithReset('particleEffectRecoveryDamping', t.setting.particleEffectRecoveryDamping.name, t.setting.particleEffectRecoveryDamping.desc, 0, 100, 5),
+                                        visible: () => s.particleEffect,
+                                    },
+                                ],
+                            },
+                            {
+                                type: 'group',
+                                heading: t.group.particleCanvas,
+                                items: [
+                                    {
+                                        ...this.sliderWithReset('particleEffectCanvasPaddingTop', t.setting.particleEffectCanvasPaddingTop.name, t.setting.particleEffectCanvasPaddingTop.desc, 0, 150, 5),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectCanvasPaddingBottom', t.setting.particleEffectCanvasPaddingBottom.name, t.setting.particleEffectCanvasPaddingBottom.desc, 0, 150, 5),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectScale', t.setting.particleEffectScale.name, t.setting.particleEffectScale.desc, 1, 3, 0.1),
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('particleEffectScaleMobile', t.setting.particleEffectScaleMobile.name, t.setting.particleEffectScaleMobile.desc, 1, 3, 0.1),
                                         visible: () => s.particleEffect,
                                     },
                                 ],

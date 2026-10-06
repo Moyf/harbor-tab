@@ -64,6 +64,7 @@ export interface BaseMessage {
 		logoLayout: string
 		titleMargin: string
 		particleColor: string
+		particle: string
 		particleEffects: string
 		particleCanvas: string
 		particleInteraction: string
@@ -192,6 +193,7 @@ export interface BaseMessage {
 		particleEffectSpacing: SettingEntry
 		particleEffectDotSize: SettingEntry
 		particleEffectAdaptiveSize: SettingEntry
+		particleEffectShape: SettingEntry & { options: DropdownOptions }
 		particleEffectCanvasPaddingTop: SettingEntry
 		particleEffectCanvasPaddingBottom: SettingEntry
 		particleEffectDisturbRadius: SettingEntry

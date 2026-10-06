@@ -51,6 +51,7 @@ const en: BaseMessage = {
 		logoLayout: 'Logo layout',
 		titleMargin: 'Title margin',
 		particleColor: 'Color',
+		particle: 'Particle',
 		particleEffects: 'Effects',
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
@@ -504,6 +505,14 @@ const en: BaseMessage = {
 		particleEffectAdaptiveSize: {
 			name: 'Adaptive particle size',
 			desc: 'Keep gaps between particles and shrink them near edges, down to 0.2. Turn off to use one size for all particles.',
+		},
+		particleEffectShape: {
+			name: 'Particle shape',
+			desc: 'Outline of each particle; circles render small particles round at any size. Squares rasterize slightly faster.',
+			options: {
+				square: 'Square',
+				circle: 'Circle',
+			},
 		},
 		particleEffectDisturbRadius: {
 			name: 'Disturbance radius',

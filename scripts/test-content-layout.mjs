@@ -151,7 +151,7 @@ assert.deepEqual(Object.keys(en.setting.searchDropdownDisplay.options), ['overla
 assert.deepEqual(Object.keys(en.setting.searchBarStyle.options), ['classic', 'modern', 'transparent', 'minimal']);
 const particlePage = pages().find(item => item.name === en.page.particleEffect.name);
 assert.deepEqual(clone(particlePage.items.filter(item => item.type === 'group').map(item => item.heading)),
-    ['Color', 'Effects', 'Canvas', 'Interaction']);
+    ['Color', 'Particle', 'Effects', 'Interaction', 'Canvas']);
 assert.equal(en.setting.particleEffectColor.name, 'Base color');
 plugin.settings.particleEffect = true;
 plugin.settings.particleEffectColorMode = 'gradient';
@@ -168,6 +168,7 @@ assert.ok(areaControl.visible());
 plugin.settings.particleEffectGradientAnimation = 'breathe';
 assert.ok(!areaControl.visible(), 'Spatial controls are hidden for solid breathing colors');
 const canvasGroup = particlePage.items.find(item => item.heading === 'Canvas');
+const particleGroup = particlePage.items.find(item => item.heading === 'Particle');
 const effectsGroup = particlePage.items.find(item => item.heading === 'Effects');
 const pauseControl = effectsGroup.items.find(item => item.name === en.setting.particleEffectGradientPause.name);
 assert.equal(effectsGroup.items.indexOf(pauseControl),
@@ -178,7 +179,7 @@ for (const animation of ['cycle', 'breathe', 'static']) {
 }
 plugin.settings.particleEffectColorMode = 'original';
 assert.ok(!pauseControl.visible());
-assert.equal(canvasGroup.items.find(item => item.control?.key === 'particleEffectAdaptiveSize').control.defaultValue, false);
+assert.equal(particleGroup.items.find(item => item.control?.key === 'particleEffectAdaptiveSize').control.defaultValue, false);
 const appearance = tab.getSettingDefinitions().find(item => item.heading === en.group.appearance);
 assert.equal(appearance.items.findIndex(item => item.name === en.setting.selectionHighlight.name),
     appearance.items.findIndex(item => item.name === en.page.particleEffect.name) + 1);
@@ -192,7 +193,7 @@ for (const [name, expected] of [[en.setting.particleEffectGradientArea.name, [10
         setValue() { return this; }, onChange() { return this; } };
     const setting = { addSlider(fn) { fn(slider); return this; } };
     tab.addResetButton = () => {};
-    [...colorGroup.items, ...canvasGroup.items, ...effectsGroup.items].find(item => item.name === name).render(setting);
+    [...colorGroup.items, ...particleGroup.items, ...canvasGroup.items, ...effectsGroup.items].find(item => item.name === name).render(setting);
     assert.deepEqual(limits, expected);
 }
 

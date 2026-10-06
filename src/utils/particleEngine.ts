@@ -13,6 +13,7 @@
 
 export type ParticleColorMode = 'original' | 'monochrome' | 'gradient'
 export type GradientAnimation = 'static' | 'cycle' | 'breathe'
+export type ParticleShape = 'square' | 'circle'
 
 export interface ParticleWordmarkOptions {
     colorMode: ParticleColorMode
@@ -45,6 +46,8 @@ export interface ParticleWordmarkOptions {
     dotSize: number
     /** Preserve particle gaps and shrink particles near the glyph edge (default true). */
     adaptiveSize: boolean
+    /** Outline shape of each particle (default square). */
+    shape?: ParticleShape
     /** Vertical safety space, in CSS pixels after zoom (defaults: top 50, bottom 30). */
     canvasPaddingTop: number
     canvasPaddingBottom: number
@@ -303,6 +306,7 @@ export class ParticleWordmarkEngine {
     private readonly gradientPause: number
     private readonly motionFrequency: number
     private readonly glow: number
+    private readonly shape: ParticleShape
     private readonly colorA: RGB
     private readonly colorB: RGB
     /** Effective recovery speed (option value clamped to the supported range). */
@@ -469,6 +473,7 @@ export class ParticleWordmarkEngine {
         this.gradientPause = Number.isFinite(options.gradientPause) ? Math.min(10, Math.max(0, options.gradientPause)) : 0
         this.motionFrequency = Math.max(options.motionFrequency ?? 1, 0.01)
         this.glow = Number.isFinite(options.glow) ? Math.min(1, Math.max(0, options.glow ?? 0)) : 0
+        this.shape = options.shape === 'circle' ? 'circle' : 'square'
         this.colorA = parseHexColor(options.color)
         this.colorB = parseHexColor(options.color2)
         // Tolerate an undefined value (settings loaded from an older schema).
@@ -1354,7 +1359,25 @@ export class ParticleWordmarkEngine {
 
     }
 
-    private paintParticleRect(context: CanvasRenderingContext2D, shade: number, x: number, y: number, width: number, height: number): void {
+    private paintParticle(context: CanvasRenderingContext2D, shade: number, x: number, y: number, width: number, height: number): void {
+        if (this.shape === 'circle') {
+            const radius = width / 2
+            const centerX = x + radius
+            const centerY = y + height / 2
+            if (this.framePaths) {
+                const path = this.framePaths[shade] ?? this.framePaths[0]
+                // An arc appended to an existing subpath draws a connecting
+                // line from the previous point: start a fresh subpath at the
+                // arc's origin angle so each circle stays separate.
+                path.moveTo(centerX + radius, centerY)
+                path.arc(centerX, centerY, radius, 0, Math.PI * 2)
+            } else {
+                context.beginPath()
+                context.arc(centerX, centerY, radius, 0, Math.PI * 2)
+                context.fill()
+            }
+            return
+        }
         if (this.framePaths) (this.framePaths[shade] ?? this.framePaths[0]).rect(x, y, width, height)
         else context.fillRect(x, y, width, height)
     }
@@ -1369,7 +1392,7 @@ export class ParticleWordmarkEngine {
                 context.fillStyle = fill
                 lastFill = fill
             }
-            this.paintParticleRect(context, particle.shadeIndex, particle.x - particle.radius, particle.y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, particle.x - particle.radius, particle.y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1388,7 +1411,7 @@ export class ParticleWordmarkEngine {
                 lastFill = fill
             }
             const y = particle.y + lutSin(time * WAVE_SPEED + (particle.hx + particle.hy) * WAVE_NUMBER) * AMBIENT_AMPLITUDE
-            this.paintParticleRect(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1405,7 +1428,7 @@ export class ParticleWordmarkEngine {
                 lastFill = fill
             }
             const y = particle.y + dy
-            this.paintParticleRect(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1428,7 +1451,7 @@ export class ParticleWordmarkEngine {
                 lastFill = fill
             }
             const y = particle.y + clock * lutSin(particle.hx * UNDULATE_NUMBER + Math.PI / 2)
-            this.paintParticleRect(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, particle.x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1449,7 +1472,7 @@ export class ParticleWordmarkEngine {
             }
             const x = particle.x + (particle.x - centerX) * stretch
             const y = particle.y + (particle.y - centerY) * stretch
-            this.paintParticleRect(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1484,7 +1507,7 @@ export class ParticleWordmarkEngine {
             const stretch = heartbeatShape(time * HEARTBEAT_SPEED - distance * HEARTBEAT_NUMBER) * envelope
             const x = particle.x + dx * stretch
             const y = particle.y + dy * stretch
-            this.paintParticleRect(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+            this.paintParticle(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
         }
     }
 
@@ -1509,9 +1532,9 @@ export class ParticleWordmarkEngine {
                 const ratio = offset / distance
                 const x = particle.x + dx * ratio
                 const y = particle.y + dy * ratio
-                this.paintParticleRect(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
+                this.paintParticle(context, particle.shadeIndex, x - particle.radius, y - particle.radius, particle.radius * 2, particle.radius * 2)
             } else {
-                this.paintParticleRect(context, particle.shadeIndex, particle.x - particle.radius, particle.y - particle.radius, particle.radius * 2, particle.radius * 2)
+                this.paintParticle(context, particle.shadeIndex, particle.x - particle.radius, particle.y - particle.radius, particle.radius * 2, particle.radius * 2)
             }
         }
     }

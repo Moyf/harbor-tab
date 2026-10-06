@@ -51,6 +51,7 @@ const zhCN: BaseMessage = {
 		logoLayout: 'Logo 布局',
 		titleMargin: '标题边距',
 		particleColor: '颜色',
+		particle: '粒子',
 		particleEffects: '效果',
 		particleCanvas: '画布',
 		particleInteraction: '交互',
@@ -504,6 +505,14 @@ const zhCN: BaseMessage = {
 		particleEffectAdaptiveSize: {
 			name: '自适应粒子大小',
 			desc: '保留颗粒间隙，在字形边缘缩小粒子，最小为 0.2。关闭后所有粒子使用统一大小。',
+		},
+		particleEffectShape: {
+			name: '粒子形状',
+			desc: '每个粒子的轮廓；圆形在大粒子下也保持圆润，方形的光栅化速度略快。',
+			options: {
+				square: '方形',
+				circle: '圆形',
+			},
 		},
 		particleEffectDisturbRadius: {
 			name: '扰动范围',
