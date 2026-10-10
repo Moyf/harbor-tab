@@ -550,6 +550,10 @@ const zhCN: BaseMessage = {
 			name: '辉光',
 			desc: '为粒子添加外部光晕。性能开销较大，尤其是大画布；默认关闭。',
 		},
+		pointerGlow: {
+			name: '指针光晕',
+			desc: '鼠标划过文件卡片时跟随指针的微光，移开后淡出',
+		},
 		particleEffectGlow: {
 			name: '辉光强度',
 			desc: '控制光晕亮度；0 时跳过辉光绘制。',

@@ -550,6 +550,10 @@ const en: BaseMessage = {
 			name: 'Glow',
 			desc: 'Adds outer halos around particles. Significant performance cost, especially on large canvases; disabled by default.',
 		},
+		pointerGlow: {
+			name: 'Pointer glow',
+			desc: 'A soft light follows the pointer across the file cards, fading out when it leaves',
+		},
 		particleEffectGlow: {
 			name: 'Glow strength',
 			desc: 'How bright the glow appears; 0 skips glow rendering.',

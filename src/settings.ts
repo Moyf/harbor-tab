@@ -160,6 +160,7 @@ export interface HomeTabSettings extends ObjectKeys{
     vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
     vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
     newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
+    pointerGlow?: boolean // 指针光晕：跟随鼠标划过卡片的微光，undefined 视为开启（旧配置无此键）
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -222,6 +223,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     // settling, so a cursor pass leaves a visible wave instead of a snap-back.
     particleEffectRecoverySpeed: 1.5,
     particleEffectRecoveryDamping: 60,
+    pointerGlow: true,
     maxResults: 5,
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
@@ -989,6 +991,14 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 ],
                             },
                         ],
+                    },
+                    {
+                        name: t.setting.pointerGlow.name,
+                        desc: t.setting.pointerGlow.desc,
+                        control: { type: 'toggle', key: 'pointerGlow', defaultValue: true },
+                        // No rebuild needed: the stylesheet reads this attribute
+                        // reactively, so toggling re-lights or kills every card
+                        // on the next pointer move.
                     },
                     {
                         type: 'page',

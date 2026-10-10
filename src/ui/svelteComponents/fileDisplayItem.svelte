@@ -62,7 +62,7 @@
     }
 </script>
 
-<div class="home-tab-file-item" class:use-accent-color="{pluginSettings.selectionHighlight === 'accentColor'}"
+<div class="home-tab-file-item" data-htglow="{pluginSettings.pointerGlow === false ? undefined : 'dark'}" class:use-accent-color="{pluginSettings.selectionHighlight === 'accentColor'}"
     class:selected="{selected}"
     class:compact={pluginSettings.compactMode}
     class:grid={gridAligned}
