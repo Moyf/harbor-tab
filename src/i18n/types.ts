@@ -175,6 +175,7 @@ export interface BaseMessage {
 		selectionHighlight: SettingEntry
 		particleEffect: SettingEntry
 		particleEffectPreview: SettingEntry
+		pointerGlow: SettingEntry
 		particleEffectColorMode: SettingEntry & { options: DropdownOptions }
 		particleEffectPreserveShading: SettingEntry
 		particleEffectColor: SettingEntry
