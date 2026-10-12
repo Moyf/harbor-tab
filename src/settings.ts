@@ -996,9 +996,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         name: t.setting.pointerGlow.name,
                         desc: t.setting.pointerGlow.desc,
                         control: { type: 'toggle', key: 'pointerGlow', defaultValue: true },
-                        // No rebuild needed: the stylesheet reads this attribute
-                        // reactively, so toggling re-lights or kills every card
-                        // on the next pointer move.
+                        // No rebuild needed: saveSettings() pushes the new
+                        // state to every open view, and the settings store
+                        // updates each card's data-htglow attribute.
                     },
                     {
                         type: 'page',
