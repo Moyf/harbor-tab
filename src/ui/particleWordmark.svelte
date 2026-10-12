@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte'
     import { pluginSettingsStore } from '../store'
     import { ParticleWordmarkEngine, normalizeParticleCanvasPadding } from '../utils/particleEngine'
-    import { effectiveParticleEffectColors, effectiveParticleEffectScale, isDarkTheme, type HomeTabSettings } from '../settings'
+    import { DEFAULT_SETTINGS, effectiveParticleEffectColors, effectiveParticleEffectScale, isDarkTheme, type HomeTabSettings } from '../settings'
 
     // Deliberately prop-free: everything is read from the settings store, so
     // parent re-renders can never invalidate this component and trigger
@@ -241,6 +241,28 @@
         ].join('|')
     }
 
+    /**
+     * Pointer-glow inputs as wrapper CSS variables: the particle base colors
+     * (--htgc-light/-dark, mirroring the engine's per-theme fallbacks) when
+     * the wordmark is recolored, so the theme rule can fall back to the
+     * accent otherwise; plus the strength slider (--htgs) as the peak alpha.
+     * 40/100 maps to the original 5% look.
+     */
+    function applyGlowStyle(s: HomeTabSettings | undefined): void {
+        if (!rootEl || !s) return
+        const pick = (value: string, fallback: string): string => (value && value.trim() !== '' ? value : fallback)
+        if (s.particleEffectColorMode !== 'original') {
+            rootEl.style.setProperty('--htgc-light', pick(s.particleEffectColor, DEFAULT_SETTINGS.particleEffectColor))
+            rootEl.style.setProperty('--htgc-dark', pick(s.particleEffectColorDark, s.particleEffectColor))
+        } else {
+            rootEl.style.removeProperty('--htgc-light')
+            rootEl.style.removeProperty('--htgc-dark')
+        }
+        const strength = Math.max(0, Math.min(100, s.pointerGlowStrength ?? 40)) / 100
+        rootEl.style.setProperty('--htgs', (strength * 0.125).toFixed(4))
+    }
+    $: applyGlowStyle($pluginSettingsStore)
+
     onMount(() => {
         let lastAppearance: string | null = null
         const applyAppearance = (): void => {
@@ -279,7 +301,8 @@
     })
 </script>
 
-<div bind:this={rootEl} class="home-tab-wordmark-wrapper" class:home-tab-particle-loading={loading}><slot/></div>
+<div bind:this={rootEl} class="home-tab-wordmark-wrapper" class:home-tab-particle-loading={loading}
+    data-htglow="{$pluginSettingsStore?.particleEffect && $pluginSettingsStore.pointerGlow !== false ? 'dark' : undefined}"><slot/></div>
 
 <style>
     /* Hide the original wordmark synchronously while the particle canvas

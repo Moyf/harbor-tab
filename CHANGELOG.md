@@ -1,15 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [1.13.0](https://github.com/Moyf/harbor-tab/compare/1.12.2...1.13.0) - 2026-10-12
 
 ### ✨ Added
 
-- **Pointer glow**: a soft light follows the pointer across the file cards, fading out when it leaves. The glow paints in each card's background layer so it never washes over content, follows the active theme (light cards take a cool shade, dark cards take white), and honors `prefers-reduced-motion`. Toggle it in Settings → Harbor Tab → Appearance (on by default).
+- **Pointer glow**: a soft light follows the pointer across the particle canvas, fading out when it leaves. The glow tints itself with the particle base color when the wordmark is recolored (monochrome/gradient), or with the theme accent otherwise, and eases out near the canvas edges instead of clipping. It honors `prefers-reduced-motion` and requires the particle effect; find it in Settings → Harbor Tab → Particle effect → Interaction with a strength slider (on by default).
 
 <details>
 <summary>中文说明（点击展开）</summary>
 
-- **指针光晕**：鼠标划过文件卡片时跟随指针的微光，移开后淡出。光晕绘制在卡片自身的背景层，不会盖住内容；自动跟随明暗主题（浅色卡片用冷色调，深色卡片用白光），并遵循系统的「减弱动态效果」设置。在 设置 → Harbor Tab → 外观 中开关（默认开启）。
+- **指针光晕**：鼠标划过粒子 Canvas 时跟随指针的微光，移开后淡出。粒子改色（单色/渐变）时光晕随基础颜色着色，否则跟随主题强调色；靠近画布边缘时平滑收拢而非截断；遵循系统的「减弱动态效果」设置且需开启粒子效果。在 设置 → Harbor Tab → 粒子效果 → 交互 中开关并调节强度（默认开启）。
 
 </details>
 

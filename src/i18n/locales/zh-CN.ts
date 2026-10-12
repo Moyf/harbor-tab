@@ -552,7 +552,11 @@ const zhCN: BaseMessage = {
 		},
 		pointerGlow: {
 			name: '指针光晕',
-			desc: '鼠标划过文件卡片时跟随指针的微光，移开后淡出',
+			desc: '鼠标划过粒子 Canvas 时跟随指针的微光，移开后淡出',
+		},
+		pointerGlowStrength: {
+			name: '光晕强度',
+			desc: '控制指针光晕的亮度；0 为关闭',
 		},
 		particleEffectGlow: {
 			name: '辉光强度',

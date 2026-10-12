@@ -18,11 +18,18 @@
  * coexist in one document. Position is written straight to the hovered node
  * as custom properties, so nothing re-renders and the paint is a single small
  * gradient per frame.
+ *
+ * The look is parameterized through CSS variables the host sets on the
+ * marked element: `--htgc-light/-dark` (glow color per theme, falling back to
+ * the theme accent), `--htgs` (peak alpha from the strength slider) and
+ * `--htgr` (edge-damped radius, written here).
  */
 
 const STYLE_ELEMENT_ID = 'harbor-tab-pointer-glow'
 const ATTRIBUTE = 'data-htglow'
 const ACTIVE_ATTRIBUTE = 'data-htglow-on'
+/** Full radius of the light, also the distance over which edges damp it. */
+const GLOW_RADIUS = 120
 
 const GLOW_RULE = `@property --htga {
   syntax: "<number>";
@@ -30,26 +37,23 @@ const GLOW_RULE = `@property --htga {
   initial-value: 0;
 }
 /* Inactive cards hold the gradient at zero alpha, which is what lets the
-   light fade out instead of vanishing. */
+   light fade out instead of vanishing. The color (--htgc) resolves per theme
+   below: the host supplies the particle base color via --htgc-light/-dark
+   when the wordmark is recolored, otherwise the theme accent shines through.
+   --htgs is the strength slider (peak alpha); --htgr is the edge-damped
+   radius written per frame. */
 [${ATTRIBUTE}] {
   --htga: 0;
   background-repeat: no-repeat;
   transition: --htga 200ms ease-out;
-}
-[${ATTRIBUTE}="dark"] {
   background-image: radial-gradient(
-    120px circle at var(--htgx, 50%) var(--htgy, 50%),
-    rgba(255, 255, 255, calc(var(--htga) * 0.05)),
+    var(--htgr, ${GLOW_RADIUS}px) circle at var(--htgx, 50%) var(--htgy, 50%),
+    color-mix(in srgb, var(--htgc) calc(var(--htga) * var(--htgs, 0.05) * 100%), transparent),
     transparent 70%
   );
 }
-[${ATTRIBUTE}="light"] {
-  background-image: radial-gradient(
-    120px circle at var(--htgx, 50%) var(--htgy, 50%),
-    rgba(74, 104, 156, calc(var(--htga) * 0.075)),
-    transparent 70%
-  );
-}
+[${ATTRIBUTE}="dark"] { --htgc: var(--htgc-dark, var(--interactive-accent)); }
+[${ATTRIBUTE}="light"] { --htgc: var(--htgc-light, var(--interactive-accent)); }
 [${ATTRIBUTE}][${ACTIVE_ATTRIBUTE}] {
   --htga: 1;
 }
@@ -114,8 +118,18 @@ function createPointerGlowState(doc: Document, view: Window): PointerGlowState {
         // rect also keeps the light under the pointer if the card moved or
         // scrolled between the event and this frame.
         const box = next.target.getBoundingClientRect()
-        state.active.style.setProperty('--htgx', `${next.x - box.left}px`)
-        state.active.style.setProperty('--htgy', `${next.y - box.top}px`)
+        const x = next.x - box.left
+        const y = next.y - box.top
+        // Near an edge the circle would clip against the element bounds:
+        // shrink it over one radius (smoothstepped) so the light eases out
+        // instead of cutting off. Edge distances past the radius keep the
+        // full size.
+        const edge = Math.min(x, y, box.width - x, box.height - y)
+        const t = Math.max(0, Math.min(1, edge / GLOW_RADIUS))
+        const factor = t * t * (3 - 2 * t)
+        state.active.style.setProperty('--htgr', `${Math.round(GLOW_RADIUS * factor)}px`)
+        state.active.style.setProperty('--htgx', `${x}px`)
+        state.active.style.setProperty('--htgy', `${y}px`)
         state.active.setAttribute(ACTIVE_ATTRIBUTE, '')
     }
 

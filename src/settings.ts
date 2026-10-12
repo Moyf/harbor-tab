@@ -160,7 +160,8 @@ export interface HomeTabSettings extends ObjectKeys{
     vaultStatsItems: VaultStatItemKey[] // 新增：启用的库数据项（显示顺序即数组顺序）
     vaultStatsOrder: VaultStatItemKey[] // 新增：设置页中库数据项的排列顺序（包含全部项）
     newNoteOnUnmatchedName: boolean // 新增：搜索无匹配时高亮新建按钮，回车直接打开新建弹窗
-    pointerGlow?: boolean // 指针光晕：跟随鼠标划过卡片的微光，undefined 视为开启（旧配置无此键）
+    pointerGlow?: boolean // 指针光晕：跟随鼠标划过粒子 Canvas 的微光，undefined 视为开启（旧配置无此键）
+    pointerGlowStrength: number // 指针光晕强度（0–100，映射为渐变的峰值透明度）
 }
 
 export const DEFAULT_SETTINGS: HomeTabSettings = {
@@ -224,6 +225,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     particleEffectRecoverySpeed: 1.5,
     particleEffectRecoveryDamping: 60,
     pointerGlow: true,
+    pointerGlowStrength: 40,
     maxResults: 5,
     // Cannot read app.internalPlugins at module level: the real availability
     // check happens in main.ts onLayoutReady (disabled -> forced to false)
@@ -993,14 +995,6 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         ],
                     },
                     {
-                        name: t.setting.pointerGlow.name,
-                        desc: t.setting.pointerGlow.desc,
-                        control: { type: 'toggle', key: 'pointerGlow', defaultValue: true },
-                        // No rebuild needed: saveSettings() pushes the new
-                        // state to every open view, and the settings store
-                        // updates each card's data-htglow attribute.
-                    },
-                    {
                         type: 'page',
                         name: t.page.particleEffect.name,
                         desc: t.page.particleEffect.desc,
@@ -1136,6 +1130,19 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 type: 'group',
                                 heading: t.group.particleInteraction,
                                 items: [
+                                    {
+                                        name: t.setting.pointerGlow.name,
+                                        desc: t.setting.pointerGlow.desc,
+                                        control: { type: 'toggle', key: 'pointerGlow', defaultValue: DEFAULT_SETTINGS.pointerGlow },
+                                        // No rebuild needed: saveSettings() pushes the new state to
+                                        // every open view, and the settings store updates the
+                                        // wrapper's data-htglow attribute and glow variables in place.
+                                        visible: () => s.particleEffect,
+                                    },
+                                    {
+                                        ...this.sliderWithReset('pointerGlowStrength', t.setting.pointerGlowStrength.name, t.setting.pointerGlowStrength.desc, 0, 100, 5),
+                                        visible: () => s.particleEffect && s.pointerGlow !== false,
+                                    },
                                     {
                                         name: t.setting.particleEffectParallax.name,
                                         desc: t.setting.particleEffectParallax.desc,

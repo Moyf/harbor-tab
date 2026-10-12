@@ -552,7 +552,11 @@ const en: BaseMessage = {
 		},
 		pointerGlow: {
 			name: 'Pointer glow',
-			desc: 'A soft light follows the pointer across the file cards, fading out when it leaves',
+			desc: 'A soft light follows the pointer across the particle canvas, fading out when it leaves',
+		},
+		pointerGlowStrength: {
+			name: 'Glow strength',
+			desc: 'How bright the pointer glow appears; 0 disables it',
 		},
 		particleEffectGlow: {
 			name: 'Glow strength',
