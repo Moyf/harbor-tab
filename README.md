@@ -4,7 +4,7 @@
 
 # Harbor Tab
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=Downloads&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![GitHub Issues](https://img.shields.io/github/issues/Moyf/harbor-tab?label=Issues)](https://github.com/Moyf/harbor-tab/issues) [![Release](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases) [![Stars](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=Stars)](https://github.com/Moyf/harbor-tab/stargazers)
+[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=Downloads&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![Release](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases) [![GitHub Issues](https://img.shields.io/github/issues/Moyf/harbor-tab?label=Issues)](https://github.com/Moyf/harbor-tab/issues) [![Stars](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=Stars)](https://github.com/Moyf/harbor-tab/stargazers)
 
 English | [中文文档](https://github.com/Moyf/harbor-tab/blob/main/README-zh.md)
 
