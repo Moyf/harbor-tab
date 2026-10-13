@@ -4,9 +4,9 @@
 
 # Harbor Tab
 
-中文文档 | [English](https://github.com/Moyf/harbor-tab/blob/main/README.md)
+[![Obsidian 下载量](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![问题](https://img.shields.io/github/issues/Moyf/harbor-tab?label=%E9%97%AE%E9%A2%98)](https://github.com/Moyf/harbor-tab/issues) [![版本发布](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases) [![星标](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=%E6%98%9F%E6%A0%87)](https://github.com/Moyf/harbor-tab/stargazers)
 
-[![星标](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=%E6%98%9F%E6%A0%87)](https://github.com/Moyf/harbor-tab/stargazers) [![Obsidian 下载量](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![问题](https://img.shields.io/github/issues/Moyf/harbor-tab?label=%E9%97%AE%E9%A2%98)](https://github.com/Moyf/harbor-tab/issues) [![版本发布](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases)
+中文文档 | [English](https://github.com/Moyf/harbor-tab/blob/main/README.md)
 
 Harbor Tab 是一款 [Obsidian](https://obsidian.md/) 插件，为默认新标签页提供类似浏览器的首页体验，包含搜索栏、最近打开笔记、收藏笔记等。
 

@@ -4,9 +4,9 @@
 
 # Harbor Tab
 
-English | [中文文档](https://github.com/Moyf/harbor-tab/blob/main/README-zh.md)
+[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=Downloads&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![GitHub Issues](https://img.shields.io/github/issues/Moyf/harbor-tab?label=Issues)](https://github.com/Moyf/harbor-tab/issues) [![Release](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases) [![Stars](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=Stars)](https://github.com/Moyf/harbor-tab/stargazers)
 
-[![Stars](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=Stars)](https://github.com/Moyf/harbor-tab/stargazers) [![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=Downloads&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![GitHub Issues](https://img.shields.io/github/issues/Moyf/harbor-tab?label=Issues)](https://github.com/Moyf/harbor-tab/issues) [![Release](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases)
+English | [中文文档](https://github.com/Moyf/harbor-tab/blob/main/README-zh.md)
 
 
 Harbor Tab is an [Obsidian](https://obsidian.md/) plugin that brings a browser-like home experience to your default new tab, with a search bar, recent notes, bookmarked notes, and more.
@@ -150,10 +150,6 @@ Alternatively, you can install with [BRAT](https://github.com/TfTHacker/obsidian
 - The particle wordmark effect is inspired by [Arknights-FlowingPoints](https://github.com/BlackCoder0/Arknights-FlowingPoints) by [BlackCoder0](https://github.com/BlackCoder0) — our implementation is an independent rewrite of that idea
 - **Background image** is implemented using the [style context](https://github.com/Moyf/style-context) plugin
 
-## Support
-
-If you like Harbor Tab, consider [buying me a coffee on Ko-fi](https://ko-fi.com/moy) ☕
-
 ## More from Moy
 
 If you appreciate my plugin design and quality, check out my other Obsidian plugins:
@@ -161,14 +157,18 @@ If you appreciate my plugin design and quality, check out my other Obsidian plug
 | Plugin | Description | Stats |
 | --- | --- | --- |
 | [Yearly Glance](https://github.com/Moyf/yearly-glance) | See your whole year's key events at a glance. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22yearly-glance%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/yearly-glance?logo=github&label=Stars) |
-| [Easy Copy](https://github.com/Moyf/easy-copy) | Easily copy formatted text, or generate elegant heading links. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22easy-copy%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/easy-copy?logo=github&label=Stars) |
-| [Better Links](https://github.com/Moyf/better-links) | The link editing upgrade you absolutely need. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22better-links%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/better-links?logo=github&label=Stars) |
-| [Style Context](https://github.com/Moyf/style-context) | Set your Obsidian background to any image in your vault! | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22style-context%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/style-context?logo=github&label=Stars) |
+| [Easy Copy](https://github.com/Moyf/easy-copy) | Easily copy formatted text, or copy elegant links. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22easy-copy%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/easy-copy?logo=github&label=Stars) |
+| [Better Links](https://github.com/Moyf/better-links) | The link popover editor you absolutely need. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22better-links%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/better-links?logo=github&label=Stars) |
+| [Style Context](https://github.com/Moyf/style-context) | Set your Obsidian background to any image in your vault. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22style-context%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/style-context?logo=github&label=Stars) |
 | [Colorful Highlights](https://github.com/Moyf/colorful-highlights) | Enhanced colorful highlights with multiple styles and custom colors. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22colorful-highlights%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/colorful-highlights?logo=github&label=Stars) |
 | [Single Choice Property](https://github.com/Moyf/single-choice-property) | Keep selected list properties to only one value. | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22single-choice-property%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/single-choice-property?logo=github&label=Stars) |
 
-See all my plugins on my [Obsidian Community page](https://community.obsidian.md/users/moyf).
+> See all my plugins on my [Obsidian Community page](https://community.obsidian.md/users/moyf).
 
 Friend plugins I contributed to: [Note Toolbar](https://github.com/chrisgurney/obsidian-note-toolbar) & [Typify](https://github.com/leike-dev/Obsidian-Typify) ❤️
+
+## Support
+
+If you like Harbor Tab, consider [buying me a coffee on Ko-fi](https://ko-fi.com/moy) ☕
 
 
