@@ -6,7 +6,7 @@
 
 中文文档 | [English](https://github.com/Moyf/harbor-tab/blob/main/README.md)
 
-![GitHub stars](https://img.shields.io/github/stars/Moyf/harbor-tab?style=flat&label=星标) ![Total Downloads](https://img.shields.io/github/downloads/Moyf/harbor-tab/total?style=flat&label=总下载量) ![GitHub Issues](https://img.shields.io/github/issues/Moyf/harbor-tab?style=flat&label=问题) ![GitHub Last Commit](https://img.shields.io/github/last-commit/Moyf/harbor-tab?style=flat&label=最后提交)
+[![星标](https://img.shields.io/github/stars/Moyf/harbor-tab?logo=github&label=%E6%98%9F%E6%A0%87)](https://github.com/Moyf/harbor-tab/stargazers) [![Obsidian 下载量](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&query=%24%5B%22harbor-tab%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=harbor-tab) [![问题](https://img.shields.io/github/issues/Moyf/harbor-tab?label=%E9%97%AE%E9%A2%98)](https://github.com/Moyf/harbor-tab/issues) [![版本发布](https://img.shields.io/github/v/release/Moyf/harbor-tab?label=Release)](https://github.com/Moyf/harbor-tab/releases)
 
 Harbor Tab 是一款 [Obsidian](https://obsidian.md/) 插件，为默认新标签页提供类似浏览器的首页体验，包含搜索栏、最近打开笔记、收藏笔记等。
 
@@ -152,3 +152,20 @@ show starred files
 ## 支持作者
 
 如果 Harbor Tab 对你有帮助，欢迎[请我喝杯咖啡（Ko-fi）](https://ko-fi.com/moy) ☕
+
+## 来自 Moy 的更多插件
+
+如果你欣赏我的插件设计和质量，可以看看我的其他 Obsidian 插件：
+
+| 插件 | 简介 | 数据 |
+| --- | --- | --- |
+| [Yearly Glance](https://github.com/Moyf/yearly-glance) | 年度一览，一眼纵览你全年的关键事件。 | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22yearly-glance%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/yearly-glance?logo=github&label=Stars) |
+| [Easy Copy](https://github.com/Moyf/easy-copy) | 轻松复制格式文本，或生成优雅的标题链接。 | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22easy-copy%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/easy-copy?logo=github&label=Stars) |
+| [Better Links](https://github.com/Moyf/better-links) | 你绝对需要的链接编辑体验提升插件。 | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22better-links%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/better-links?logo=github&label=Stars) |
+| [Style Context](https://github.com/Moyf/style-context) | 将你的 Obsidian 背景换成任意库内图片！ | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22style-context%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/style-context?logo=github&label=Stars) |
+| [Colorful Highlights](https://github.com/Moyf/colorful-highlights) | 彩色高亮效果增强，提供多种样式，还可自定义新配色。 | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22colorful-highlights%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/colorful-highlights?logo=github&label=Stars) |
+| [Single Choice Property](https://github.com/Moyf/single-choice-property) | 让选定的列表属性只保留一个值。 | ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&logoColor=white&color=%23483699&label=downloads&query=%24%5B%22single-choice-property%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub Stars](https://img.shields.io/github/stars/Moyf/single-choice-property?logo=github&label=Stars) |
+
+全部插件见 [Moy 的 Obsidian Community 页面](https://community.obsidian.md/users/moyf)。
+
+参与开发的友情插件：[Note Toolbar](https://github.com/chrisgurney/obsidian-note-toolbar) & [Typify](https://github.com/leike-dev/Obsidian-Typify) ❤️
