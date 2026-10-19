@@ -1,0 +1,126 @@
+name: Harbor Tab PR preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: harbor-tab-pr-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-plugin-preview:
+    name: Build installable plugin ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.4
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build plugin
+        run: pnpm run build
+
+      - name: Package installable plugin ZIP
+        id: package
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          package_dir="$RUNNER_TEMP/harbor-tab-plugin"
+          archive="harbor-tab-pr-${PR_NUMBER}-${PR_HEAD_SHA}.zip"
+          mkdir -p "$package_dir"
+          cp main.js manifest.json dist/styles.css "$package_dir/"
+          (cd "$package_dir" && zip -X -q "$GITHUB_WORKSPACE/$archive" main.js manifest.json styles.css)
+          python - "$archive" <<'PY'
+          import json
+          import sys
+          from zipfile import ZipFile
+
+          archive = sys.argv[1]
+          expected = {'main.js', 'manifest.json', 'styles.css'}
+          with ZipFile(archive) as bundle:
+              names = set(bundle.namelist())
+              if names != expected:
+                  raise SystemExit(f'Unexpected ZIP contents: {sorted(names)}')
+              manifest = json.loads(bundle.read('manifest.json'))
+              if manifest.get('id') != 'harbor-tab':
+                  raise SystemExit(f"Unexpected plugin id: {manifest.get('id')!r}")
+              css = bundle.read('styles.css').decode('utf-8')
+              if '.home-tab-search-overlay .home-tab-suggestion-container' not in css:
+                  raise SystemExit('ZIP is missing the overlay width fallback rule.')
+          print(f"Validated {archive}: {manifest['id']} {manifest['version']} with all install files.")
+          PY
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Upload PR preview ZIP
+        uses: actions/upload-artifact@v6
+        with:
+          name: harbor-tab-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add or update PR preview comment
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const marker = '<!-- harbor-tab-pr-preview -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const artifactName = `harbor-tab-pr-${pr.number}-${pr.head.sha}`;
+            const body = `${marker}
+            ## Harbor Tab PR test build
+
+            Installable ZIP for this commit: ${artifactName}.zip.
+
+            [Open this Actions run](${runUrl}) and download the ZIP from **Artifacts**. It contains main.js, manifest.json, and styles.css; the plugin version remains the one declared by this PR. The artifact expires after 14 days.`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const existing = comments.find(comment => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }

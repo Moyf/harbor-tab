@@ -9,6 +9,7 @@ export function mountSearchDropdown(node: HTMLElement, anchor: HTMLElement, pare
     let popper: Instance | undefined
     let resizeObserver: ResizeObserver | undefined
     let previousStyle: string | undefined
+    let previousNodeWidth: string | undefined
 
     function removeLayer(restore: boolean): void {
         resizeObserver?.disconnect()
@@ -16,6 +17,10 @@ export function mountSearchDropdown(node: HTMLElement, anchor: HTMLElement, pare
         popper?.destroy()
         popper = undefined
         if (restore && layer) parent.appendChild(node)
+        if (previousNodeWidth !== undefined) {
+            node.style.width = previousNodeWidth
+            previousNodeWidth = undefined
+        }
         layer?.remove()
         layer = undefined
     }
@@ -29,6 +34,8 @@ export function mountSearchDropdown(node: HTMLElement, anchor: HTMLElement, pare
             return
         }
         if (!layer) {
+            previousNodeWidth = node.style.width
+            node.style.width = '100%'
             layer = ownerDocument.body.createDiv('home-tab-searchbar-container home-tab-search-overlay')
             layer.dataset.searchStyle = style
             ownerDocument.body.appendChild(layer)
