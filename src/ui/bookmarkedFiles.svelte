@@ -42,9 +42,10 @@
     $: filteredFileList = filterQuery.trim()
         ? groupFilteredFiles.filter(entry => {
             const query = filterQuery.trim().toLowerCase()
-            const basename = entry.file.basename.toLowerCase()
+            const names = [entry.file.basename.toLowerCase()]
+            if (entry.title) names.push(entry.title.toLowerCase())
             const extension = entry.file.extension.toLowerCase()
-            return basename.includes(query) || extension === query
+            return names.some(name => name.includes(query)) || extension === query
         })
         : groupFilteredFiles
 
@@ -275,6 +276,7 @@
         >
             {#each filteredFileList as item (item.file.path)}
                 <FileDisplayItem file={item.file} customIcon={item.iconId} {app} {pluginSettings} {contextualMenu}
+                displayName={item.title}
                 selected={filteredFileList.indexOf(item) === selectedFileIndex}
                 gridAligned={pluginSettings.fileListLayout === 'grid'}
                 on:itemMenu={(e) => selectedFile = e.detail.file}/>

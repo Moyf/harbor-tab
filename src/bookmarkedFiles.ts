@@ -5,10 +5,13 @@ import type HomeTab from "./main";
 export interface bookmarkedFileStore{
     filepath: string
     iconId: IconName | undefined
+    // Custom title from the bookmarks panel (shown instead of the file name)
+    title?: string
 }
 export interface bookmarkedFile{
     file: TFile
     iconId: IconName | undefined
+    title?: string
 }
 
 export class bookmarkedFilesManager extends Component{
@@ -43,9 +46,10 @@ export class bookmarkedFilesManager extends Component{
 
             bookmarkedFiles.forEach((bookmarkedFile) => {
                 updatedArray.push({
-                    file: bookmarkedFile,
+                    file: bookmarkedFile.file,
+                    title: bookmarkedFile.title,
                     // Retrieve icon from stored array
-                    iconId: filesArray.find((item) => item.file === bookmarkedFile)?.iconId ?? undefined
+                    iconId: filesArray.find((item) => item.file === bookmarkedFile.file)?.iconId ?? undefined
                 })
             })
             
@@ -65,16 +69,16 @@ export class bookmarkedFilesManager extends Component{
         void this.storeBookmarkedFiles()
     }
 
-    private getBookmarkedFiles(): TFile[]{
+    private getBookmarkedFiles(): bookmarkedFile[]{
         if(this.app.internalPlugins.getPluginById('bookmarks')){
             const bookmarkedItems = this.app.internalPlugins.plugins.bookmarks.instance.getBookmarks()
-            const bookmarkedFiles: TFile[] = []
+            const bookmarkedFiles: bookmarkedFile[] = []
     
             bookmarkedItems.forEach((item: BookmarkItem) => {
                 if (item.type === 'file'){
                     const file = this.app.vault.getAbstractFileByPath(item.path)
                     if (file instanceof TFile){
-                        bookmarkedFiles.push(file)
+                        bookmarkedFiles.push({ file, iconId: undefined, title: item.title || undefined })
                     }
                 }
             })
@@ -88,7 +92,8 @@ export class bookmarkedFilesManager extends Component{
             let storeObj: bookmarkedFileStore[] = []
             get(this.bookmarkedFilesStore).forEach((item) => storeObj.push({
                 filepath: item.file.path, // Store only the path instead of the entire TFile instance
-                iconId: item.iconId
+                iconId: item.iconId,
+                title: item.title
             }))
             this.plugin.settings.bookmarkedFileStore = storeObj
             await this.plugin.saveData(this.plugin.settings)
@@ -104,7 +109,8 @@ export class bookmarkedFilesManager extends Component{
                     if(file && file instanceof TFile){
                         filesToLoad.push({
                             file: file,
-                            iconId: item.iconId
+                            iconId: item.iconId,
+                            title: item.title
                         })
                     }
                 })
