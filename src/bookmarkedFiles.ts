@@ -110,7 +110,7 @@ export class bookmarkedFilesManager extends Component{
                         filesToLoad.push({
                             file: file,
                             iconId: item.iconId,
-                            title: item.title
+                            title: item.title || undefined
                         })
                     }
                 })
