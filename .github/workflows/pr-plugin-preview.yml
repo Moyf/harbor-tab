@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 concurrency:
@@ -79,7 +79,7 @@ jobs:
           PY
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
 
-      - name: Upload PR preview ZIP
+      - name: Upload PR preview ZIP artifact
         uses: actions/upload-artifact@v6
         with:
           name: harbor-tab-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
@@ -87,21 +87,49 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Publish ZIP as release asset with direct link
+        id: release
+        # Same-repo PRs only: fork PRs get a read-only token and cannot publish releases.
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TAG: plugin-preview
+        run: |
+          set -euo pipefail
+          archive="harbor-tab-pr-${PR_NUMBER}-${PR_HEAD_SHA}.zip"
+          asset_prefix="harbor-tab-pr-${PR_NUMBER}-"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+                 --prerelease --title "PR preview builds" \
+                 --notes "Rolling installable plugin ZIPs for open PRs. An asset is replaced whenever its PR is updated." \
+            || gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" \
+            --jq '.assets[] | select(.name | startswith("'"$asset_prefix"'")) | .id' \
+          | while read -r asset_id; do
+              gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" >/dev/null
+            done
+          gh release upload "$TAG" "$archive" --clobber --repo "$GITHUB_REPOSITORY"
+          echo "download_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$archive" >> "$GITHUB_OUTPUT"
+
       - name: Add or update PR preview comment
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/github-script@v8
+        env:
+          DOWNLOAD_URL: ${{ steps.release.outputs.download_url }}
         with:
           script: |
             const pr = context.payload.pull_request;
             const marker = '<!-- harbor-tab-pr-preview -->';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const artifactName = `harbor-tab-pr-${pr.number}-${pr.head.sha}`;
-            const body = `${marker}
-            ## Harbor Tab PR test build
-
-            Installable ZIP for this commit: ${artifactName}.zip.
-
-            [Open this Actions run](${runUrl}) and download the ZIP from **Artifacts**. It contains main.js, manifest.json, and styles.css; the plugin version remains the one declared by this PR. The artifact expires after 14 days.`;
+            const parts = ['## Harbor Tab PR test build'];
+            parts.push(`Direct download for this commit: [${artifactName}.zip](${process.env.DOWNLOAD_URL}). This link always holds the latest build of this PR and is replaced on every update.`);
+            parts.push(`Fallback: [open this Actions run](${runUrl}) and download \`${artifactName}\` from **Artifacts** (expires after 14 days).`);
+            parts.push('Both contain main.js, manifest.json, and styles.css; the plugin version remains the one declared by this PR.');
+            const body = `${marker}\n${parts.join('\n\n')}`;
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
