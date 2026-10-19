@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.14.0](https://github.com/Moyf/harbor-tab/compare/1.13.0...1.14.0) - 2026-10-19
+
+### ✨ Added
+
+- **Bookmark titles**: the Bookmarks section on the home tab now prefers the custom title of a renamed bookmark over the file name (bookmark title > frontmatter display property > file name). The section filter matches the custom title as well, and changes made in the bookmarks panel apply live.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+- **书签标题**：首页 Bookmarks 区块优先显示在书签面板中重命名过的自定义标题（标题 > frontmatter 显示属性 > 文件名）；区块过滤框同样匹配自定义标题，书签面板中的改动实时生效。
+
+</details>
+
+### 🐛 Fixed
+
+- **Search suggestion overlay width**: the suggestion overlay now spans the full search bar width at runtime and restores the previous inline width when switching back, so long suggestions are no longer clipped on narrow layouts. Ships with a regression test and a PR preview workflow that builds an installable ZIP for every pull request.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+- **搜索建议浮层宽度**：建议浮层在运行时占满搜索栏宽度，切回内联布局时恢复原有宽度，窄布局下长建议不再被截断。附带回归测试与 PR 预览 workflow（为每个 PR 构建可安装 ZIP）。
+
+</details>
+
 ## [1.13.0](https://github.com/Moyf/harbor-tab/compare/1.12.2...1.13.0) - 2026-10-12
 
 ### ✨ Added
