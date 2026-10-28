@@ -35,7 +35,7 @@ export function mountSearchDropdown(node: HTMLElement, anchor: HTMLElement, pare
         }
         if (!layer) {
             previousNodeWidth = node.style.width
-            node.style.width = '100%'
+            node.setCssStyles({ width: '100%' })
             layer = ownerDocument.body.createDiv('home-tab-searchbar-container home-tab-search-overlay')
             layer.dataset.searchStyle = style
             ownerDocument.body.appendChild(layer)
