@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.14.1](https://github.com/Moyf/harbor-tab/compare/1.14.0...1.14.1) - 2026-10-29
+
+### 🐛 Fixed
+
+- **Community review fixes**: the search dropdown overlay now sets its width through Obsidian's `setCssStyles` helper, and the pointer-glow style element is created via `createEl`, resolving both community-review findings (`no-static-styles-assignment`, `prefer-create-el`). README cross-promotion now lists Keyword Decorator.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+- **社区审核修复**：搜索下拉浮层改用 Obsidian 的 `setCssStyles` 设置宽度，指针光晕样式元素改用 `createEl` 创建，两项社区审核发现（静态样式赋值、优先 createEl）均已解决；README 互链表新增 Keyword Decorator。
+</details>
+
 ## [1.14.0](https://github.com/Moyf/harbor-tab/compare/1.13.0...1.14.0) - 2026-10-19
 
 ### ✨ Added
