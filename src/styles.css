@@ -246,3 +246,39 @@
     font-family: var(--font-monospace);
     resize: vertical;
 }
+
+/* Pointer glow (driven by utils/pointerGlow.ts). A radial-gradient is
+   painted in each marked card's own background-image, positioned by the
+   custom properties --htgx/--htgy written per frame. background-image
+   cannot transition, so the fade rides on the registered custom property
+   --htga: the @property rule makes it a real <number> that CSS can animate,
+   and the gradient reads it through calc(). */
+@property --htga {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 0;
+}
+/* Inactive cards hold the gradient at zero alpha, which is what lets the
+   light fade out instead of vanishing. The color (--htgc) resolves per
+   theme: the host supplies the particle base color via --htgc-light/-dark
+   when the wordmark is recolored, otherwise the theme accent shines
+   through. --htgs is the strength slider (peak alpha); --htgr is the
+   edge-damped radius written per frame (120px fallback = full radius). */
+[data-htglow] {
+    --htga: 0;
+    background-repeat: no-repeat;
+    transition: --htga 200ms ease-out;
+    background-image: radial-gradient(
+        var(--htgr, 120px) circle at var(--htgx, 50%) var(--htgy, 50%),
+        color-mix(in srgb, var(--htgc) calc(var(--htga) * var(--htgs, 0.05) * 100%), transparent),
+        transparent 70%
+    );
+}
+[data-htglow="dark"] { --htgc: var(--htgc-dark, var(--interactive-accent)); }
+[data-htglow="light"] { --htgc: var(--htgc-light, var(--interactive-accent)); }
+[data-htglow][data-htglow-on] {
+    --htga: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+    [data-htglow] { background-image: none; }
+}

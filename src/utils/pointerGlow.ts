@@ -12,12 +12,14 @@
  * with their own surface (icons, text blocks) naturally occlude it, so the
  * glow shows on the card's chrome and never washes over content.
  *
- * One listener per document drives every card — the style element, the
- * listeners and the active card are shared through a WeakMap keyed by
- * document, because a Harbor Tab view and embedded `search-bar` blocks can
- * coexist in one document. Position is written straight to the hovered node
- * as custom properties, so nothing re-renders and the paint is a single small
- * gradient per frame.
+ * All glow CSS lives in the plugin's static `styles.css` (Obsidian loads it
+ * into every window); this module only drives behavior at runtime.
+ *
+ * One listener per document drives every card — the listeners and the active
+ * card are shared through a WeakMap keyed by document, because a Harbor Tab
+ * view and embedded `search-bar` blocks can coexist in one document.
+ * Position is written straight to the hovered node as custom properties, so
+ * nothing re-renders and the paint is a single small gradient per frame.
  *
  * The look is parameterized through CSS variables the host sets on the
  * marked element: `--htgc-light/-dark` (glow color per theme, falling back to
@@ -25,44 +27,13 @@
  * `--htgr` (edge-damped radius, written here).
  */
 
-const STYLE_ELEMENT_ID = 'harbor-tab-pointer-glow'
 const ATTRIBUTE = 'data-htglow'
 const ACTIVE_ATTRIBUTE = 'data-htglow-on'
 /** Full radius of the light, also the distance over which edges damp it. */
 const GLOW_RADIUS = 120
 
-const GLOW_RULE = `@property --htga {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
-/* Inactive cards hold the gradient at zero alpha, which is what lets the
-   light fade out instead of vanishing. The color (--htgc) resolves per theme
-   below: the host supplies the particle base color via --htgc-light/-dark
-   when the wordmark is recolored, otherwise the theme accent shines through.
-   --htgs is the strength slider (peak alpha); --htgr is the edge-damped
-   radius written per frame. */
-[${ATTRIBUTE}] {
-  --htga: 0;
-  background-repeat: no-repeat;
-  transition: --htga 200ms ease-out;
-  background-image: radial-gradient(
-    var(--htgr, ${GLOW_RADIUS}px) circle at var(--htgx, 50%) var(--htgy, 50%),
-    color-mix(in srgb, var(--htgc) calc(var(--htga) * var(--htgs, 0.05) * 100%), transparent),
-    transparent 70%
-  );
-}
-[${ATTRIBUTE}="dark"] { --htgc: var(--htgc-dark, var(--interactive-accent)); }
-[${ATTRIBUTE}="light"] { --htgc: var(--htgc-light, var(--interactive-accent)); }
-[${ATTRIBUTE}][${ACTIVE_ATTRIBUTE}] {
-  --htga: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  [${ATTRIBUTE}] { background-image: none; }
-}`
-
 export interface PointerGlowHandle {
-    /** Stop following the pointer and remove the stylesheet. */
+    /** Stop following the pointer and release the shared per-document state. */
     destroy(): void
     /** Reflect the runtime toggle: true = glow active, false = force-off. */
     setEnabled(enabled: boolean): void
@@ -70,7 +41,6 @@ export interface PointerGlowHandle {
 
 /** Glow engine shared by every handle installed on the same document. */
 interface PointerGlowState {
-    style: HTMLStyleElement
     refs: number
     enabled: boolean
     active: HTMLElement | null
@@ -85,18 +55,7 @@ interface PointerGlowState {
 const states = new WeakMap<Document, PointerGlowState>()
 
 function createPointerGlowState(doc: Document, view: Window): PointerGlowState {
-    // Reuse a leftover style element (e.g. after a hot reload) instead of
-    // stacking duplicates.
-    let style = doc.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement | null
-    if (!style) {
-        style = doc.head.createEl('style', {
-            attr: { id: STYLE_ELEMENT_ID },
-            text: GLOW_RULE,
-        })
-    }
-
     const state: PointerGlowState = {
-        style,
         refs: 0,
         enabled: true,
         active: null,
@@ -179,7 +138,7 @@ function createPointerGlowState(doc: Document, view: Window): PointerGlowState {
 }
 
 /**
- * Install the stylesheet and the single pointer listener on `ownerDocument`.
+ * Install the single pointer listener on `ownerDocument`.
  *
  * The theme attribute is resolved per card at pointer time via the Obsidian
  * body class (`theme-dark` / `theme-light`), so a mid-session theme switch is
@@ -208,7 +167,6 @@ export function installPointerGlow(ownerDocument: Document): PointerGlowHandle {
             // clear() also cancels the pending frame.
             state.clear()
             state.dispose()
-            state.style.remove()
         },
         setEnabled(value: boolean): void {
             state.enabled = value
