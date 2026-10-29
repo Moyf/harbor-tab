@@ -89,10 +89,10 @@ function createPointerGlowState(doc: Document, view: Window): PointerGlowState {
     // stacking duplicates.
     let style = doc.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement | null
     if (!style) {
-        style = doc.createElement('style')
-        style.id = STYLE_ELEMENT_ID
-        style.textContent = GLOW_RULE
-        doc.head.appendChild(style)
+        style = doc.head.createEl('style', {
+            attr: { id: STYLE_ELEMENT_ID },
+            text: GLOW_RULE,
+        })
     }
 
     const state: PointerGlowState = {

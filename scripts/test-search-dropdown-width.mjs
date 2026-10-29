@@ -26,6 +26,8 @@ class Element {
         this.style = { width: '' };
         this.parentNode = undefined;
     }
+    // Mirrors the Obsidian helper: assign each style key directly.
+    setCssStyles(styles) { Object.assign(this.style, styles); }
     appendChild(child) {
         child.parentNode?.removeChild(child);
         this.children.push(child);
