@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.14.2](https://github.com/Moyf/harbor-tab/compare/1.14.1...1.14.2) - 2026-10-29
+
+### 🐛 Fixed
+
+- **Pointer glow CSS**: the glow rule (`@property` registration and scoped selectors) now lives in the static `styles.css` instead of being injected as a `<style>` element at runtime, resolving the community-review error. Runtime per-frame writes are element-level CSS custom properties only.
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+- **指针光晕 CSS**：光效规则（`@property` 注册与作用域选择器）移入静态 `styles.css`，不再运行时注入 `<style>` 元素，解决社区审核 Error；运行时逐帧写入仅为元素级 CSS 变量。
+</details>
+
 ## [1.14.1](https://github.com/Moyf/harbor-tab/compare/1.14.0...1.14.1) - 2026-10-29
 
 ### 🐛 Fixed
