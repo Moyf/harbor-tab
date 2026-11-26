@@ -11,6 +11,7 @@ import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
 import { isFileInFolderPath, parseFolderSearchQuery } from 'src/utils/folderSearchQuery'
+import { getFileDisplayName } from 'src/utils/fileDisplayName'
 
 declare module 'obsidian'{
     interface MetadataCache{
@@ -309,7 +310,23 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         }
     }
 
-    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): {nameToDisplay: string, filePath?: string, matchedHeading?: string, matchedAlias?: string, matchedTitle?: string}{
+    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): {nameToDisplay: string, filePath?: string, matchedHeading?: string, matchedAlias?: string, matchedTitle?: string, subtitle?: string}{
+        const props = this.resolveDisplayProps(suggestion)
+        const subtitle = this.resolveDocumentTitle(suggestion)
+        if (!subtitle || subtitle === props.nameToDisplay) return props
+        return { ...props, subtitle }
+    }
+
+    /** The frontmatter name of the matched file, shown as a secondary line next to the file name. */
+    private resolveDocumentTitle(suggestion: Fuse.FuseResult<SearchFile>): string | undefined {
+        if (!this.plugin.settings.showTitleInSearchResults) return undefined
+        const file = suggestion.item.file
+        if (!file) return undefined
+        const title = getFileDisplayName(this.app, file, this.plugin.settings.displayNameProperties ?? 'title')
+        return title !== file.basename ? title : undefined
+    }
+
+    private resolveDisplayProps(suggestion: Fuse.FuseResult<SearchFile>): {nameToDisplay: string, filePath?: string, matchedHeading?: string, matchedAlias?: string, matchedTitle?: string}{
         if (!this.inputEl || !this.inputEl.instanceOf(HTMLInputElement)) {
             return {
                 nameToDisplay: suggestion.item.basename,

@@ -1,6 +1,6 @@
 <script lang="ts">
     import type Fuse from 'fuse.js'
-	import { FilePlus, FileQuestion, Forward, Folder, Hash, Globe } from "lucide-svelte";
+    import { Circle, FilePlus, FileQuestion, Forward, Folder, Globe, Hash } from "lucide-svelte";
     import type { SearchFile } from "src/suggester/fuzzySearch";
 	import type { TextInputSuggester } from "src/suggester/suggester";
 	import Suggestion from './suggestion.svelte';
@@ -15,6 +15,7 @@
     export let matchedHeading: string | undefined = undefined
     export let matchedAlias: string | undefined = undefined
     export let matchedTitle: string | undefined = undefined
+    export let subtitle: string | undefined = undefined
 
     // 使用智能响应式，只在 suggestion 对象引用变化时更新，避免闪烁
     let suggestionItem = suggestion.item
@@ -61,6 +62,15 @@
                 <div class="home-tab-suggestion-description">
                     <Forward size={15} aria-label={'Alias of'}/>
                     <span>{suggestionItem.basename}</span>
+                </div>
+            {/if}
+            <!-- The frontmatter title of the matched file, shown next to the file name -->
+            {#if subtitle}
+                <div class="home-tab-suggestion-description home-tab-suggestion-doc-title">
+                    <span class="home-tab-suggestion-doc-title-icon">
+                        <Circle size={12} aria-label={'Frontmatter title'}/>
+                    </span>
+                    <span>{subtitle}</span>
                 </div>
             {/if}
         {/if}

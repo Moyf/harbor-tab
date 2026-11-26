@@ -38,6 +38,7 @@ function load(path, dependencies = {}) {
     const source = readFileSync(new URL(path, import.meta.url), 'utf8');
     const { code } = transformSync(source, { loader: 'ts', format: 'cjs' });
     const sandbox = { module: { exports: {} }, window: timerWindow, Date: { now: () => now },
+        HTMLInputElement: class {},
         require(name) { if (name in dependencies) return dependencies[name]; throw new Error(`Unexpected import: ${name}`); } };
     vm.runInNewContext(code, sandbox);
     return sandbox.module.exports;
@@ -59,6 +60,7 @@ const input = {
     removeEventListener(type, callback) { listeners.get(type)?.delete(callback); },
 };
 input.ownerDocument = { activeElement: input };
+input.instanceOf = () => true;
 function dispatch(type) { for (const callback of listeners.get(type) ?? []) callback({ target: input }); }
 const parent = { classList: { contains: () => true } };
 class Demo extends TextInputSuggester {
@@ -144,6 +146,7 @@ delayed.destroy(); advance(250);
 
 // The stable empty-state panel retains the real keyboard scope. Mod+Enter
 // must be harmless with no selection, while still opening selected results.
+const { getFileDisplayName } = load('../src/utils/fileDisplayName.ts');
 const subclassDependencies = {
     obsidian: { Platform: {}, TFile: class {}, View: class {} },
     './suggester': { TextInputSuggester },
@@ -153,13 +156,14 @@ const subclassDependencies = {
     'src/utils/getFilesUtils': {},
     'src/utils/getFileTypeUtils': {},
     'src/utils/matchAnalyzer': { MatchAnalyzer: class {} },
-    'src/utils/folderSearchQuery': {},
+    'src/utils/folderSearchQuery': { parseFolderSearchQuery: () => null, isFileInFolderPath: () => false },
+    'src/utils/fileDisplayName': { getFileDisplayName },
     'src/utils/regexUtils': {},
     'src/ui/svelteComponents/homeTabFileSuggestion.svelte': View,
     'src/ui/svelteComponents/omnisearchSuggestion.svelte': View,
     'src/ui/svelteComponents/surfingSuggestion.svelte': View,
 };
-app.metadataCache = { onCleanCache() {}, on() {} };
+app.metadataCache = { onCleanCache() {}, on() {}, getFileCache(file) { return file?.frontmatterCache; } };
 app.vault = { on() {} };
 app.plugins = { getPlugin() { return {}; } };
 app.workspace = { getLeavesOfType() { return []; } };
@@ -194,6 +198,32 @@ for (const name of ['homeTabSuggester', 'omnisearchSuggester', 'surfingSuggester
         assert.equal(pushes, pops, 'Late results cannot reclaim keyboard scope while another input is focused');
         input.ownerDocument.activeElement = input;
         plugin.settings.hideOnBlur = true;
+
+        // The file name stays on the main line; the frontmatter title is offered as a subtitle.
+        plugin.settings.showTitleInSearchResults = true;
+        plugin.settings.displayNameProperties = 'title';
+        const titledFile = {
+            basename: '260708_01_chinese-architecture',
+            path: 'entries/260708_01_chinese-architecture.md',
+            frontmatterCache: { frontmatter: { title: '中国建筑的同一性及不同之处' } },
+        };
+        const titledSuggestion = {
+            item: {
+                name: '260708_01_chinese-architecture.md',
+                basename: titledFile.basename,
+                path: titledFile.path,
+                isCreated: true,
+                file: titledFile,
+            },
+        };
+        input.value = '';
+        const titledProps = instance.getDisplayElementProps(titledSuggestion);
+        assert.equal(titledProps.nameToDisplay, '260708_01_chinese-architecture', 'The file name stays on the main line');
+        assert.equal(titledProps.subtitle, '中国建筑的同一性及不同之处', 'The frontmatter title is offered as a subtitle');
+
+        plugin.settings.showTitleInSearchResults = false;
+        assert.equal(instance.getDisplayElementProps(titledSuggestion).subtitle, undefined, 'The subtitle can be turned off');
+        plugin.settings.showTitleInSearchResults = true;
     }
     instance.destroy();
 }

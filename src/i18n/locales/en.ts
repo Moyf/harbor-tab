@@ -133,6 +133,10 @@ const en: BaseMessage = {
 			name: 'Search headings',
 			desc: 'Enable this to search through document headings (# Title).',
 		},
+		showTitleInSearchResults: {
+			name: 'Show document title in results',
+			desc: 'Displays the frontmatter title of the matched file below its file name in search results.',
+		},
 		autoJumpToHeading: {
 			name: 'Jump to heading',
 			desc: 'When search results match headings, clicking will automatically jump to the corresponding heading.',

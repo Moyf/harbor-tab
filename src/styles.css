@@ -45,6 +45,16 @@
 .home-tab-suggestion-description svg, .home-tab-suggestion-filepath svg{
     margin-right: 5px;
 }
+/* The document title may wrap to several lines: keep its glyph centred on the first line */
+.home-tab-suggestion-description.home-tab-suggestion-doc-title{
+    align-items: flex-start;
+}
+.home-tab-suggestion-doc-title-icon{
+    display: flex;
+    align-items: center;
+    height: 1lh;
+    flex: 0 0 auto;
+}
 
 .home-tab-suggestion-container{
     width: 50%;

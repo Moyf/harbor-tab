@@ -94,6 +94,7 @@ export interface BaseMessage {
 		unresolvedLinks: SettingEntry
 		searchTitle: SettingEntry
 		searchHeadings: SettingEntry
+		showTitleInSearchResults: SettingEntry
 		autoJumpToHeading: SettingEntry
 		headingJumpStrategy: SettingEntry & { options: DropdownOptions }
 		showPath: SettingEntry

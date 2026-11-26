@@ -133,6 +133,7 @@ export interface HomeTabSettings extends ObjectKeys{
     unresolvedLinks: boolean
     searchTitle: boolean
     searchHeadings: boolean // 是否启用标题（heading）搜索
+    showTitleInSearchResults: boolean // 是否在搜索结果中同时显示文档标题
     autoJumpToHeading?: boolean // 新增：标题匹配时自动跳转到 heading
     headingJumpStrategy?: 'never' | 'always' | 'smart' // 新增：标题跳转策略
     recentFilesStore: recentFileStore[]
@@ -267,6 +268,7 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     unresolvedLinks: false,
     searchTitle: false,
     searchHeadings: true,
+    showTitleInSearchResults: true, // 新增：默认在搜索结果中同时显示文档标题
     autoJumpToHeading: true, // 新增：标题匹配时自动跳转到 heading，默认开启
     headingJumpStrategy: 'smart', // 新增：默认使用智能跳转策略
     recentFilesStore: [],
@@ -384,6 +386,7 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'unresolvedLinks',
         'searchTitle',
         'searchHeadings',
+        'showTitleInSearchResults',
         'showPath',
         'showShortcuts',
         'searchDelay',
@@ -512,6 +515,12 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 desc: t.setting.searchTitle.desc,
                                 visible: searchVisible,
                                 control: { type: 'toggle', key: 'searchTitle' },
+                            },
+                            {
+                                name: t.setting.showTitleInSearchResults.name,
+                                desc: t.setting.showTitleInSearchResults.desc,
+                                visible: searchVisible,
+                                control: { type: 'toggle', key: 'showTitleInSearchResults' },
                             },
                             {
                                 type: 'group',

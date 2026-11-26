@@ -133,6 +133,10 @@ const zhCN: BaseMessage = {
 			name: '搜索文内标题',
 			desc: '启用后将搜索文档中的标题（# 标题）。',
 		},
+		showTitleInSearchResults: {
+			name: '在搜索结果中显示文档标题',
+			desc: '在搜索结果中，于文件名下方显示该文件的 frontmatter 标题。',
+		},
 		autoJumpToHeading: {
 			name: '跳转到文内标题',
 			desc: '当搜索结果匹配文内标题时，点击将自动跳转到对应位置。',
