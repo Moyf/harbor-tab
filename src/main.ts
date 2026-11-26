@@ -7,7 +7,7 @@ import {
 } from 'obsidian';
 import type { Command } from 'obsidian';
 import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
-import { HomeTabSettingTab, DEFAULT_SETTINGS, normalizeVaultStatsSettings, normalizeParticleCanvasSettings, type HomeTabSettings } from './settings'
+import { HomeTabSettingTab, DEFAULT_SETTINGS, normalizeVaultStatsSettings, normalizeSearchRowSettings, normalizeParticleCanvasSettings, type HomeTabSettings } from './settings'
 import { normalizeContentSectionOrder } from './utils/contentSections'
 import { t } from './i18n'
 import { pluginSettingsStore, bookmarkedFiles } from './store'
@@ -173,6 +173,7 @@ export default class HomeTab extends Plugin {
 		normalizeParticleCanvasSettings(this.settings, saved)
 		this.migrateLegacySettings()
 		normalizeVaultStatsSettings(this.settings)
+		normalizeSearchRowSettings(this.settings)
 		this.settings.contentSectionOrder = normalizeContentSectionOrder(this.settings.contentSectionOrder)
 	}
 

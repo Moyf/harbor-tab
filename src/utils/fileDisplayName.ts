@@ -17,3 +17,19 @@ export function getFileDisplayName(app: App, file: TFile, properties: string): s
     if (!properties.trim()) return file.basename
     return resolveFileDisplayName(app.metadataCache.getFileCache(file)?.frontmatter, properties, file.basename)
 }
+
+/** Resolve each configured frontmatter property to its first usable value, skipping empty ones. */
+export function getFrontmatterValues(app: App, file: TFile, properties: string): string[] {
+    if (!properties.trim()) return []
+    const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter
+    const values: string[] = []
+    for (const property of properties.split(',').map(value => value.trim()).filter(Boolean)) {
+        if (!frontmatter || !Object.prototype.hasOwnProperty.call(frontmatter, property)) continue
+        const rawValue = frontmatter[property]
+        const value: unknown = Array.isArray(rawValue) ? rawValue[0] : rawValue
+        if (typeof value === 'string' && value.trim()) { values.push(value.trim()); continue }
+        if (typeof value === 'number' && Number.isFinite(value)) { values.push(String(value)); continue }
+        if (typeof value === 'boolean') { values.push(String(value)) }
+    }
+    return values
+}

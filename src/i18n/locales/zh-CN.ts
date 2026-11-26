@@ -56,6 +56,7 @@ const zhCN: BaseMessage = {
 		particleCanvas: '画布',
 		particleInteraction: '交互',
 		vaultStatsItems: '统计项',
+		searchRowOrder: '搜索结果副行',
 		contentOrder: '显示顺序',
 	},
 	page: {
@@ -136,6 +137,22 @@ const zhCN: BaseMessage = {
 		showTitleInSearchResults: {
 			name: '在搜索结果中显示文档标题',
 			desc: '在搜索结果中，于文件名下方显示该文件的 frontmatter 标题。',
+		},
+		searchRowAlias: {
+			name: '别名行',
+			desc: '别名匹配时，在文件名下方显示「{文件名} 的别名」。',
+		},
+		searchRowTitle: {
+			name: '标题匹配行',
+			desc: 'frontmatter 标题匹配时，在文件名下方显示命中的标题。',
+		},
+		searchRowFrontmatter: {
+			name: 'frontmatter 行',
+			desc: '始终按「文件显示名属性」把文件 frontmatter 字段值显示为副行。',
+		},
+		searchRowHeading: {
+			name: '文内标题行',
+			desc: '文内标题匹配时，在文件名下方显示命中的标题。',
 		},
 		autoJumpToHeading: {
 			name: '跳转到文内标题',

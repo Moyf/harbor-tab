@@ -56,6 +56,7 @@ const en: BaseMessage = {
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
 		vaultStatsItems: 'Items',
+		searchRowOrder: 'Search result secondary rows',
 		contentOrder: 'Display order',
 	},
 	page: {
@@ -136,6 +137,22 @@ const en: BaseMessage = {
 		showTitleInSearchResults: {
 			name: 'Show document title in results',
 			desc: 'Displays the frontmatter title of the matched file below its file name in search results.',
+		},
+		searchRowAlias: {
+			name: 'Alias rows',
+			desc: 'Alias matches: shows "Alias of {file name}" below the file name.',
+		},
+		searchRowTitle: {
+			name: 'Title match rows',
+			desc: 'Frontmatter title matches: shows the matched title below the file name.',
+		},
+		searchRowFrontmatter: {
+			name: 'Frontmatter rows',
+			desc: 'Always show the file frontmatter fields (per "Display names for files") as extra rows.',
+		},
+		searchRowHeading: {
+			name: 'Heading rows',
+			desc: 'Heading matches: shows the matched in-document heading below the file name.',
 		},
 		autoJumpToHeading: {
 			name: 'Jump to heading',

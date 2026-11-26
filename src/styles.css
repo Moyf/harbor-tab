@@ -45,15 +45,24 @@
 .home-tab-suggestion-description svg, .home-tab-suggestion-filepath svg{
     margin-right: 5px;
 }
-/* The document title may wrap to several lines: keep its glyph centred on the first line */
+/* Secondary rows may wrap to several lines: keep the icon glyph centred on the first line */
 .home-tab-suggestion-description.home-tab-suggestion-doc-title{
     align-items: flex-start;
 }
+/* One fixed-width icon column (the widest icon, 15px) shared by every secondary
+   row: smaller icons stay horizontally centred inside it, so icon centres and
+   the text column line up across rows regardless of icon size. */
 .home-tab-suggestion-doc-title-icon{
     display: flex;
     align-items: center;
+    justify-content: center;
     height: 1lh;
+    width: 15px;
     flex: 0 0 auto;
+    margin-right: 5px;
+}
+.home-tab-suggestion-doc-title-icon svg{
+    margin-right: 0;
 }
 
 .home-tab-suggestion-container{

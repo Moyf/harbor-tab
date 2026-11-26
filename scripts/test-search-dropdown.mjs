@@ -146,7 +146,7 @@ delayed.destroy(); advance(250);
 
 // The stable empty-state panel retains the real keyboard scope. Mod+Enter
 // must be harmless with no selection, while still opening selected results.
-const { getFileDisplayName } = load('../src/utils/fileDisplayName.ts');
+const { getFileDisplayName, getFrontmatterValues } = load('../src/utils/fileDisplayName.ts');
 const subclassDependencies = {
     obsidian: { Platform: {}, TFile: class {}, View: class {} },
     './suggester': { TextInputSuggester },
@@ -157,7 +157,8 @@ const subclassDependencies = {
     'src/utils/getFileTypeUtils': {},
     'src/utils/matchAnalyzer': { MatchAnalyzer: class {} },
     'src/utils/folderSearchQuery': { parseFolderSearchQuery: () => null, isFileInFolderPath: () => false },
-    'src/utils/fileDisplayName': { getFileDisplayName },
+    'src/utils/fileDisplayName': { getFileDisplayName, getFrontmatterValues },
+    'src/utils/searchRowOrder': { SEARCH_ROW_KEYS: ['alias', 'title', 'frontmatter', 'heading'], normalizeSearchRowOrder: value => Array.isArray(value) && value.length ? value : ['alias', 'title', 'frontmatter', 'heading'] },
     'src/utils/regexUtils': {},
     'src/ui/svelteComponents/homeTabFileSuggestion.svelte': View,
     'src/ui/svelteComponents/omnisearchSuggestion.svelte': View,
@@ -219,10 +220,18 @@ for (const name of ['homeTabSuggester', 'omnisearchSuggester', 'surfingSuggester
         input.value = '';
         const titledProps = instance.getDisplayElementProps(titledSuggestion);
         assert.equal(titledProps.nameToDisplay, '260708_01_chinese-architecture', 'The file name stays on the main line');
-        assert.equal(titledProps.subtitle, '中国建筑的同一性及不同之处', 'The frontmatter title is offered as a subtitle');
+        assert.equal(JSON.stringify(titledProps.frontmatter), JSON.stringify(['中国建筑的同一性及不同之处']), 'The frontmatter title is offered as a row');
+        assert.ok(titledProps.rowOrder?.includes('frontmatter'), 'The frontmatter row appears in the configured order');
+        assert.equal(JSON.stringify(titledProps.rowOrder), JSON.stringify(['frontmatter']), 'Rows without content are dropped from the order');
 
+        plugin.settings.frontmatterRowEnabled = false;
+        assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The frontmatter row can be turned off');
+        plugin.settings.frontmatterRowEnabled = true;
+        plugin.settings.searchRowOrder = ['frontmatter', 'alias', 'title', 'heading'];
+        assert.equal(JSON.stringify(instance.getDisplayElementProps(titledSuggestion).rowOrder), JSON.stringify(['frontmatter']), 'The row order follows the configured sequence');
+        plugin.settings.searchRowOrder = ['alias', 'title', 'frontmatter', 'heading'];
         plugin.settings.showTitleInSearchResults = false;
-        assert.equal(instance.getDisplayElementProps(titledSuggestion).subtitle, undefined, 'The subtitle can be turned off');
+        assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The subtitle can be turned off');
         plugin.settings.showTitleInSearchResults = true;
     }
     instance.destroy();
