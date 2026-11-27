@@ -9,6 +9,7 @@ import type { Command } from 'obsidian';
 import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
 import { HomeTabSettingTab, DEFAULT_SETTINGS, normalizeVaultStatsSettings, normalizeSearchRowSettings, normalizeParticleCanvasSettings, type HomeTabSettings } from './settings'
 import { normalizeContentSectionOrder } from './utils/contentSections'
+import { migrateLegacyFrontmatterFields } from './utils/frontmatterFields'
 import { t } from './i18n'
 import { pluginSettingsStore, bookmarkedFiles } from './store'
 import { RecentFileManager } from './recentFiles';
@@ -173,8 +174,29 @@ export default class HomeTab extends Plugin {
 		normalizeParticleCanvasSettings(this.settings, saved)
 		this.migrateLegacySettings()
 		normalizeVaultStatsSettings(this.settings)
+		this.migrateFrontmatterRowSettings(saved)
 		normalizeSearchRowSettings(this.settings)
 		this.settings.contentSectionOrder = normalizeContentSectionOrder(this.settings.contentSectionOrder)
+	}
+
+	/**
+	 * The frontmatter secondary rows used to be driven by two toggles plus the
+	 * "Use property as name" list. They are now driven by a single ordered list
+	 * of frontmatter fields, where the document title is one (special) field.
+	 */
+	private migrateFrontmatterRowSettings(saved: Partial<HomeTabSettings>): void {
+		const legacy = this.settings as HomeTabSettings & {
+			showTitleInSearchResults?: boolean
+			frontmatterRowEnabled?: boolean
+		}
+		if (saved.searchRowFrontmatterFields !== undefined) return
+		this.settings.searchRowFrontmatterFields = migrateLegacyFrontmatterFields({
+			displayNameProperties: saved.displayNameProperties,
+			showTitleInSearchResults: legacy.showTitleInSearchResults,
+			frontmatterRowEnabled: legacy.frontmatterRowEnabled,
+		})
+		delete legacy.showTitleInSearchResults
+		delete legacy.frontmatterRowEnabled
 	}
 
 	/** Upgrades settings persisted by older plugin versions in place. */

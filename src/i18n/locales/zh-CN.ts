@@ -22,6 +22,24 @@ const zhCN: BaseMessage = {
 		createFailed: '创建笔记失败，详情请查看开发者控制台。',
 		commandNotFound: '配置的命令不可用，已回退到新建笔记弹窗。',
 		},
+
+	frontmatterFieldModal: {
+		title: 'frontmatter 字段',
+		titleField: '文档标题',
+		selected: '已显示的字段',
+		available: '本库中可用的字段',
+		noSelection: '尚未显示任何 frontmatter 字段。',
+		noAvailable: '本库中没有其它 frontmatter 字段。',
+		add: '添加',
+		addManually: '手动添加字段',
+		addManuallyDesc: '添加本库中尚未使用的 frontmatter 字段。',
+		fieldPlaceholder: '字段名',
+		remove: '移除',
+		moveUp: '上移',
+		moveDown: '下移',
+		cancel: '取消',
+		save: '保存',
+	},
 	periodicNoteText: {
 		daily: '今天',
 		weekly: '本周',
@@ -134,21 +152,19 @@ const zhCN: BaseMessage = {
 			name: '搜索文内标题',
 			desc: '启用后将搜索文档中的标题（# 标题）。',
 		},
-		showTitleInSearchResults: {
-			name: '在搜索结果中显示文档标题',
-			desc: '在搜索结果中，于文件名下方显示该文件的 frontmatter 标题。需同时开启下方的「frontmatter 行」。',
-		},
 		searchRowAlias: {
 			name: '别名行',
 			desc: '别名匹配时，在文件名下方显示「{文件名} 的别名」。',
 		},
-		searchRowTitle: {
-			name: '标题匹配行',
-			desc: 'frontmatter 标题匹配时，在文件名下方显示命中的标题。',
-		},
 		searchRowFrontmatter: {
 			name: 'frontmatter 行',
-			desc: '开启「在搜索结果中显示文档标题」时，按「文件显示名属性」把文件 frontmatter 字段值显示为副行。',
+			desc: '在文件名下方，把所选 frontmatter 字段显示为副行。',
+		},
+		searchRowFrontmatterFields: {
+			name: 'frontmatter 字段',
+			desc: '作为副行显示在文件名下方的 frontmatter 字段。文档标题（title）是特殊字段，可以单独关闭。',
+			empty: '尚未显示任何 frontmatter 字段。',
+			button: '选择 frontmatter 字段',
 		},
 		searchRowHeading: {
 			name: '文内标题行',

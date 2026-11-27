@@ -3,6 +3,7 @@
     import { Circle, FilePlus, FileQuestion, Forward, Folder, Globe, Hash } from "lucide-svelte";
     import type { SearchFile } from "src/suggester/fuzzySearch";
     import type { SearchRowKey } from "src/utils/searchRowOrder";
+    import { TITLE_FIELD, type FrontmatterFieldValue } from "src/utils/frontmatterFields";
 	import type { TextInputSuggester } from "src/suggester/suggester";
 	import Suggestion from './suggestion.svelte';
 
@@ -16,7 +17,7 @@
     export let matchedHeading: string | undefined = undefined
     export let matchedAlias: string | undefined = undefined
     export let matchedTitle: string | undefined = undefined
-    export let frontmatter: string[] | undefined = undefined
+    export let frontmatter: FrontmatterFieldValue[] | undefined = undefined
     export let rowOrder: SearchRowKey[] | undefined = undefined
 
     // 使用智能响应式，只在 suggestion 对象引用变化时更新，避免闪烁
@@ -27,17 +28,22 @@
     type SecondaryRow = { key: SearchRowKey, icon: typeof Circle, ariaLabel: string, text: string }
     $: rows = (() => {
         const result: SecondaryRow[] = []
-        const order: SearchRowKey[] = rowOrder ?? ['alias', 'title', 'frontmatter', 'heading']
+        const order: SearchRowKey[] = rowOrder ?? ['alias', 'frontmatter', 'heading']
         const fallbackAlias = !matchedAlias && !matchedTitle && !matchedHeading
             && !!suggestionItem.aliases?.includes(nameToDisplay)
         for (const key of order) {
             if (key === 'alias' && (matchedAlias || fallbackAlias)) {
                 result.push({ key, icon: Forward, ariaLabel: 'Matched alias', text: `Alias of ${suggestionItem.basename}` })
-            } else if (key === 'title' && matchedTitle) {
-                result.push({ key, icon: Hash, ariaLabel: 'Document title', text: `Title: ${matchedTitle}` })
             } else if (key === 'frontmatter' && frontmatter) {
-                for (const value of frontmatter) {
-                    result.push({ key, icon: Circle, ariaLabel: 'Frontmatter title', text: value })
+                for (const entry of frontmatter) {
+                    // The document title is a special frontmatter field: it keeps its own icon.
+                    const isTitle = entry.key === TITLE_FIELD
+                    result.push({
+                        key,
+                        icon: isTitle ? Hash : Circle,
+                        ariaLabel: isTitle ? 'Document title' : 'Frontmatter field',
+                        text: `${entry.key}: ${entry.value}`,
+                    })
                 }
             } else if (key === 'heading' && matchedHeading) {
                 result.push({ key, icon: Hash, ariaLabel: 'Heading', text: matchedHeading })

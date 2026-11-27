@@ -1,11 +1,11 @@
-export const SEARCH_ROW_KEYS = ['alias', 'title', 'frontmatter', 'heading'] as const
+export const SEARCH_ROW_KEYS = ['alias', 'frontmatter', 'heading'] as const
 
 export type SearchRowKey = (typeof SEARCH_ROW_KEYS)[number]
 
 /**
  * Keep saved ordering usable when older settings omit rows or contain stale
- * keys. The canonical order also doubles as the default: matched-source rows
- * first, then frontmatter fields, and the in-document heading last.
+ * keys. The canonical order also doubles as the default: the matched alias
+ * first, then the frontmatter fields, and the in-document heading last.
  */
 export function normalizeSearchRowOrder(value: unknown): SearchRowKey[] {
     const order: SearchRowKey[] = []

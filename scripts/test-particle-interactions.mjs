@@ -52,6 +52,8 @@ const { DEFAULT_SETTINGS, HomeTabSettingTab } = load('../src/settings.ts', {
     './periodicNotes': { PERIOD_TYPES: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'], getAutoPeriodConfigs: () => ({}) },
     './utils/searchRowOrder': load('../src/utils/searchRowOrder.ts'),
     './utils/fileDisplayName': load('../src/utils/fileDisplayName.ts'),
+    './utils/frontmatterFields': load('../src/utils/frontmatterFields.ts', { './fileDisplayName': load('../src/utils/fileDisplayName.ts') }),
+    './frontmatterFieldModal': { FrontmatterFieldModal: class {} },
 });
 assert.equal(DEFAULT_SETTINGS.particleEffectRecoveryDamping, 60);
 assert.equal(DEFAULT_SETTINGS.particleEffectDisturbFalloff, 0.8);

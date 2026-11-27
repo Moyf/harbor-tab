@@ -4,12 +4,19 @@
 
 ### ✨ Added
 
-- **Document title in search results**: a result whose frontmatter title differs from its file name now shows that title on a second line, resolved through the same **Use property as name** chain as the file list. The file name stays on the main line, so a title match and a file-name match remain distinguishable. Controlled by two toggles in Settings → Harbor Tab → Search: **Show document title in results** and **Frontmatter rows** (both on by default).
+- **Frontmatter rows in search results**: the secondary lines below a search result can now show any frontmatter field of the matched file. Pick the fields and their order in Settings → Harbor Tab → Search → **Frontmatter fields**; the picker offers the fields already used in your vault (most used first) and accepts fields you add by hand. Each row reads `field: value`, and the document title (`title`) is treated as a special field that stays first and can be switched off on its own.
+- **Document title in search results**: a result whose frontmatter title differs from its file name shows that title on a second line. The file name stays on the main line, so a title match and a file-name match remain distinguishable.
+
+### ♻️ Changed
+
+- **Search result secondary rows**: the row types are now *Alias rows*, *Frontmatter rows* and *Heading rows* — the separate *Title match rows* type is gone, because the document title is one of the frontmatter fields. The old **Show document title in results** and **Frontmatter rows** toggles are replaced by the **Frontmatter fields** list; existing settings migrate automatically (the previous *Use property as name* list becomes the initial field list, minus the title when those toggles were off).
 
 <details>
 <summary>中文说明（点击展开）</summary>
 
-- **搜索结果中的文档标题**：当文件的 frontmatter 标题与文件名不同时，搜索结果会在第二行显示该标题，取值走与文件列表相同的「使用属性作为名称」属性链。文件名仍保留在主行，因此标题匹配与文件名匹配依然可区分。由 设置 → Harbor Tab → 搜索 中的两个开关控制：**在搜索结果中显示文档标题** 与 **frontmatter 行**（默认均开启）。
+- **搜索结果中的 frontmatter 副行**：搜索结果文件名下方的副行，现在可以显示该文件的任意 frontmatter 字段。在 设置 → Harbor Tab → 搜索 → **frontmatter 字段** 中挑选字段并调整顺序；选择器会列出库内已使用的字段（按使用频率排序），也支持手动补充。每行显示为 `字段名: 值`；文档标题（title）作为特殊字段始终排在最前，也可以单独关闭。
+- **搜索结果中的文档标题**：当文件的 frontmatter 标题与文件名不同时，搜索结果会在第二行显示该标题。文件名仍保留在主行，因此标题匹配与文件名匹配依然可区分。
+- **搜索结果副行类型**：副行类型现在是「别名行」「frontmatter 行」「文内标题行」——原先独立的「标题匹配行」已取消，因为文档标题本就是 frontmatter 字段之一。原先的「在搜索结果中显示文档标题」与「frontmatter 行」两个开关，由 **frontmatter 字段** 列表取代；旧设置会自动迁移（原来的「使用属性作为名称」列表作为初始字段列表，若旧开关关闭则不包含 title）。
 
 </details>
 

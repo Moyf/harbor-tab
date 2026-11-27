@@ -146,12 +146,14 @@ delayed.destroy(); advance(250);
 
 // The stable empty-state panel retains the real keyboard scope. Mod+Enter
 // must be harmless with no selection, while still opening selected results.
-const { getFileDisplayName, getFrontmatterValues } = load('../src/utils/fileDisplayName.ts');
-const searchRowOrder = load('../src/utils/searchRowOrder.ts');
 class MatchAnalyzerStub {
     static analysis = { displayInfo: {} };
     analyzeMatch() { return MatchAnalyzerStub.analysis; }
 }
+const fileDisplayName = load('../src/utils/fileDisplayName.ts');
+const { getFileDisplayName } = fileDisplayName;
+const frontmatterFields = load('../src/utils/frontmatterFields.ts', { './fileDisplayName': fileDisplayName });
+const searchRowOrder = load('../src/utils/searchRowOrder.ts');
 const subclassDependencies = {
     obsidian: { Platform: {}, TFile: class {}, View: class {} },
     './suggester': { TextInputSuggester },
@@ -162,7 +164,8 @@ const subclassDependencies = {
     'src/utils/getFileTypeUtils': {},
     'src/utils/matchAnalyzer': { MatchAnalyzer: MatchAnalyzerStub },
     'src/utils/folderSearchQuery': { parseFolderSearchQuery: () => null, isFileInFolderPath: () => false },
-    'src/utils/fileDisplayName': { getFileDisplayName, getFrontmatterValues },
+    'src/utils/fileDisplayName': { getFileDisplayName },
+    'src/utils/frontmatterFields': frontmatterFields,
     'src/utils/searchRowOrder': searchRowOrder,
     'src/utils/regexUtils': {},
     'src/ui/svelteComponents/homeTabFileSuggestion.svelte': View,
@@ -205,9 +208,10 @@ for (const name of ['homeTabSuggester', 'omnisearchSuggester', 'surfingSuggester
         input.ownerDocument.activeElement = input;
         plugin.settings.hideOnBlur = true;
 
-        // The file name stays on the main line; the frontmatter title is offered as a subtitle.
-        plugin.settings.showTitleInSearchResults = true;
-        plugin.settings.displayNameProperties = 'title';
+        // The file name stays on the main line; the selected frontmatter fields
+        // are offered as secondary rows.
+        instance.fuzzySearch = { getBestMatch: suggestion => suggestion.item.basename };
+        plugin.settings.searchRowFrontmatterFields = ['title'];
         const titledFile = {
             basename: '260708_01_chinese-architecture',
             path: 'entries/260708_01_chinese-architecture.md',
@@ -220,80 +224,86 @@ for (const name of ['homeTabSuggester', 'omnisearchSuggester', 'surfingSuggester
                 path: titledFile.path,
                 isCreated: true,
                 file: titledFile,
+                aliases: ['中国建筑'],
+                title: '中国建筑的同一性及不同之处',
             },
+            matches: [{ key: 'title', value: '中国建筑的同一性及不同之处' }],
         };
         input.value = '';
         const titledProps = instance.getDisplayElementProps(titledSuggestion);
         assert.equal(titledProps.nameToDisplay, '260708_01_chinese-architecture', 'The file name stays on the main line');
-        assert.equal(JSON.stringify(titledProps.frontmatter), JSON.stringify(['中国建筑的同一性及不同之处']), 'The frontmatter title is offered as a row');
+        assert.equal(JSON.stringify(titledProps.frontmatter), JSON.stringify([{ key: 'title', value: '中国建筑的同一性及不同之处' }]), 'The frontmatter field is offered as a row');
         assert.ok(titledProps.rowOrder?.includes('frontmatter'), 'The frontmatter row appears in the configured order');
         assert.equal(JSON.stringify(titledProps.rowOrder), JSON.stringify(['frontmatter']), 'Rows without content are dropped from the order');
 
-        plugin.settings.frontmatterRowEnabled = false;
-        assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The frontmatter row can be turned off');
-        plugin.settings.frontmatterRowEnabled = true;
-        plugin.settings.searchRowOrder = ['frontmatter', 'alias', 'title', 'heading'];
-        assert.equal(JSON.stringify(instance.getDisplayElementProps(titledSuggestion).rowOrder), JSON.stringify(['frontmatter']), 'The row order follows the configured sequence');
-        plugin.settings.searchRowOrder = ['alias', 'title', 'frontmatter', 'heading'];
-        plugin.settings.showTitleInSearchResults = false;
-        assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The subtitle can be turned off');
-        plugin.settings.showTitleInSearchResults = true;
-
-        // A matched title already occupies the main line, so the frontmatter row
-        // must not repeat the very same value.
-        instance.fuzzySearch = { getBestMatch: suggestion => suggestion.item.basename };
+        // A suggestion whose frontmatter title matches the query shows the title
+        // via MatchAnalyzer; the frontmatter rows must not repeat it.
+        plugin.settings.searchRowOrder = ['alias', 'frontmatter', 'heading'];
+        MatchAnalyzerStub.analysis = {
+            displayInfo: { showTitle: true, matchedTitle: '中国建筑的同一性及不同之处' },
+        };
         input.value = '中国建筑';
-        MatchAnalyzerStub.analysis = { displayInfo: { showTitle: true, matchedTitle: '中国建筑的同一性及不同之处' } };
-        const titleMatchSuggestion = {
+        const matchedTitleProps = instance.getDisplayElementProps(titledSuggestion);
+        assert.equal(matchedTitleProps.nameToDisplay, '中国建筑的同一性及不同之处', 'The matched title replaces the file name on the main line');
+        assert.equal(matchedTitleProps.frontmatter, undefined, 'The matched title is not repeated as a frontmatter row');
+        assert.equal(JSON.stringify(matchedTitleProps.rowOrder), JSON.stringify(['alias']), 'The frontmatter row is dropped; the alias row stays as configured');
+
+        // A matched alias suppresses frontmatter rows that repeat it; rows with
+        // distinct values stay.
+        MatchAnalyzerStub.analysis = {
+            displayInfo: { showAlias: true, matchedAlias: '中国建筑' },
+        };
+        const matchedAliasProps = instance.getDisplayElementProps({
             ...titledSuggestion,
-            matches: [{ key: 'title', value: '中国建筑的同一性及不同之处' }],
-        };
-        const titleMatchProps = instance.getDisplayElementProps(titleMatchSuggestion);
-        assert.equal(titleMatchProps.matchedTitle, '中国建筑的同一性及不同之处', 'The matched title is reported');
-        assert.equal(titleMatchProps.frontmatter, undefined, 'The frontmatter row does not repeat the matched title');
-        assert.equal(JSON.stringify(titleMatchProps.rowOrder), JSON.stringify(['alias', 'title']), 'Only the rows without content are dropped');
-
-        // The same holds for a matched alias.
-        plugin.settings.displayNameProperties = 'title, alias';
-        const aliasFile = {
-            basename: 'alias-note',
-            path: 'entries/alias-note.md',
-            frontmatterCache: { frontmatter: { title: '中国建筑', alias: '建筑笔记' } },
-        };
-        MatchAnalyzerStub.analysis = { displayInfo: { showAlias: true, matchedAlias: '中国建筑' } };
-        const aliasMatchSuggestion = {
-            item: {
-                name: 'alias-note.md',
-                basename: aliasFile.basename,
-                path: aliasFile.path,
-                isCreated: true,
-                file: aliasFile,
-            },
-            matches: [{ key: 'aliases', value: '中国建筑' }],
-        };
-        const aliasMatchProps = instance.getDisplayElementProps(aliasMatchSuggestion);
-        assert.equal(aliasMatchProps.matchedAlias, '中国建筑', 'The matched alias is reported');
-        assert.equal(JSON.stringify(aliasMatchProps.frontmatter), JSON.stringify(['建筑笔记']), 'The frontmatter row keeps the values that differ from the matched alias');
-
-        // Two configured properties resolving to the same string must not
-        // produce two rows with the same key.
-        plugin.settings.displayNameProperties = 'title, alias';
-        const repeatedFile = {
-            basename: 'repeated-note',
-            path: 'entries/repeated-note.md',
-            frontmatterCache: { frontmatter: { title: '重复标题', alias: '重复标题' } },
-        };
-        const repeatedProps = instance.getDisplayElementProps({
-            item: {
-                name: 'repeated-note.md',
-                basename: repeatedFile.basename,
-                path: repeatedFile.path,
-                isCreated: true,
-                file: repeatedFile,
-            },
+            item: { ...titledSuggestion.item, aliases: ['中国建筑'] },
         });
-        assert.equal(JSON.stringify(repeatedProps.frontmatter), JSON.stringify(['重复标题']), 'Identical property values collapse into a single row');
-        plugin.settings.displayNameProperties = 'title';
+        assert.equal(matchedAliasProps.nameToDisplay, '中国建筑', 'The matched alias replaces the file name on the main line');
+        assert.equal(JSON.stringify(matchedAliasProps.frontmatter), JSON.stringify([{ key: 'title', value: '中国建筑的同一性及不同之处' }]), 'Frontmatter rows with other values stay');
+
+        const aliasFile = {
+            basename: titledFile.basename,
+            path: titledFile.path,
+            frontmatterCache: { frontmatter: { title: '中国建筑' } },
+        };
+        const aliasRepeatProps = instance.getDisplayElementProps({ ...titledSuggestion, item: { ...titledSuggestion.item, file: aliasFile } });
+        assert.equal(aliasRepeatProps.frontmatter, undefined, 'A frontmatter value equal to the matched alias is dropped');
+
+        // Without a title/alias match the frontmatter row stays.
+        MatchAnalyzerStub.analysis = { displayInfo: {} };
+        const unmatchedProps = instance.getDisplayElementProps(titledSuggestion);
+        assert.equal(JSON.stringify(unmatchedProps.frontmatter), JSON.stringify([{ key: 'title', value: '中国建筑的同一性及不同之处' }]), 'Unmatched suggestions keep the frontmatter row');
+
+        // Two configured fields resolving to the same value collapse to one row.
+        const repeatedFile = {
+            basename: titledFile.basename,
+            path: titledFile.path,
+            frontmatterCache: { frontmatter: { title: '中国建筑的同一性及不同之处', alias: '中国建筑的同一性及不同之处' } },
+        };
+        plugin.settings.searchRowFrontmatterFields = ['title', 'alias'];
+        const repeatedProps = instance.getDisplayElementProps({ item: { ...titledSuggestion.item, file: repeatedFile } });
+        assert.equal(JSON.stringify(repeatedProps.frontmatter), JSON.stringify([{ key: 'title', value: '中国建筑的同一性及不同之处' }]), 'Duplicate frontmatter values collapse to one row');
+
+        // Each selected field contributes its own row, in the configured order.
+        plugin.settings.searchRowFrontmatterFields = ['status', 'title'];
+        const multiFieldFile = {
+            basename: titledFile.basename,
+            path: titledFile.path,
+            frontmatterCache: { frontmatter: { title: '中国建筑的同一性及不同之处', status: '草稿' } },
+        };
+        const multiFieldProps = instance.getDisplayElementProps({ item: { ...titledSuggestion.item, file: multiFieldFile } });
+        assert.equal(JSON.stringify(multiFieldProps.frontmatter), JSON.stringify([
+            { key: 'title', value: '中国建筑的同一性及不同之处' },
+            { key: 'status', value: '草稿' },
+        ]), 'Every selected field contributes a row; the document title stays first');
+
+        // The document title is a special field: it can be turned off.
+        MatchAnalyzerStub.analysis = { displayInfo: {} };
+        plugin.settings.searchRowFrontmatterFields = [];
+        assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The frontmatter rows can be turned off');
+        plugin.settings.searchRowFrontmatterFields = ['title'];
+        plugin.settings.searchRowOrder = ['frontmatter', 'alias', 'heading'];
+        assert.equal(JSON.stringify(instance.getDisplayElementProps(titledSuggestion).rowOrder), JSON.stringify(['frontmatter']), 'The row order follows the configured sequence');
+        plugin.settings.searchRowOrder = ['alias', 'frontmatter', 'heading'];
     }
     instance.destroy();
 }

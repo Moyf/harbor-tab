@@ -11,7 +11,13 @@ import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
 import { isFileInFolderPath, parseFolderSearchQuery } from 'src/utils/folderSearchQuery'
-import { getFrontmatterValues, getFileDisplayName } from 'src/utils/fileDisplayName'
+import { getFileDisplayName } from 'src/utils/fileDisplayName'
+import {
+    getFrontmatterFieldValues,
+    normalizeFrontmatterFields,
+    orderFrontmatterFields,
+    type FrontmatterFieldValue,
+} from 'src/utils/frontmatterFields'
 import { normalizeSearchRowOrder, type SearchRowKey } from 'src/utils/searchRowOrder'
 
 declare module 'obsidian'{
@@ -26,8 +32,8 @@ export interface SearchDisplayProps {
     matchedHeading?: string
     matchedAlias?: string
     matchedTitle?: string
-    /** Extra secondary lines: the configured frontmatter values, in display order. */
-    frontmatter?: string[]
+    /** Extra secondary lines: the configured frontmatter fields, in display order. */
+    frontmatter?: FrontmatterFieldValue[]
     /** Ordered row keys so the component can render secondary lines in the configured order. */
     rowOrder?: SearchRowKey[]
     /** Compatibility with the base class `Record<string, unknown>` contract. */
@@ -327,14 +333,10 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
 
     getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps {
         const props = this.resolveDisplayProps(suggestion)
-        // A matched title/alias is already rendered on the main line or on its own
-        // secondary row, so the frontmatter rows must not repeat the same value.
-        if (props.matchedTitle) {
-            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedTitle)
-        }
-        if (props.matchedAlias) {
-            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedAlias)
-        }
+        // A matched title/alias is already rendered on the main line or its own
+        // secondary row; the frontmatter rows must not repeat it.
+        if (props.matchedTitle) props.frontmatter = props.frontmatter?.filter(entry => entry.value !== props.matchedTitle)
+        if (props.matchedAlias) props.frontmatter = props.frontmatter?.filter(entry => entry.value !== props.matchedAlias)
         const rowOrder = normalizeSearchRowOrder(this.plugin.settings.searchRowOrder)
         if (props.frontmatter && props.frontmatter.length === 0) delete props.frontmatter
         if (!props.frontmatter) {
@@ -342,10 +344,8 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
             if (index >= 0) rowOrder.splice(index, 1)
         }
         if (!props.matchedAlias && !props.matchedTitle) {
-            for (const key of ['alias', 'title'] as const) {
-                const index = rowOrder.indexOf(key)
-                if (index >= 0) rowOrder.splice(index, 1)
-            }
+            const index = rowOrder.indexOf('alias')
+            if (index >= 0) rowOrder.splice(index, 1)
         }
         if (!props.matchedHeading) {
             const index = rowOrder.indexOf('heading')
@@ -356,17 +356,25 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
     }
 
     /**
-     * The frontmatter values of the matched file, shown as secondary lines
-     * next to the file name. Rows follow the user-configured order; each
-     * configured property contributes its first usable value.
+     * The frontmatter rows of the matched file, shown as secondary lines next
+     * to the file name. The fields follow the user-configured order; each
+     * configured field contributes its first usable value.
      */
-    private resolveDocumentTitle(suggestion: Fuse.FuseResult<SearchFile>): string[] {
-        if (!this.plugin.settings.showTitleInSearchResults) return []
-        if (this.plugin.settings.frontmatterRowEnabled === false) return []
+    private resolveDocumentTitle(suggestion: Fuse.FuseResult<SearchFile>): FrontmatterFieldValue[] {
+        const fields = orderFrontmatterFields(normalizeFrontmatterFields(this.plugin.settings.searchRowFrontmatterFields))
+        if (fields.length === 0) return []
         const file = suggestion.item.file
         if (!file) return []
-        return [...new Set(getFrontmatterValues(this.app, file, this.plugin.settings.displayNameProperties ?? 'title'))]
-            .filter(value => value !== file.basename && value !== suggestion.item.basename)
+        // The same value can be reached through several fields; render each
+        // distinct value only once (the keyed {#each} requires unique keys).
+        const seen = new Set<string>()
+        return getFrontmatterFieldValues(this.app, file, fields)
+            .filter(entry => {
+                if (entry.value === file.basename || entry.value === suggestion.item.basename) return false
+                if (seen.has(entry.value)) return false
+                seen.add(entry.value)
+                return true
+            })
     }
 
     private resolveDisplayProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps{
