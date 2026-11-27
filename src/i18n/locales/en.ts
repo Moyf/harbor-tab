@@ -136,7 +136,7 @@ const en: BaseMessage = {
 		},
 		showTitleInSearchResults: {
 			name: 'Show document title in results',
-			desc: 'Displays the frontmatter title of the matched file below its file name in search results.',
+			desc: 'Displays the frontmatter title of the matched file below its file name in search results. Requires "Frontmatter rows" (below) to be enabled.',
 		},
 		searchRowAlias: {
 			name: 'Alias rows',
@@ -148,7 +148,7 @@ const en: BaseMessage = {
 		},
 		searchRowFrontmatter: {
 			name: 'Frontmatter rows',
-			desc: 'Always show the file frontmatter fields (per "Display names for files") as extra rows.',
+			desc: 'Show the file frontmatter fields (per "Display names for files") as extra rows, when "Show document title in results" is enabled.',
 		},
 		searchRowHeading: {
 			name: 'Heading rows',

@@ -136,7 +136,7 @@ const zhCN: BaseMessage = {
 		},
 		showTitleInSearchResults: {
 			name: '在搜索结果中显示文档标题',
-			desc: '在搜索结果中，于文件名下方显示该文件的 frontmatter 标题。',
+			desc: '在搜索结果中，于文件名下方显示该文件的 frontmatter 标题。需同时开启下方的「frontmatter 行」。',
 		},
 		searchRowAlias: {
 			name: '别名行',
@@ -148,7 +148,7 @@ const zhCN: BaseMessage = {
 		},
 		searchRowFrontmatter: {
 			name: 'frontmatter 行',
-			desc: '始终按「文件显示名属性」把文件 frontmatter 字段值显示为副行。',
+			desc: '开启「在搜索结果中显示文档标题」时，按「文件显示名属性」把文件 frontmatter 字段值显示为副行。',
 		},
 		searchRowHeading: {
 			name: '文内标题行',

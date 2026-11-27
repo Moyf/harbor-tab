@@ -327,6 +327,14 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
 
     getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps {
         const props = this.resolveDisplayProps(suggestion)
+        // A matched title/alias is already rendered on the main line or on its own
+        // secondary row, so the frontmatter rows must not repeat the same value.
+        if (props.matchedTitle) {
+            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedTitle)
+        }
+        if (props.matchedAlias) {
+            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedAlias)
+        }
         const rowOrder = normalizeSearchRowOrder(this.plugin.settings.searchRowOrder)
         if (props.frontmatter && props.frontmatter.length === 0) delete props.frontmatter
         if (!props.frontmatter) {
@@ -357,7 +365,7 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         if (this.plugin.settings.frontmatterRowEnabled === false) return []
         const file = suggestion.item.file
         if (!file) return []
-        return getFrontmatterValues(this.app, file, this.plugin.settings.displayNameProperties ?? 'title')
+        return [...new Set(getFrontmatterValues(this.app, file, this.plugin.settings.displayNameProperties ?? 'title'))]
             .filter(value => value !== file.basename && value !== suggestion.item.basename)
     }
 

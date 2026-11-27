@@ -147,6 +147,11 @@ delayed.destroy(); advance(250);
 // The stable empty-state panel retains the real keyboard scope. Mod+Enter
 // must be harmless with no selection, while still opening selected results.
 const { getFileDisplayName, getFrontmatterValues } = load('../src/utils/fileDisplayName.ts');
+const searchRowOrder = load('../src/utils/searchRowOrder.ts');
+class MatchAnalyzerStub {
+    static analysis = { displayInfo: {} };
+    analyzeMatch() { return MatchAnalyzerStub.analysis; }
+}
 const subclassDependencies = {
     obsidian: { Platform: {}, TFile: class {}, View: class {} },
     './suggester': { TextInputSuggester },
@@ -155,10 +160,10 @@ const subclassDependencies = {
     './fuzzySearch': { SurfingItemFuzzySearch: class {} },
     'src/utils/getFilesUtils': {},
     'src/utils/getFileTypeUtils': {},
-    'src/utils/matchAnalyzer': { MatchAnalyzer: class {} },
+    'src/utils/matchAnalyzer': { MatchAnalyzer: MatchAnalyzerStub },
     'src/utils/folderSearchQuery': { parseFolderSearchQuery: () => null, isFileInFolderPath: () => false },
     'src/utils/fileDisplayName': { getFileDisplayName, getFrontmatterValues },
-    'src/utils/searchRowOrder': { SEARCH_ROW_KEYS: ['alias', 'title', 'frontmatter', 'heading'], normalizeSearchRowOrder: value => Array.isArray(value) && value.length ? value : ['alias', 'title', 'frontmatter', 'heading'] },
+    'src/utils/searchRowOrder': searchRowOrder,
     'src/utils/regexUtils': {},
     'src/ui/svelteComponents/homeTabFileSuggestion.svelte': View,
     'src/ui/svelteComponents/omnisearchSuggestion.svelte': View,
@@ -233,6 +238,62 @@ for (const name of ['homeTabSuggester', 'omnisearchSuggester', 'surfingSuggester
         plugin.settings.showTitleInSearchResults = false;
         assert.equal(instance.getDisplayElementProps(titledSuggestion).frontmatter, undefined, 'The subtitle can be turned off');
         plugin.settings.showTitleInSearchResults = true;
+
+        // A matched title already occupies the main line, so the frontmatter row
+        // must not repeat the very same value.
+        instance.fuzzySearch = { getBestMatch: suggestion => suggestion.item.basename };
+        input.value = '中国建筑';
+        MatchAnalyzerStub.analysis = { displayInfo: { showTitle: true, matchedTitle: '中国建筑的同一性及不同之处' } };
+        const titleMatchSuggestion = {
+            ...titledSuggestion,
+            matches: [{ key: 'title', value: '中国建筑的同一性及不同之处' }],
+        };
+        const titleMatchProps = instance.getDisplayElementProps(titleMatchSuggestion);
+        assert.equal(titleMatchProps.matchedTitle, '中国建筑的同一性及不同之处', 'The matched title is reported');
+        assert.equal(titleMatchProps.frontmatter, undefined, 'The frontmatter row does not repeat the matched title');
+        assert.equal(JSON.stringify(titleMatchProps.rowOrder), JSON.stringify(['alias', 'title']), 'Only the rows without content are dropped');
+
+        // The same holds for a matched alias.
+        plugin.settings.displayNameProperties = 'title, alias';
+        const aliasFile = {
+            basename: 'alias-note',
+            path: 'entries/alias-note.md',
+            frontmatterCache: { frontmatter: { title: '中国建筑', alias: '建筑笔记' } },
+        };
+        MatchAnalyzerStub.analysis = { displayInfo: { showAlias: true, matchedAlias: '中国建筑' } };
+        const aliasMatchSuggestion = {
+            item: {
+                name: 'alias-note.md',
+                basename: aliasFile.basename,
+                path: aliasFile.path,
+                isCreated: true,
+                file: aliasFile,
+            },
+            matches: [{ key: 'aliases', value: '中国建筑' }],
+        };
+        const aliasMatchProps = instance.getDisplayElementProps(aliasMatchSuggestion);
+        assert.equal(aliasMatchProps.matchedAlias, '中国建筑', 'The matched alias is reported');
+        assert.equal(JSON.stringify(aliasMatchProps.frontmatter), JSON.stringify(['建筑笔记']), 'The frontmatter row keeps the values that differ from the matched alias');
+
+        // Two configured properties resolving to the same string must not
+        // produce two rows with the same key.
+        plugin.settings.displayNameProperties = 'title, alias';
+        const repeatedFile = {
+            basename: 'repeated-note',
+            path: 'entries/repeated-note.md',
+            frontmatterCache: { frontmatter: { title: '重复标题', alias: '重复标题' } },
+        };
+        const repeatedProps = instance.getDisplayElementProps({
+            item: {
+                name: 'repeated-note.md',
+                basename: repeatedFile.basename,
+                path: repeatedFile.path,
+                isCreated: true,
+                file: repeatedFile,
+            },
+        });
+        assert.equal(JSON.stringify(repeatedProps.frontmatter), JSON.stringify(['重复标题']), 'Identical property values collapse into a single row');
+        plugin.settings.displayNameProperties = 'title';
     }
     instance.destroy();
 }
