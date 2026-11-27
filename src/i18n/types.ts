@@ -69,6 +69,7 @@ export interface BaseMessage {
 		particleCanvas: string
 		particleInteraction: string
 		vaultStatsItems: string
+		searchRowOrder: string
 		contentOrder: string
 	}
 	page: {
@@ -94,6 +95,11 @@ export interface BaseMessage {
 		unresolvedLinks: SettingEntry
 		searchTitle: SettingEntry
 		searchHeadings: SettingEntry
+		showTitleInSearchResults: SettingEntry
+		searchRowAlias: SettingEntry
+		searchRowTitle: SettingEntry
+		searchRowFrontmatter: SettingEntry
+		searchRowHeading: SettingEntry
 		autoJumpToHeading: SettingEntry
 		headingJumpStrategy: SettingEntry & { options: DropdownOptions }
 		showPath: SettingEntry

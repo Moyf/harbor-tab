@@ -17,6 +17,7 @@ import { t as getLocale } from './i18n'
 import type { SettingEntry } from './i18n/types'
 import ParticleSettingsPreview from './ui/particleSettingsPreview.svelte'
 import type { ContentSectionKey } from './utils/contentSections'
+import { SEARCH_ROW_KEYS, normalizeSearchRowOrder, type SearchRowKey } from './utils/searchRowOrder'
 
 type ColorChoices = 'default' | 'accentColor' | 'custom'
 type LogoChoices = 'default' | 'imagePath' | 'imageLink' | 'svgCode' | 'lucideIcon' | 'oldLogo' | 'none'
@@ -133,6 +134,9 @@ export interface HomeTabSettings extends ObjectKeys{
     unresolvedLinks: boolean
     searchTitle: boolean
     searchHeadings: boolean // 是否启用标题（heading）搜索
+    showTitleInSearchResults: boolean // 是否在搜索结果中同时显示文档标题
+    searchRowOrder: SearchRowKey[] // 搜索结果副行的显示顺序（包含全部行类型）
+    frontmatterRowEnabled: boolean // 是否在副行显示 frontmatter 字段值（顺序/可见性由 searchRowOrder 控制）
     autoJumpToHeading?: boolean // 新增：标题匹配时自动跳转到 heading
     headingJumpStrategy?: 'never' | 'always' | 'smart' // 新增：标题跳转策略
     recentFilesStore: recentFileStore[]
@@ -267,6 +271,9 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     unresolvedLinks: false,
     searchTitle: false,
     searchHeadings: true,
+    showTitleInSearchResults: true, // 新增：默认在搜索结果中同时显示文档标题
+    searchRowOrder: [...SEARCH_ROW_KEYS], // 新增：副行默认按 alias → title → frontmatter → heading 排列
+    frontmatterRowEnabled: true, // 新增：默认显示 frontmatter 副行
     autoJumpToHeading: true, // 新增：标题匹配时自动跳转到 heading，默认开启
     headingJumpStrategy: 'smart', // 新增：默认使用智能跳转策略
     recentFilesStore: [],
@@ -317,6 +324,15 @@ export function normalizeVaultStatsSettings(settings: HomeTabSettings): void {
     settings.vaultStatsOrder = order
     settings.vaultStatsItems = (settings.vaultStatsItems ?? []).filter((key): key is VaultStatItemKey =>
         order.includes(key))
+}
+
+/**
+ * Keep the search secondary-row order complete: drop stale keys, append any
+ * missing row types in canonical order, and honour the frontmatter toggle.
+ */
+export function normalizeSearchRowSettings(settings: HomeTabSettings): void {
+    settings.searchRowOrder = normalizeSearchRowOrder(settings.searchRowOrder)
+    if (settings.frontmatterRowEnabled === undefined) settings.frontmatterRowEnabled = true
 }
 
 /**
@@ -384,6 +400,9 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'unresolvedLinks',
         'searchTitle',
         'searchHeadings',
+        'showTitleInSearchResults',
+        'searchRowOrder',
+        'frontmatterRowEnabled',
         'showPath',
         'showShortcuts',
         'searchDelay',
@@ -512,6 +531,27 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 desc: t.setting.searchTitle.desc,
                                 visible: searchVisible,
                                 control: { type: 'toggle', key: 'searchTitle' },
+                            },
+                            {
+                                name: t.setting.showTitleInSearchResults.name,
+                                desc: t.setting.showTitleInSearchResults.desc,
+                                visible: searchVisible,
+                                control: { type: 'toggle', key: 'showTitleInSearchResults' },
+                            },
+                            {
+                                // 副行顺序：拖拽排序 + frontmatter 行显示开关
+                                type: 'list',
+                                heading: t.group.searchRowOrder,
+                                visible: searchVisible,
+                                onReorder: (oldIndex, newIndex) => {
+                                    const order = normalizeSearchRowOrder(s.searchRowOrder)
+                                    const [moved] = order.splice(oldIndex, 1)
+                                    order.splice(newIndex, 0, moved)
+                                    s.searchRowOrder = order
+                                    void this.plugin.saveSettings()
+                                    this.update()
+                                },
+                                items: normalizeSearchRowOrder(s.searchRowOrder).map((key) => this.searchRowItemSetting(key, t, searchVisible)),
                             },
                             {
                                 type: 'group',
@@ -1614,6 +1654,30 @@ export class HomeTabSettingTab extends PluginSettingTab {
                             s.vaultStatsItems = value
                                 ? [...s.vaultStatsItems, key]
                                 : s.vaultStatsItems.filter((item) => item !== key)
+                            await this.plugin.saveSettings()
+                        }))
+            },
+        }
+    }
+
+    // 新增：单个搜索副行的设置行 —— 仅 frontmatter 行有显示开关，其余行跟随匹配结果自动出现
+    private searchRowItemSetting(key: SearchRowKey, t: ReturnType<typeof getLocale>, searchVisible: () => boolean): SettingDefinition {
+        const s = this.plugin.settings
+        const name = key === 'alias' ? t.setting.searchRowAlias.name
+            : key === 'title' ? t.setting.searchRowTitle.name
+            : key === 'frontmatter' ? t.setting.searchRowFrontmatter.name
+            : t.setting.searchRowHeading.name
+        if (key !== 'frontmatter') return { name, visible: searchVisible }
+        return {
+            name,
+            desc: t.setting.searchRowFrontmatter.desc,
+            visible: searchVisible,
+            render: (setting) => {
+                setting
+                    .addToggle((toggle) => toggle
+                        .setValue(s.frontmatterRowEnabled)
+                        .onChange(async (value) => {
+                            s.frontmatterRowEnabled = value
                             await this.plugin.saveSettings()
                         }))
             },

@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Document title in search results**: a result whose frontmatter title differs from its file name now shows that title on a second line, resolved through the same **Use property as name** chain as the file list. The file name stays on the main line, so a title match and a file-name match remain distinguishable. Controlled by two toggles in Settings → Harbor Tab → Search: **Show document title in results** and **Frontmatter rows** (both on by default).
+
+<details>
+<summary>中文说明（点击展开）</summary>
+
+- **搜索结果中的文档标题**：当文件的 frontmatter 标题与文件名不同时，搜索结果会在第二行显示该标题，取值走与文件列表相同的「使用属性作为名称」属性链。文件名仍保留在主行，因此标题匹配与文件名匹配依然可区分。由 设置 → Harbor Tab → 搜索 中的两个开关控制：**在搜索结果中显示文档标题** 与 **frontmatter 行**（默认均开启）。
+
+</details>
+
 ## [1.14.2](https://github.com/Moyf/harbor-tab/compare/1.14.1...1.14.2) - 2026-10-29
 
 ### 🐛 Fixed

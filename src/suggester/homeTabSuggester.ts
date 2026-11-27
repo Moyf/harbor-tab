@@ -11,11 +11,27 @@ import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
 import { isFileInFolderPath, parseFolderSearchQuery } from 'src/utils/folderSearchQuery'
+import { getFrontmatterValues, getFileDisplayName } from 'src/utils/fileDisplayName'
+import { normalizeSearchRowOrder, type SearchRowKey } from 'src/utils/searchRowOrder'
 
 declare module 'obsidian'{
     interface MetadataCache{
         onCleanCache: (callback: () => void) => void
     }
+}
+
+export interface SearchDisplayProps {
+    nameToDisplay: string
+    filePath?: string
+    matchedHeading?: string
+    matchedAlias?: string
+    matchedTitle?: string
+    /** Extra secondary lines: the configured frontmatter values, in display order. */
+    frontmatter?: string[]
+    /** Ordered row keys so the component can render secondary lines in the configured order. */
+    rowOrder?: SearchRowKey[]
+    /** Compatibility with the base class `Record<string, unknown>` contract. */
+    [key: string]: unknown
 }
 
 export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseResult<SearchFile>>{
@@ -309,11 +325,56 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         }
     }
 
-    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): {nameToDisplay: string, filePath?: string, matchedHeading?: string, matchedAlias?: string, matchedTitle?: string}{
+    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps {
+        const props = this.resolveDisplayProps(suggestion)
+        // A matched title/alias is already rendered on the main line or on its own
+        // secondary row, so the frontmatter rows must not repeat the same value.
+        if (props.matchedTitle) {
+            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedTitle)
+        }
+        if (props.matchedAlias) {
+            props.frontmatter = props.frontmatter?.filter(value => value !== props.matchedAlias)
+        }
+        const rowOrder = normalizeSearchRowOrder(this.plugin.settings.searchRowOrder)
+        if (props.frontmatter && props.frontmatter.length === 0) delete props.frontmatter
+        if (!props.frontmatter) {
+            const index = rowOrder.indexOf('frontmatter')
+            if (index >= 0) rowOrder.splice(index, 1)
+        }
+        if (!props.matchedAlias && !props.matchedTitle) {
+            for (const key of ['alias', 'title'] as const) {
+                const index = rowOrder.indexOf(key)
+                if (index >= 0) rowOrder.splice(index, 1)
+            }
+        }
+        if (!props.matchedHeading) {
+            const index = rowOrder.indexOf('heading')
+            if (index >= 0) rowOrder.splice(index, 1)
+        }
+        props.rowOrder = rowOrder
+        return props
+    }
+
+    /**
+     * The frontmatter values of the matched file, shown as secondary lines
+     * next to the file name. Rows follow the user-configured order; each
+     * configured property contributes its first usable value.
+     */
+    private resolveDocumentTitle(suggestion: Fuse.FuseResult<SearchFile>): string[] {
+        if (!this.plugin.settings.showTitleInSearchResults) return []
+        if (this.plugin.settings.frontmatterRowEnabled === false) return []
+        const file = suggestion.item.file
+        if (!file) return []
+        return [...new Set(getFrontmatterValues(this.app, file, this.plugin.settings.displayNameProperties ?? 'title'))]
+            .filter(value => value !== file.basename && value !== suggestion.item.basename)
+    }
+
+    private resolveDisplayProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps{
         if (!this.inputEl || !this.inputEl.instanceOf(HTMLInputElement)) {
             return {
                 nameToDisplay: suggestion.item.basename,
-                filePath: undefined
+                filePath: undefined,
+                frontmatter: this.resolveDocumentTitle(suggestion)
             };
         }
 
@@ -331,6 +392,7 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         let matchedHeading: string | undefined = undefined;
         let matchedAlias: string | undefined = undefined;
         let matchedTitle: string | undefined = undefined;
+        const frontmatter = this.resolveDocumentTitle(suggestion);
 
         if(this.plugin.settings.showPath){
             filePath = suggestion.item.file && suggestion.item.file.parent 
@@ -339,7 +401,7 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         }
 
         const searchQuery = parseFolderSearchQuery(this.inputEl.value)?.query ?? this.inputEl.value.trim()
-        if (!searchQuery) return { nameToDisplay, filePath }
+        if (!searchQuery) return { nameToDisplay, filePath, frontmatter }
 
         // 使用智能匹配分析器分析匹配意图
         if (suggestion.matches) {
@@ -364,7 +426,8 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
                 filePath: filePath,
                 matchedHeading: matchedHeading,
                 matchedAlias: matchedAlias,
-                matchedTitle: matchedTitle
+                matchedTitle: matchedTitle,
+                frontmatter: frontmatter
             };
             
             return result;
@@ -377,7 +440,8 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
             filePath: filePath,
             matchedHeading: matchedHeading,
             matchedAlias: matchedAlias,
-            matchedTitle: matchedTitle
+            matchedTitle: matchedTitle,
+            frontmatter: frontmatter
         };
     }
 

@@ -50,6 +50,8 @@ const { DEFAULT_SETTINGS, HomeTabSettingTab } = load('../src/settings.ts', {
     obsidian: { PluginSettingTab: class { update() {} }, Platform: { isMobile: false } },
     './i18n': { t: () => en },
     './periodicNotes': { PERIOD_TYPES: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'], getAutoPeriodConfigs: () => ({}) },
+    './utils/searchRowOrder': load('../src/utils/searchRowOrder.ts'),
+    './utils/fileDisplayName': load('../src/utils/fileDisplayName.ts'),
 });
 assert.equal(DEFAULT_SETTINGS.particleEffectRecoveryDamping, 60);
 assert.equal(DEFAULT_SETTINGS.particleEffectDisturbFalloff, 0.8);
