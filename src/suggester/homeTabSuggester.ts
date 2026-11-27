@@ -11,11 +11,33 @@ import { get } from 'svelte/store'
 import HomeTabFileSuggestion from 'src/ui/svelteComponents/homeTabFileSuggestion.svelte'
 import { MatchAnalyzer } from 'src/utils/matchAnalyzer'
 import { isFileInFolderPath, parseFolderSearchQuery } from 'src/utils/folderSearchQuery'
+import { getFileDisplayName } from 'src/utils/fileDisplayName'
+import {
+    getFrontmatterFieldValues,
+    normalizeFrontmatterFields,
+    orderFrontmatterFields,
+    type FrontmatterFieldValue,
+} from 'src/utils/frontmatterFields'
+import { normalizeSearchRowOrder, type SearchRowKey } from 'src/utils/searchRowOrder'
 
 declare module 'obsidian'{
     interface MetadataCache{
         onCleanCache: (callback: () => void) => void
     }
+}
+
+export interface SearchDisplayProps {
+    nameToDisplay: string
+    filePath?: string
+    matchedHeading?: string
+    matchedAlias?: string
+    matchedTitle?: string
+    /** Extra secondary lines: the configured frontmatter fields, in display order. */
+    frontmatter?: FrontmatterFieldValue[]
+    /** Ordered row keys so the component can render secondary lines in the configured order. */
+    rowOrder?: SearchRowKey[]
+    /** Compatibility with the base class `Record<string, unknown>` contract. */
+    [key: string]: unknown
 }
 
 export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseResult<SearchFile>>{
@@ -309,11 +331,58 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         }
     }
 
-    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): {nameToDisplay: string, filePath?: string, matchedHeading?: string, matchedAlias?: string, matchedTitle?: string}{
+    getDisplayElementProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps {
+        const props = this.resolveDisplayProps(suggestion)
+        // A matched title/alias is already rendered on the main line or its own
+        // secondary row; the frontmatter rows must not repeat it.
+        if (props.matchedTitle) props.frontmatter = props.frontmatter?.filter(entry => entry.value !== props.matchedTitle)
+        if (props.matchedAlias) props.frontmatter = props.frontmatter?.filter(entry => entry.value !== props.matchedAlias)
+        const rowOrder = normalizeSearchRowOrder(this.plugin.settings.searchRowOrder)
+        if (props.frontmatter && props.frontmatter.length === 0) delete props.frontmatter
+        if (!props.frontmatter) {
+            const index = rowOrder.indexOf('frontmatter')
+            if (index >= 0) rowOrder.splice(index, 1)
+        }
+        if (!props.matchedAlias && !props.matchedTitle) {
+            const index = rowOrder.indexOf('alias')
+            if (index >= 0) rowOrder.splice(index, 1)
+        }
+        if (!props.matchedHeading) {
+            const index = rowOrder.indexOf('heading')
+            if (index >= 0) rowOrder.splice(index, 1)
+        }
+        props.rowOrder = rowOrder
+        return props
+    }
+
+    /**
+     * The frontmatter rows of the matched file, shown as secondary lines next
+     * to the file name. The fields follow the user-configured order; each
+     * configured field contributes its first usable value.
+     */
+    private resolveDocumentTitle(suggestion: Fuse.FuseResult<SearchFile>): FrontmatterFieldValue[] {
+        const fields = orderFrontmatterFields(normalizeFrontmatterFields(this.plugin.settings.searchRowFrontmatterFields))
+        if (fields.length === 0) return []
+        const file = suggestion.item.file
+        if (!file) return []
+        // The same value can be reached through several fields; render each
+        // distinct value only once (the keyed {#each} requires unique keys).
+        const seen = new Set<string>()
+        return getFrontmatterFieldValues(this.app, file, fields)
+            .filter(entry => {
+                if (entry.value === file.basename || entry.value === suggestion.item.basename) return false
+                if (seen.has(entry.value)) return false
+                seen.add(entry.value)
+                return true
+            })
+    }
+
+    private resolveDisplayProps(suggestion: Fuse.FuseResult<SearchFile>): SearchDisplayProps{
         if (!this.inputEl || !this.inputEl.instanceOf(HTMLInputElement)) {
             return {
                 nameToDisplay: suggestion.item.basename,
-                filePath: undefined
+                filePath: undefined,
+                frontmatter: this.resolveDocumentTitle(suggestion)
             };
         }
 
@@ -331,6 +400,7 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         let matchedHeading: string | undefined = undefined;
         let matchedAlias: string | undefined = undefined;
         let matchedTitle: string | undefined = undefined;
+        const frontmatter = this.resolveDocumentTitle(suggestion);
 
         if(this.plugin.settings.showPath){
             filePath = suggestion.item.file && suggestion.item.file.parent 
@@ -339,7 +409,7 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
         }
 
         const searchQuery = parseFolderSearchQuery(this.inputEl.value)?.query ?? this.inputEl.value.trim()
-        if (!searchQuery) return { nameToDisplay, filePath }
+        if (!searchQuery) return { nameToDisplay, filePath, frontmatter }
 
         // 使用智能匹配分析器分析匹配意图
         if (suggestion.matches) {
@@ -364,7 +434,8 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
                 filePath: filePath,
                 matchedHeading: matchedHeading,
                 matchedAlias: matchedAlias,
-                matchedTitle: matchedTitle
+                matchedTitle: matchedTitle,
+                frontmatter: frontmatter
             };
             
             return result;
@@ -377,7 +448,8 @@ export default class HomeTabFileSuggester extends TextInputSuggester<Fuse.FuseRe
             filePath: filePath,
             matchedHeading: matchedHeading,
             matchedAlias: matchedAlias,
-            matchedTitle: matchedTitle
+            matchedTitle: matchedTitle,
+            frontmatter: frontmatter
         };
     }
 

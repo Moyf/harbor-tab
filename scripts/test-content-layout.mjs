@@ -68,6 +68,10 @@ const en = load('../src/i18n/locales/en.ts').default;
 const { DEFAULT_SETTINGS, HomeTabSettingTab, normalizeParticleCanvasSettings } = load('../src/settings.ts', {
     obsidian: { PluginSettingTab: class { update() {} }, Platform: { isMobile: false } },
     './utils/contentSections': sections,
+    './utils/searchRowOrder': load('../src/utils/searchRowOrder.ts'),
+    './utils/fileDisplayName': load('../src/utils/fileDisplayName.ts'),
+    './utils/frontmatterFields': load('../src/utils/frontmatterFields.ts', { './fileDisplayName': load('../src/utils/fileDisplayName.ts') }),
+    './frontmatterFieldModal': { FrontmatterFieldModal: class {} },
     './i18n': { t: () => en },
     './periodicNotes': {
         PERIOD_TYPES: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],

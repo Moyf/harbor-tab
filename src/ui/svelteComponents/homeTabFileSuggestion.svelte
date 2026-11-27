@@ -1,7 +1,9 @@
 <script lang="ts">
     import type Fuse from 'fuse.js'
-	import { FilePlus, FileQuestion, Forward, Folder, Hash, Globe } from "lucide-svelte";
+    import { Circle, FilePlus, FileQuestion, Forward, Folder, Globe, Hash } from "lucide-svelte";
     import type { SearchFile } from "src/suggester/fuzzySearch";
+    import type { SearchRowKey } from "src/utils/searchRowOrder";
+    import { TITLE_FIELD, type FrontmatterFieldValue } from "src/utils/frontmatterFields";
 	import type { TextInputSuggester } from "src/suggester/suggester";
 	import Suggestion from './suggestion.svelte';
 
@@ -15,10 +17,40 @@
     export let matchedHeading: string | undefined = undefined
     export let matchedAlias: string | undefined = undefined
     export let matchedTitle: string | undefined = undefined
+    export let frontmatter: FrontmatterFieldValue[] | undefined = undefined
+    export let rowOrder: SearchRowKey[] | undefined = undefined
 
     // 使用智能响应式，只在 suggestion 对象引用变化时更新，避免闪烁
     let suggestionItem = suggestion.item
     $: if (suggestion) suggestionItem = suggestion.item
+
+    // 副行渲染顺序：按设置页配置的 rowOrder 循环；未配置时退回默认顺序
+    type SecondaryRow = { key: SearchRowKey, icon: typeof Circle, ariaLabel: string, text: string }
+    $: rows = (() => {
+        const result: SecondaryRow[] = []
+        const order: SearchRowKey[] = rowOrder ?? ['alias', 'frontmatter', 'heading']
+        const fallbackAlias = !matchedAlias && !matchedTitle && !matchedHeading
+            && !!suggestionItem.aliases?.includes(nameToDisplay)
+        for (const key of order) {
+            if (key === 'alias' && (matchedAlias || fallbackAlias)) {
+                result.push({ key, icon: Forward, ariaLabel: 'Matched alias', text: `Alias of ${suggestionItem.basename}` })
+            } else if (key === 'frontmatter' && frontmatter) {
+                for (const entry of frontmatter) {
+                    // The document title is a special frontmatter field: it keeps its own icon.
+                    const isTitle = entry.key === TITLE_FIELD
+                    result.push({
+                        key,
+                        icon: isTitle ? Hash : Circle,
+                        ariaLabel: isTitle ? 'Document title' : 'Frontmatter field',
+                        text: `${entry.key}: ${entry.value}`,
+                    })
+                }
+            } else if (key === 'heading' && matchedHeading) {
+                result.push({ key, icon: Hash, ariaLabel: 'Heading', text: matchedHeading })
+            }
+        }
+        return result
+    })()
 </script>
 
 <Suggestion {index} {textInputSuggester} {selectedItemIndex}
@@ -35,34 +67,14 @@
     <!-- File details -->
     <svelte:fragment slot="suggestion-extra-content">
         {#if suggestionItem.isCreated}
-            <!-- If the match is from an alias, show the actual filename -->
-            {#if matchedAlias}
-                <div class="home-tab-suggestion-description">
-                    <Forward size={15} aria-label={'Matched alias'}/>
-                    <span>Alias of {suggestionItem.basename}</span>
+            {#each rows as row (row.key + row.text)}
+                <div class="home-tab-suggestion-description home-tab-suggestion-doc-title">
+                    <span class="home-tab-suggestion-doc-title-icon">
+                        <row.icon size={15} aria-label={row.ariaLabel}/>
+                    </span>
+                    <span>{row.text}</span>
                 </div>
-            {/if}
-            <!-- If the match is from a title, show that it's a title match -->
-            {#if matchedTitle}
-                <div class="home-tab-suggestion-description">
-                    <Hash size={15} aria-label={'Document title'}/>
-                    <span>Title: {matchedTitle}</span>
-                </div>
-            {/if}
-            <!-- If the match is from a heading and will jump to it -->
-            {#if matchedHeading}
-                <div class="home-tab-suggestion-description">
-                    <Hash size={15} aria-label={'Heading'}/>
-                    <span>{matchedHeading}</span>
-                </div>
-            {/if}
-            <!-- Fallback: If the suggestion name is an alias but not matched as alias -->
-            {#if !matchedAlias && !matchedTitle && !matchedHeading && suggestionItem.aliases && suggestionItem.aliases?.includes(nameToDisplay)}
-                <div class="home-tab-suggestion-description">
-                    <Forward size={15} aria-label={'Alias of'}/>
-                    <span>{suggestionItem.basename}</span>
-                </div>
-            {/if}
+            {/each}
         {/if}
     </svelte:fragment>
     <svelte:fragment slot="suggestion-aux">

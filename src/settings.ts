@@ -17,6 +17,13 @@ import { t as getLocale } from './i18n'
 import type { SettingEntry } from './i18n/types'
 import ParticleSettingsPreview from './ui/particleSettingsPreview.svelte'
 import type { ContentSectionKey } from './utils/contentSections'
+import { SEARCH_ROW_KEYS, normalizeSearchRowOrder, type SearchRowKey } from './utils/searchRowOrder'
+import {
+    normalizeFrontmatterFields,
+    orderFrontmatterFields,
+    TITLE_FIELD,
+} from './utils/frontmatterFields'
+import { FrontmatterFieldModal } from './frontmatterFieldModal'
 
 type ColorChoices = 'default' | 'accentColor' | 'custom'
 type LogoChoices = 'default' | 'imagePath' | 'imageLink' | 'svgCode' | 'lucideIcon' | 'oldLogo' | 'none'
@@ -133,6 +140,8 @@ export interface HomeTabSettings extends ObjectKeys{
     unresolvedLinks: boolean
     searchTitle: boolean
     searchHeadings: boolean // 是否启用标题（heading）搜索
+    searchRowOrder: SearchRowKey[] // 搜索结果副行的显示顺序（包含全部行类型）
+    searchRowFrontmatterFields: string[] // 副行显示的 frontmatter 字段（顺序即显示顺序，title 为特殊字段）
     autoJumpToHeading?: boolean // 新增：标题匹配时自动跳转到 heading
     headingJumpStrategy?: 'never' | 'always' | 'smart' // 新增：标题跳转策略
     recentFilesStore: recentFileStore[]
@@ -267,6 +276,8 @@ export const DEFAULT_SETTINGS: HomeTabSettings = {
     unresolvedLinks: false,
     searchTitle: false,
     searchHeadings: true,
+    searchRowOrder: [...SEARCH_ROW_KEYS], // 新增：副行默认按 alias → frontmatter → heading 排列
+    searchRowFrontmatterFields: [TITLE_FIELD], // 新增：副行默认显示文档标题这一特殊 frontmatter 字段
     autoJumpToHeading: true, // 新增：标题匹配时自动跳转到 heading，默认开启
     headingJumpStrategy: 'smart', // 新增：默认使用智能跳转策略
     recentFilesStore: [],
@@ -317,6 +328,17 @@ export function normalizeVaultStatsSettings(settings: HomeTabSettings): void {
     settings.vaultStatsOrder = order
     settings.vaultStatsItems = (settings.vaultStatsItems ?? []).filter((key): key is VaultStatItemKey =>
         order.includes(key))
+}
+
+/**
+ * Keep the search secondary-row order complete: drop stale keys, append any
+ * missing row types in canonical order, and keep the frontmatter field list
+ * normalized with the document title first.
+ */
+export function normalizeSearchRowSettings(settings: HomeTabSettings): void {
+    settings.searchRowOrder = normalizeSearchRowOrder(settings.searchRowOrder)
+    settings.searchRowFrontmatterFields = orderFrontmatterFields(
+        normalizeFrontmatterFields(settings.searchRowFrontmatterFields))
 }
 
 /**
@@ -384,6 +406,8 @@ export class HomeTabSettingTab extends PluginSettingTab {
         'unresolvedLinks',
         'searchTitle',
         'searchHeadings',
+        'searchRowOrder',
+        'searchRowFrontmatterFields',
         'showPath',
         'showShortcuts',
         'searchDelay',
@@ -512,6 +536,28 @@ export class HomeTabSettingTab extends PluginSettingTab {
                                 desc: t.setting.searchTitle.desc,
                                 visible: searchVisible,
                                 control: { type: 'toggle', key: 'searchTitle' },
+                            },
+                            {
+                                // 副行显示哪些 frontmatter 字段：title 作为特殊字段可单独开关
+                                name: t.setting.searchRowFrontmatterFields.name,
+                                desc: t.setting.searchRowFrontmatterFields.desc,
+                                visible: searchVisible,
+                                render: (setting: Setting) => this.renderFrontmatterFields(setting, t),
+                            },
+                            {
+                                // 副行顺序：拖拽排序
+                                type: 'list',
+                                heading: t.group.searchRowOrder,
+                                visible: searchVisible,
+                                onReorder: (oldIndex, newIndex) => {
+                                    const order = normalizeSearchRowOrder(s.searchRowOrder)
+                                    const [moved] = order.splice(oldIndex, 1)
+                                    order.splice(newIndex, 0, moved)
+                                    s.searchRowOrder = order
+                                    void this.plugin.saveSettings()
+                                    this.update()
+                                },
+                                items: normalizeSearchRowOrder(s.searchRowOrder).map((key) => this.searchRowItemSetting(key, t, searchVisible)),
                             },
                             {
                                 type: 'group',
@@ -1618,6 +1664,36 @@ export class HomeTabSettingTab extends PluginSettingTab {
                         }))
             },
         }
+    }
+
+    // 搜索副行的设置行 —— 副行跟随匹配结果自动出现，没有单独的开关
+    private searchRowItemSetting(key: SearchRowKey, t: ReturnType<typeof getLocale>, searchVisible: () => boolean): SettingDefinition {
+        const name = key === 'alias' ? t.setting.searchRowAlias.name
+            : key === 'frontmatter' ? t.setting.searchRowFrontmatter.name
+            : t.setting.searchRowHeading.name
+        return { name, visible: searchVisible }
+    }
+
+    /**
+     * 打开 frontmatter 字段选择弹窗：库内已用字段 + 手动补充。
+     */
+    private renderFrontmatterFields(setting: Setting, t: ReturnType<typeof getLocale>): void {
+        const s = this.plugin.settings
+        const fields = orderFrontmatterFields(normalizeFrontmatterFields(s.searchRowFrontmatterFields))
+        setting.descEl.setText(fields.length > 0
+            ? fields.map(field => field === TITLE_FIELD ? `${field} · ${t.frontmatterFieldModal.titleField}` : field).join(', ')
+            : t.setting.searchRowFrontmatterFields.empty)
+        setting.addExtraButton((btn) => btn
+            .setIcon('list-plus')
+            .setTooltip(t.setting.searchRowFrontmatterFields.button)
+            .onClick(() => {
+                new FrontmatterFieldModal(this.app, fields, (selected) => {
+                    s.searchRowFrontmatterFields = orderFrontmatterFields(selected)
+                    void this.plugin.saveSettings()
+                    this.plugin.refreshOpenViews()
+                    this.update()
+                }).open()
+            }))
     }
 
     private vaultStatsItemName(key: VaultStatItemKey, t: ReturnType<typeof getLocale>): string {

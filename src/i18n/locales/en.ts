@@ -22,6 +22,24 @@ const en: BaseMessage = {
 		createFailed: 'Failed to create the note. Check the developer console for details.',
 		commandNotFound: 'The configured command is not available. Opening the create dialog instead.',
 		},
+
+	frontmatterFieldModal: {
+		title: 'Frontmatter fields',
+		titleField: 'Document title',
+		selected: 'Shown fields',
+		available: 'Available in this vault',
+		noSelection: 'No frontmatter fields are shown.',
+		noAvailable: 'No other frontmatter fields were found in this vault.',
+		add: 'Add',
+		addManually: 'Add a field manually',
+		addManuallyDesc: 'Adds a frontmatter field that is not used in this vault yet.',
+		fieldPlaceholder: 'Field name',
+		remove: 'Remove',
+		moveUp: 'Move up',
+		moveDown: 'Move down',
+		cancel: 'Cancel',
+		save: 'Save',
+	},
 	periodicNoteText: {
 		daily: 'Today',
 		weekly: 'This week',
@@ -56,6 +74,7 @@ const en: BaseMessage = {
 		particleCanvas: 'Canvas',
 		particleInteraction: 'Interaction',
 		vaultStatsItems: 'Items',
+		searchRowOrder: 'Search result secondary rows',
 		contentOrder: 'Display order',
 	},
 	page: {
@@ -132,6 +151,24 @@ const en: BaseMessage = {
 		searchHeadings: {
 			name: 'Search headings',
 			desc: 'Enable this to search through document headings (# Title).',
+		},
+		searchRowAlias: {
+			name: 'Alias rows',
+			desc: 'Alias matches: shows "Alias of {file name}" below the file name.',
+		},
+		searchRowFrontmatter: {
+			name: 'Frontmatter rows',
+			desc: 'Shows the selected frontmatter fields of the matched file below its file name.',
+		},
+		searchRowFrontmatterFields: {
+			name: 'Frontmatter fields',
+			desc: 'The frontmatter fields shown as secondary rows below the file name. The document title (title) is a special field and can be turned off.',
+			empty: 'No frontmatter fields are shown.',
+			button: 'Choose frontmatter fields',
+		},
+		searchRowHeading: {
+			name: 'Heading rows',
+			desc: 'Heading matches: shows the matched in-document heading below the file name.',
 		},
 		autoJumpToHeading: {
 			name: 'Jump to heading',

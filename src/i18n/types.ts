@@ -33,6 +33,24 @@ export interface BaseMessage {
 		createFailed: string
 		commandNotFound: string
 	}
+	/** Picker for the frontmatter fields shown as search secondary rows. */
+	frontmatterFieldModal: {
+		title: string
+		titleField: string
+		selected: string
+		available: string
+		noSelection: string
+		noAvailable: string
+		add: string
+		addManually: string
+		addManuallyDesc: string
+		fieldPlaceholder: string
+		remove: string
+		moveUp: string
+		moveDown: string
+		cancel: string
+		save: string
+	}
 	/** Fixed period text used by the "Period text" display-name mode */
 	periodicNoteText: {
 		daily: string
@@ -69,6 +87,7 @@ export interface BaseMessage {
 		particleCanvas: string
 		particleInteraction: string
 		vaultStatsItems: string
+		searchRowOrder: string
 		contentOrder: string
 	}
 	page: {
@@ -94,6 +113,10 @@ export interface BaseMessage {
 		unresolvedLinks: SettingEntry
 		searchTitle: SettingEntry
 		searchHeadings: SettingEntry
+		searchRowAlias: SettingEntry
+		searchRowFrontmatter: SettingEntry
+		searchRowHeading: SettingEntry
+		searchRowFrontmatterFields: SettingEntry & { empty: string, button: string }
 		autoJumpToHeading: SettingEntry
 		headingJumpStrategy: SettingEntry & { options: DropdownOptions }
 		showPath: SettingEntry
